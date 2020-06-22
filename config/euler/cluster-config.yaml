@@ -1,0 +1,21 @@
+__default__:
+    runtime: 10
+    cores: 1
+    memory: 16000
+    output: "build/logs/{rule}.{wildcards}.log"
+    name: "{rule}.{wildcards}"
+run_continental:
+    runtime: 5
+    memory: 1000
+run_national:
+    runtime: 60
+    cores: 6
+    memory: 6000
+aggregated_results:
+    runtime: 60
+xy:
+    runtime: 60
+test:
+    runtime: 60
+uncertainty_analysis:
+    runtime: 120

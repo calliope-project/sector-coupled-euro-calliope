@@ -1,0 +1,50 @@
+# generated files
+build/
+build-by-euler/
+data/
+land-eligibility
+euro-calliope
+
+## Core latex/pdflatex auxiliary files:
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+
+## Bibliography auxiliary files (bibtex/biblatex/biber):
+*.bbl
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.brf
+*.run.xml
+
+## Build tool auxiliary files:
+*.fdb_latexmk
+*.synctex
+*.synctex(busy)
+*.synctex.gz
+*.synctex.gz(busy)
+*.pdfsync
+
+# Python
+*.pyc
+build/
+dist/
+__pycache__
+*.egg-info
+.cache/
+notebooks/.ipynb_checkpoints/
+
+# Snakemake
+.snakemake/
+dag*.pdf
+report/report

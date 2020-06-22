@@ -1,0 +1,3 @@
+[submodule "euro-calliope"]
+	path = euro-calliope
+	url = git@github.com:timtroendle/euro-calliope.git

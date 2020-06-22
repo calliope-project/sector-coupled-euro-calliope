@@ -1,0 +1,13 @@
+name: plots
+channels:
+    - conda-forge
+dependencies:
+    - python=3.7
+    - numpy=1.17.2
+    - pandas=0.25.1
+    - xarray=0.14.1
+    - calliope=0.6.5
+    - cartopy
+    - geopandas=0.5.0
+    - matplotlib=3.1.2
+    - seaborn=0.10.0

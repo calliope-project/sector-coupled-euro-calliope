@@ -1,0 +1,61 @@
+import:
+    - '../interest-rate.yaml'
+    - '../renewable-techs.yaml'
+    - '../storage-techs.yaml'
+    - '../link-techs.yaml'
+    - './locations.yaml'
+    - './links.yaml'
+    - './directional-rooftop.yaml'
+    - './outer-countries.yaml'
+model:
+    name: 'EuroSPORES'
+    calliope_version: 0.6.5
+    timeseries_data_path: './'
+    subset_time: ['2016-01-01', '2016-12-31']
+run:
+    objective_options: {
+        'cost_class': {'monetary': 1},
+        'sense': 'minimize'
+    }
+    solver: gurobi
+    solver_io: python
+    mode: plan
+    solver_options:
+        Threads: 6
+        Method: 2 # use barrier, but do not run simplex in parallel
+        Crossover: 0 # stop after barrier, do not perform crossover
+        FeasibilityTol: 1e-3
+        OptimalityTol: 1e-4
+techs:
+    demand_elec:
+        essentials:
+            name: 'Electricity demand'
+            parent: demand
+            carrier: electricity
+        constraints:
+            resource: file=electricity-demand.csv
+overrides:
+    no-hydro-costs:
+        # Because we force all hydro to current levels, there
+        # should be annual O&M costs and variable costs only.
+        techs.pumped_hydro.costs.monetary.storage_cap: 0
+        techs.pumped_hydro.costs.monetary.energy_cap: 0
+        techs.hydro_run_of_river.costs.monetary.energy_cap: 0
+        techs.hydro_run_of_river.costs.monetary.om_con: 0
+        techs.hydro_reservoir.costs.monetary.storage_cap: 0
+        techs.hydro_reservoir.costs.monetary.energy_cap: 0
+        techs.hydro_reservoir.costs.monetary.om_con: 0
+    stylised-storage:
+        # Transform battery and hydrogen to stylised short term
+        # and long term storage solutions.
+        techs:
+            load_shedding.exists: False
+            battery:
+                constraints:
+                    energy_cap_per_storage_cap_min: 0.25 # max 4h full-power discharge
+                costs:
+                    monetary:
+                        om_prod: 0 # ASSUME 0 instead of 0.000378 €/kWh, as the tiny number causes numerical issues
+            hydrogen:
+                constraints:
+                    energy_cap_per_storage_cap_max: 0.25 # min 4h full-power discharge
