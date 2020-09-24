@@ -1,3 +1,5 @@
+URL_WHEN2HEAT = "https://github.com/oruhnau/when2heat"  # should this point to a commit hash?
+
 subworkflow landeligibility:
     workdir: "./land-eligibility"
     snakefile: "./land-eligibility/Snakefile"
@@ -24,42 +26,48 @@ subworkflow landeligibility:
 #    script: "src/construct/cop.py"
 
 
-rule annual_heat_demand_national:
-    message: "Calculate the contribution of each technology to heat demand at a national resolution."
+rule annual_heat_demand:
+    message: "Calculate national heat demand, normalised based on population"
     input:
-        population = "build/population_map.csv",
-        soil_temp = landeligibility("build/capacityfactors/tsoil5.nc"),
-        air_temp = landeligibility("build/capacityfactors/temperature.nc"),
-        annual_consumption = "build/annual_heat_consumption.csv"
+        hh_end_use = "data/automatic/hh_end_use.tsv.gz",
+        ch_end_use = "data/automatic/ch_hh_end_use.xlsx",
+        energy_balance = "build/annual_energy_balances.csv",
+        jrc_industry_end_use = "data/industry/JRC_IDEES_industry_end_use_consumption.csv",
+        jrc_commercial_end_use = "data/commercial/JRC_IDEES_commercial_end_use_consumption.csv"
+        carrier_names = "data/energy_balance_carrier_names.csv"
+        population = landeligibility("build/national/population.csv")
     params:
-        heat_tech_params = config['parameters']['heat-techs']
+        countries = config["scope"]["countries"],
+        heat_tech_params = config["parameters"]["heat-end-use"]
     conda: "../envs/default.yaml"
     output:
-        demand="build/annual_heat_demand.csv",
-    script: "src/construct/annual_heat_demand.py"
+        demand=temp("build/annual_heat_demand.csv"),
+        electricity=temp("build/annual_heat_electricity_consumption.csv"),
+    script: "../src/construct/annual_heat_demand.py"
 
 
-rule hourly_heat_demand_national:
-    message: "Calculate national heat demand at an hourly resolution."
-    input:
-        population = "build/population_map.csv",
-        soil_temp = landeligibility("build/capacityfactors/tsoil5.nc"),
-        air_temp = landeligibility("build/capacityfactors/temperature.nc"),
-        wind_10m = landeligibility("build/capacityfactors/wind_10m.nc"),
-        annual_demand = rules.annual_heat_demand_national.output,
-        dwellings = "data/automatic/dwellings.tsv.gz"  # update when2heat hardcoded SFH:MFH ratio
-    params: scaling_factor = config["scaling-factors"]["heat"]  # should this be here?
-    conda: "../envs/default.yaml"
-    output: "build/national-heat-demand.csv"
-    script: "src/construct/heat_demand.py"
+rule when2heat:
+    message: "Clone when2heat github repo"
+    output: "data/automatic/when2heat/"
+    shell:
+        "git clone {URL_WHEN2HEAT} {output}"
 
 
-rule heat_demand:
+rule hourly_heat_demand:  # TODO: how to handle cooking demand? TODO: scale demand from TWh to whatever 'scaling factor' expects
     message: "Calculate {wildcard.resolution} heat demand at an hourly resolution."
     input:
-        heat_demand = rules.hourly_heat_demand_national.output,
-        population = landeligibility('build/{resolution}/population.csv')
-    params: scaling_factor = config["scaling-factors"]["heat"]
+        population = landeligibility("build/population-europe.tif"),
+        units = landeligibility("build/{resolution}/units.geojson"),
+        air_temp = "data/weather/temperature.nc",
+        wind_10m = "data/weather/wind10m.nc",
+        annual_demand = rules.annual_heat_demand.output.demand,
+        when2heat = "data/automatic/when2heat/",
+        dwellings = "data/automatic/dwellings.tsv.gz"
+    params:
+        scaling_factor = config["scaling-factors"]["heat"],  # should this be here?
+        model_year = config["year"]
     conda: "../envs/default.yaml"
-    output: "build/model/{resolution}/heat-demand.csv"
-    script: "src/construct/heat_demand.py"
+    output:
+        space_heating="build/model/{resolution}/space-heat-demand.csv",
+        water_heating="build/model/{resolution}/water-heat-demand.csv"
+    script: "../src/construct/hourly_heat_demand.py"

@@ -1,6 +1,7 @@
-
 import pycountry
 import pandas as pd
+import pytz
+import numpy as np
 
 def get_alpha2(country, eurostat=True):
     if country in ["United Kingdom", "GB", "GBR"] and eurostat is True:
@@ -20,9 +21,45 @@ def get_alpha3(country):
 
 
 def to_numeric(series):
+    series = series.astype(str).str.extract('(\-*\d+\.*\d*)')[0]
     return pd.to_numeric(series, errors='coerce')
 
 
+def pj_to_twh(array):
+    return array / 3.6
+
+
 def tj_to_twh(array):
-    array /= 3600
-    return array
+    return pj_to_twh(array) * 1e-3
+
+
+def ktoe_to_twh(array):
+    return array * 1.163e-2
+
+
+def update_timeseries_timezone(x, country, model_year):
+    """
+    Shift a generic profile forward/backward in time based on a country's timezone
+    """
+    if country == 'UK':
+        country = 'GB'
+    elif country == 'EL':
+        country = 'GR'
+    tz = pytz.country_timezones[country][0]
+    try:
+        idx = x.index.tz_localize(tz, nonexistent='shift_forward').tz_convert('UTC')
+    except pytz.AmbiguousTimeError as err:
+        idx = x.index.tz_localize(
+            tz, ambiguous=x.index != err.args[0], nonexistent='shift_forward'
+        ).tz_convert('UTC')
+    shift = len(idx[idx.year > model_year]) - len(idx[idx.year < model_year])
+
+    x = np.roll(x, shift=shift)
+
+    return x
+
+
+def read_tdf(filename):
+    df = pd.read_csv(filename, header=0)
+    tdf = df.set_index([i for i in df.columns[:-1]]).squeeze()
+    return tdf

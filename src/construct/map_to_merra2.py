@@ -1,3 +1,5 @@
+import math
+
 import geopandas as gpd
 import pandas as pd
 import xarray as xr
@@ -6,7 +8,7 @@ import rasterio
 
 EPSG_3035_PROJ4 = "+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +units=m +no_defs "
 WGS84 = "EPSG:4326"
-
+OUTPUT_DRIVER = "GeoJSON"
 
 def map_to_merra2(population, air_temp, units, temperature_threshold, out_path):
     # Get population per merra-2 site id and country
@@ -40,21 +42,22 @@ def map_to_merra2(population, air_temp, units, temperature_threshold, out_path):
         pop_eu = zonal_stats(europe_shape.to_crs(crs), array, affine=affine, stats='sum', nodata=0)
         europe_shape['population'] = [i['sum'] for i in pop_eu]
 
-    sig_fig = lambda i: f'{float(f"{i:.4g}"):g}'
-    assert (
-        sig_fig(polys_eu['population'].sum()) ==
-        sig_fig(europe_shape['population'].sum())
+    assert math.isclose(
+        europe_shape.population.sum(), polys_eu.population.sum(), abs_tol=10**3
     )
-    pop_polys_with_hdd = pd.concat(
-        [polys_eu.set_index('site')[['country_code', 'population']], annual_hdd],
-        axis=1
+
+    pop_polys_with_hdd = (
+        polys_eu.set_index('site')
+        .merge(annual_hdd, left_index=True, right_index=True)
+        .drop(columns=['name', 'type', 'proper'])
     )
-    pop_polys_with_hdd.to_csv(out_path)
+    pop_polys_with_hdd.to_file(out_path, driver=OUTPUT_DRIVER)
 
 
 def get_hdd(air_temp, temperature_threshold):
-    hdh = air_temp - temperature_threshold  # hdh = heating degree hour
-    hdd = hdh.where(hdh >= 0, other=0) / 24  # div by 24 for heating degree hour -> heating degree day
+    average_daily_air_temp = air_temp.resample(time='1D').mean('time')
+    hdd = temperature_threshold - average_daily_air_temp
+    hdd = hdd.where(hdd >= 0, other=0)
 
     annual_hdd = hdd.groupby('time.year').sum('time').to_pandas()
 
