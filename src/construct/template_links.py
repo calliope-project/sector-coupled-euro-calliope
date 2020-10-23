@@ -1,4 +1,5 @@
 import jinja2
+import numpy as np
 import pandas as pd
 import pycountry
 
@@ -6,16 +7,16 @@ TEMPLATE = """
 links:
     {% for row_id, row in gtcs.iterrows() %}
     {{ row.Link_from }},{{ row.Link_to }}.techs:
-    {%- if row.ac > 0 %}
+    {% if row.ac > 0 %}
         ac_transmission:
             constraints:
                 energy_cap_equals: {{ row.ac }} # [{{ pow_scaling_factor }} MW]
-    {%- endif -%}
+    {% endif %}
     {% if row.dc > 0 %}
         dc_transmission:
             constraints:
                 energy_cap_equals: {{ row.dc }} # [{{ pow_scaling_factor }} MW]
-    {%- endif -%}
+    {% endif %}
     {% endfor %}
 """
 COUNTRY_CODE_COLUMN = "country_code"
@@ -25,7 +26,9 @@ COUNTRY_CODE_COLUMN = "country_code"
 def generate_links(path_to_gtc, scaling_factor, path_to_result, resolution):
     """Generate a file that represents links in Calliope."""
     gtcs = _read_gtcs(path_to_gtc, scaling_factor, resolution)
-    links = jinja2.Template(TEMPLATE).render(
+
+    template = jinja2.Environment(lstrip_blocks=True, trim_blocks=True).from_string(TEMPLATE)
+    links = template.render(
         gtcs=gtcs,
         pow_scaling_factor=1 / scaling_factor
     )
@@ -58,7 +61,7 @@ def _read_gtcs(path_to_gtc, scaling_factor, resolution):
     # Remove reference to internal links
     gtcs = gtcs.loc[gtcs.index.get_level_values(0) != gtcs.index.get_level_values(1)]
     gtcs
-    return gtcs.astype(pd.np.float32).mul(scaling_factor).reset_index()
+    return gtcs.astype(np.float32).mul(scaling_factor).reset_index()
 
 
 if __name__ == "__main__":

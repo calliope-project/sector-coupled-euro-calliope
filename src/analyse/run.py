@@ -1,5 +1,7 @@
 import calliope
 
+calliope.set_log_verbosity()
+
 
 def build_model(model_yaml_path, output_model_path, scenario, run):
     if run is False:

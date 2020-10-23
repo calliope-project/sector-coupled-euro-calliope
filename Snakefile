@@ -23,9 +23,7 @@ rule all:
     message: "Prepare EuroSPORES model runs."
     input:
         "run_scripts/eurospores.sh",
-        "run_scripts/national.sh",
-        "inputs/eurospores/map.pdf",
-        "inputs/national/map.pdf"
+        "inputs/eurospores/map.pdf"
 
 
 rule make_runs:

@@ -3,13 +3,20 @@ import:
     - '../renewable-techs.yaml'
     - '../storage-techs.yaml'
     - '../link-techs.yaml'
+    - '../heat-techs.yaml'
+    - '../transformation-techs.yaml'
+    - '../transport-techs.yaml'
+    - '../demand-techs.yaml'
     - './locations.yaml'
     - './links.yaml'
     - './directional-rooftop.yaml'
     - './outer-countries.yaml'
+    - './vehicle_group_constraints.yaml'
+    - './heat_group_constraints.yaml'
+    - './fuel_group_constraints.yaml'
 model:
     name: 'EuroSPORES'
-    calliope_version: 0.6.5
+    calliope_version: 0.6.6
     timeseries_data_path: './'
     subset_time: ['2016-01-01', '2016-12-31']
 run:
@@ -26,14 +33,7 @@ run:
         Crossover: 0 # stop after barrier, do not perform crossover
         FeasibilityTol: 1e-3
         OptimalityTol: 1e-4
-techs:
-    demand_elec:
-        essentials:
-            name: 'Electricity demand'
-            parent: demand
-            carrier: electricity
-        constraints:
-            resource: file=electricity-demand.csv
+
 overrides:
     no-hydro-costs:
         # Because we force all hydro to current levels, there

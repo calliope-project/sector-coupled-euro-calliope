@@ -16,23 +16,30 @@ CARRIERS = {
 
 
 def get_transport_demand(
-    path_to_energy_balances, path_to_jrc_road_energy, path_to_jrc_road_distance,
-    path_to_jrc_rail_energy, path_to_jrc_rail_distance, path_to_distance_output,
-    path_to_efficiency_output, path_to_rail_energy_output, path_to_air_energy_output,
-    path_to_marine_energy_output, path_to_road_bau_electricity, path_to_rail_bau_electricity
+    energy_balances_path, jrc_road_energy_path, jrc_road_distance_path, jrc_road_vehicles_path,
+    jrc_rail_energy_path, jrc_rail_distance_path, road_distance_out_path, road_vehicles_out_path,
+    road_efficiency_out_path, rail_energy_out_path, air_energy_out_path,
+    marine_energy_out_path, road_bau_electricity_out_path, rail_bau_electricity_out_path
 ):
-    energy_balances = util.read_tdf(path_to_energy_balances)
-    road_energy_df = util.read_tdf(path_to_jrc_road_energy)
-    road_distance_df = util.read_tdf(path_to_jrc_road_distance)
-    rail_energy_df = util.read_tdf(path_to_jrc_rail_energy)
-    rail_distance_df = util.read_tdf(path_to_jrc_rail_distance)
+    energy_balances = util.read_tdf(energy_balances_path)
+    road_energy_df = util.read_tdf(jrc_road_energy_path)
+    road_distance_df = util.read_tdf(jrc_road_distance_path)
+    road_vehicles_df = util.read_tdf(jrc_road_vehicles_path)
+    rail_energy_df = util.read_tdf(jrc_rail_energy_path)
+    rail_distance_df = util.read_tdf(jrc_rail_distance_path)
 
     total_road_distance, road_efficiency, road_bau_consumption = get_all_distance_efficiency(
         energy_balances, 'FC_TRA_ROAD_E', road_energy_df, road_distance_df, 'vehicle_subtype'
     )
+    total_road_vehicles, total_road_distance = get_all_vehicles(
+        road_distance_df, road_vehicles_df, total_road_distance
+    )
     # Some cleanup that's specific to road data
     road_efficiency = (
-        road_efficiency
+        # 25th percentile of 2015 efficiency in TWh/mio km
+        (1 / road_efficiency.xs(2015, level='year'))
+        .unstack(['vehicle_type', 'vehicle_subtype'])
+        .quantile(EFFICIENCY_QUANTILE)
         .unstack(0)
         .groupby({
             'Diesel oil engine': 'diesel',
@@ -50,18 +57,18 @@ def get_transport_demand(
         .sum(level=['carrier', 'vehicle_type', 'country_code', 'year', 'unit'])
         .xs('electricity')
     )
-
     total_rail_distance, rail_efficiency, rail_bau_consumption = get_all_distance_efficiency(
         energy_balances, 'FC_TRA_RAIL_E', rail_energy_df, rail_distance_df, 'carrier'
     )
     # Some cleanup that's specific to rail data
     rail_energy = (
-        total_rail_distance.mul(
-            rail_efficiency.xs('electricity', level='carrier'),
-            axis=0, level='vehicle_type'
-        )
-        .sum(level=['vehicle_type', 'country_code'])
-        .stack('year')
+        # historical energy consumption -> historical distance
+        rail_bau_consumption.droplevel('unit')
+        .mul(rail_efficiency.droplevel('unit'))    # efficiency = distance/energy
+        .sum(level=['vehicle_type', 'section', 'country_code', 'year'])
+        # historical distance -> total electricity demand
+        .div(rail_efficiency.xs('electricity', level='carrier').droplevel('unit'))
+        .sum(level=['vehicle_type', 'country_code', 'year'])
         .to_frame('twh')
         .rename_axis(columns='unit')
         .stack()
@@ -71,6 +78,13 @@ def get_transport_demand(
         .sum(level=['carrier', 'section', 'country_code', 'year', 'unit'])
         .xs('electricity')
     )
+    # High speed and metro are all electrified, so bau_electricity == eurocalliope_electricity
+    assert abs(
+        (rail_energy - rail_bau_consumption.xs('electricity', level='carrier'))
+        [['High speed passenger trains', 'Metro and tram, urban light rail']]
+    ).max() < 1e-10
+
+    # Air and shipping energy
     air_energy = (
         energy_balances
         .loc[['FC_TRA_DAVI_E', 'INTAVI']]
@@ -94,13 +108,14 @@ def get_transport_demand(
         .stack()
     )
 
-    total_road_distance.stack('year').to_csv(path_to_distance_output)
-    road_efficiency.to_csv(path_to_efficiency_output)
-    rail_energy.to_csv(path_to_rail_energy_output)
-    air_energy.to_csv(path_to_air_energy_output)
-    marine_energy.to_csv(path_to_marine_energy_output)
-    road_electricity_bau.to_csv(path_to_road_bau_electricity)
-    rail_electricity_bau.to_csv(path_to_rail_bau_electricity)
+    total_road_distance.to_csv(road_distance_out_path)
+    total_road_vehicles.to_csv(road_vehicles_out_path)
+    road_efficiency.to_csv(road_efficiency_out_path)
+    rail_energy.to_csv(rail_energy_out_path)
+    air_energy.to_csv(air_energy_out_path)
+    marine_energy.to_csv(marine_energy_out_path)
+    road_electricity_bau.to_csv(road_bau_electricity_out_path)
+    rail_electricity_bau.to_csv(rail_bau_electricity_out_path)
 
 
 def get_all_distance_efficiency(
@@ -161,17 +176,30 @@ def get_all_distance_efficiency(
     total_transport_distance = (
         aligned_dfs[1]
         .fillna(aligned_dfs[0])
-        .sum(level=['vehicle_type', 'country_code', 'unit', 'year'])
-        .unstack()
-    )
-    # 25th percentile of 2015 efficiency in TWh/mio km
-    transport_efficiency = (
-        (1 / transport_efficiency.xs(2015, level='year'))
-        .unstack(['vehicle_type', unique_dim])
-        .quantile(EFFICIENCY_QUANTILE)
+        .sum(level=['vehicle_type', unique_dim, 'country_code', 'unit', 'year'])
     )
 
     return total_transport_distance, transport_efficiency, transport_energy_per_mode
+
+
+def get_all_vehicles(jrc_road_distance, jrc_road_vehicles, total_road_distance):
+    total_vehicle_distance = fill_missing_countries_and_years(
+        jrc_road_vehicles
+        .droplevel('unit')
+        .div(jrc_road_distance.droplevel('unit'))
+    )
+    total_road_vehicles = total_road_distance.mul(
+        total_vehicle_distance
+        .mean(level=['vehicle_type', 'vehicle_subtype', 'country_code', 'year'])
+    )
+    total_road_distance = total_road_distance.sum(
+        level=['vehicle_type', 'country_code', 'unit', 'year']
+    )
+    total_road_vehicles = total_road_vehicles.sum(
+        level=['vehicle_type', 'country_code', 'unit', 'year']
+    ).rename({'mio_km': 'vehicles'}, level='unit')
+
+    return total_road_vehicles, total_road_distance
 
 
 def fill_missing_countries_and_years(jrc_data):
@@ -198,16 +226,18 @@ def fill_missing_countries_and_years(jrc_data):
 
 if __name__ == "__main__":
     get_transport_demand(
-        path_to_energy_balances=snakemake.input.energy_balances,
-        path_to_jrc_road_energy=snakemake.input.jrc_road_energy,
-        path_to_jrc_road_distance=snakemake.input.jrc_road_distance,
-        path_to_jrc_rail_energy=snakemake.input.jrc_rail_energy,
-        path_to_jrc_rail_distance=snakemake.input.jrc_rail_distance,
-        path_to_distance_output=snakemake.output.distance,
-        path_to_efficiency_output=snakemake.output.efficiency,
-        path_to_rail_energy_output=snakemake.output.rail_energy,
-        path_to_air_energy_output=snakemake.output.air_energy,
-        path_to_marine_energy_output=snakemake.output.marine_energy,
-        path_to_road_bau_electricity=snakemake.output.road_bau_electricity,
-        path_to_rail_bau_electricity=snakemake.output.rail_bau_electricity,
+        energy_balances_path=snakemake.input.energy_balances,
+        jrc_road_energy_path=snakemake.input.jrc_road_energy,
+        jrc_road_distance_path=snakemake.input.jrc_road_distance,
+        jrc_road_vehicles_path=snakemake.input.jrc_road_vehicles,
+        jrc_rail_energy_path=snakemake.input.jrc_rail_energy,
+        jrc_rail_distance_path=snakemake.input.jrc_rail_distance,
+        road_distance_out_path=snakemake.output.distance,
+        road_vehicles_out_path=snakemake.output.vehicles,
+        road_efficiency_out_path=snakemake.output.efficiency,
+        rail_energy_out_path=snakemake.output.rail_energy,
+        air_energy_out_path=snakemake.output.air_energy,
+        marine_energy_out_path=snakemake.output.marine_energy,
+        road_bau_electricity_out_path=snakemake.output.road_bau_electricity,
+        rail_bau_electricity_out_path=snakemake.output.rail_bau_electricity,
     )

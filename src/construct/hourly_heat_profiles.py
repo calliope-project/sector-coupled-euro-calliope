@@ -22,7 +22,7 @@ WGS84 = "EPSG:4326"
 idx = pd.IndexSlice
 
 
-def get_heat_demand(
+def get_heat_profiles(
     population, units, air_temp, wind_10m, model_year, when2heat_path,
     out_path_sh, out_path_wh
 ):
@@ -157,7 +157,7 @@ def _map_pop_to_weather(population, coords, units):
         units.population.sum(), polys_eu.population.sum(), abs_tol=10**3
     )
 
-    return polys_eu.set_index('site').drop(columns=['name', 'type', 'proper'])
+    return polys_eu.set_index('site').drop(columns=['name', 'type', 'proper'], errors='ignore')
 
 
 def _prep_weather_data(dataarray, model_year, mapped_pop):
@@ -181,11 +181,11 @@ def regional_profiles(hourly_space, hourly_water, mapped_pop):
     site_pop = mapped_pop.set_index(['latitude', 'longitude']).population
 
     def _wavg(x):
-        weighted_avg = np.average(
-            x,
-            weights=site_pop.reindex(x.droplevel((0, 1), axis=1).columns).fillna(0),
-            axis=1
-        )
+        weights = site_pop.reindex(x.droplevel((0, 1), axis=1).columns).fillna(0)
+        if weights.sum() == 0:
+            weighted_avg = 0
+        else:
+            weighted_avg = np.average(x, weights=weights, axis=1)
         return pd.Series(data=weighted_avg, index=x.index)
 
     regional_results = []
@@ -198,13 +198,13 @@ def regional_profiles(hourly_space, hourly_water, mapped_pop):
 
 
 if __name__ == "__main__":
-    get_heat_demand(
+    get_heat_profiles(
         population=snakemake.input.population,
         units=snakemake.input.units,
         air_temp=snakemake.input.air_temp,
         wind_10m=snakemake.input.wind_10m,
         model_year=snakemake.params.model_year,
         when2heat_path=snakemake.input.when2heat,
-        out_path_sh=snakemake.output.space_heating,
-        out_path_wh=snakemake.output.water_heating
+        out_path_sh=snakemake.output.space_heat,
+        out_path_wh=snakemake.output.water_heat
     )

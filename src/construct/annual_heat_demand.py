@@ -4,8 +4,8 @@ import util
 
 END_USE_CAT_NAMES = {
     'FC_OTH_HH_E_CK': 'cooking',
-    'FC_OTH_HH_E_SH': 'space_heating',
-    'FC_OTH_HH_E_WH': 'water_heating'
+    'FC_OTH_HH_E_SH': 'space_heat',
+    'FC_OTH_HH_E_WH': 'water_heat'
 }
 
 CH_ENERGY_CARRIER_TRANSLATION = {
@@ -24,9 +24,9 @@ CH_ENERGY_CARRIER_TRANSLATION = {
 }
 
 CH_HH_END_USE_TRANSLATION = {
-    'Raumwärme': 'space_heating',
-    'Warmwasser': 'water_heating',
-    'Prozesswärme': 'process_heating',
+    'Raumwärme': 'space_heat',
+    'Warmwasser': 'water_heat',
+    'Prozesswärme': 'process_heat',
     'Beleuchtung': 'end_use_electricity',
     'Klima, Lüftung, HT': 'end_use_electricity',
     'I&K, Unterhaltung': 'end_use_electricity',
@@ -189,7 +189,7 @@ def ch_hh_consumption(ch_end_use):
     ch_hh_end_use_df = (
         pd.concat(
             [ch_hh_end_use_df_sh, ch_hh_end_use_df_hw, ch_hh_end_use_df_c],
-            keys=('space_heating', 'water_heating', 'cooking'),
+            keys=('space_heat', 'water_heat', 'cooking'),
             names=['cat_name', 'carrier_name']
         )
         .assign(country_code='CHE')
@@ -269,12 +269,12 @@ def get_commercial_energy_consumption(
     # Add Swiss data and ambient heat from heat pumps
     mapped_end_uses = (
         mapped_end_uses
-        .append(ch_con_fuel.rename({'process_heating': 'cooking'}).reorder_levels(mapped_end_uses.index.names))
-        .append(ch_con_elec.rename({'process_heating': 'cooking'}).reorder_levels(mapped_end_uses.index.names))
+        .append(ch_con_fuel.rename({'process_heat': 'cooking'}).reorder_levels(mapped_end_uses.index.names))
+        .append(ch_con_elec.rename({'process_heat': 'cooking'}).reorder_levels(mapped_end_uses.index.names))
         .append(
             energy_balance  # JRC data only refers to heat pumps for heating in space heating
             .loc[['ambient_heat']]
-            .assign(end_use='space_heating')
+            .assign(end_use='space_heat')
             .set_index('end_use', append=True)
             .stack()
             .reorder_levels(mapped_end_uses.index.names)
@@ -413,16 +413,16 @@ def get_national_heat_demand(annual_consumption, energy_balance_dfs, heat_tech_p
     """
     def efficiencies(end_use):
         return pd.Series({
-            'biogas': heat_tech_params[f'{end_use}-techs'].get('gas_eff', 1),
-            'biofuel': heat_tech_params[f'{end_use}-techs'].get('biofuel_eff', 1),
-            'solid_fossil': heat_tech_params[f'{end_use}-techs'].get('solid_fossil_eff', 1),
-            'natural_gas': heat_tech_params[f'{end_use}-techs'].get('gas_eff', 1),
-            'manufactured_gas': heat_tech_params[f'{end_use}-techs'].get('gas_eff', 1),
-            'oil': heat_tech_params[f'{end_use}-techs'].get('oil_eff', 1),
-            'solar_thermal': heat_tech_params[f'{end_use}-techs'].get('solar_thermal_eff', 1),
-            'renewable_heat': heat_tech_params[f'{end_use}-techs'].get('solar_thermal_eff', 1),
+            'biogas': heat_tech_params[f'{end_use}_techs'].get('gas_eff', 1),
+            'biofuel': heat_tech_params[f'{end_use}_techs'].get('biofuel_eff', 1),
+            'solid_fossil': heat_tech_params[f'{end_use}_techs'].get('solid_fossil_eff', 1),
+            'natural_gas': heat_tech_params[f'{end_use}_techs'].get('gas_eff', 1),
+            'manufactured_gas': heat_tech_params[f'{end_use}_techs'].get('gas_eff', 1),
+            'oil': heat_tech_params[f'{end_use}_techs'].get('oil_eff', 1),
+            'solar_thermal': heat_tech_params[f'{end_use}_techs'].get('solar_thermal_eff', 1),
+            'renewable_heat': heat_tech_params[f'{end_use}_techs'].get('solar_thermal_eff', 1),
+            'electricity': heat_tech_params[f'{end_use}_techs'].get('electricity_eff', 1),
             'direct_electric': 1,  # don't need to deal with heat pump COP if direct electric is 100% efficient
-            'electricity': 1,  # don't need to deal with heat pump COP if direct electric is 100% efficient
             'heat': 1,
             # heat demand met by heat pumps = heat pump electricity + ambient heat
             'heat_pump': 1,
@@ -431,10 +431,10 @@ def get_national_heat_demand(annual_consumption, energy_balance_dfs, heat_tech_p
 
     # Convert end use consumption data to demand
     demands = []
-    for end_use in ['space_heating', 'water_heating', 'cooking']:
+    for end_use in ['space_heat', 'water_heat', 'cooking']:
         demands.append(
             annual_consumption.loc[[end_use]]
-            .mul(efficiencies(end_use.replace('_', '-')), level='carrier_name', axis=0)
+            .mul(efficiencies(end_use), level='carrier_name', axis=0)
             .sum(level=['end_use', 'country_code', 'cat_name'])
         )
 

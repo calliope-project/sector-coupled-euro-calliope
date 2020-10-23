@@ -24,6 +24,7 @@ COLORS = {
     'eu_bg': '#add8e6', 'outer_bg': '#DCDCDC'
 }
 
+
 def plot_system(path_to_model, path_to_units, path_to_output):
     gdf = gpd.read_file(path_to_units)
 

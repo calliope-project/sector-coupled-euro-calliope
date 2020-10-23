@@ -1,4 +1,5 @@
 import jinja2
+import numpy as np
 import pandas as pd
 import pycountry
 
@@ -81,7 +82,7 @@ def _read_gtcs(path_to_gtc, scaling_factors, resolution):
         .groupby(['Link_from', 'Link_to']).sum()
     ).rename(columns={"100% RES": 'ac'})
     # Remove reference to internal links
-    gtcs = gtcs.loc[gtcs.index.get_level_values(0) != gtcs.index.get_level_values(1)].astype(pd.np.float32)
+    gtcs = gtcs.loc[gtcs.index.get_level_values(0) != gtcs.index.get_level_values(1)].astype(np.float32)
 
     gtcs['ac'] = gtcs['ac'].mul(scaling_factors['power'])
     gtcs['Length'] = gtcs['Length'].mul(scaling_factors['distance'])

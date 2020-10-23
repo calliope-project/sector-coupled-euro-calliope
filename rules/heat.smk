@@ -68,6 +68,6 @@ rule hourly_heat_demand:  # TODO: how to handle cooking demand? TODO: scale dema
         model_year = config["year"]
     conda: "../envs/default.yaml"
     output:
-        space_heating="build/model/{resolution}/space-heat-demand.csv",
-        water_heating="build/model/{resolution}/water-heat-demand.csv"
+        space_heat="build/model/{resolution}/space-heat-demand.csv",
+        water_heat="build/model/{resolution}/water-heat-demand.csv"
     script: "../src/construct/hourly_heat_demand.py"

@@ -18,6 +18,10 @@ def get_heat_demand(
     Take annual demand per region and use it to scale hourly profiles
     (generated from When2Heat for water heating and space heating, RAMP-cooking for cooking).
     """
+    sh_key = sh_key.replace("-", "_")
+    wh_key = wh_key.replace("-", "_")
+    c_key = c_key.replace("-", "_")
+
     units_gdf = gpd.read_file(units)
 
     annual_demand_df = util.read_tdf(annual_demand)
@@ -38,8 +42,8 @@ def get_heat_demand(
         model_year, sh_key, wh_key
     )
     # Add industry space heating demand as a flat demand in all hours
-    if sh_key == 'space_heating':
-        industry_space_heat = annual_demand_df.loc[('industry_demand', 'industry')].unstack()['space_heating']
+    if sh_key == 'space_heat':
+        industry_space_heat = annual_demand_df.loc[('industry_demand', 'industry')].unstack()['space_heat']
         scaled_hourly_space -= industry_space_heat.div(len(scaled_hourly_space.index))
 
     # Get cooking profiles using a different dataset (RAMP-cooking output)
@@ -193,10 +197,10 @@ if __name__ == "__main__":
         path_to_c_profiles=snakemake.input.cooking_profiles,
         nuts_to_regions=snakemake.input.nuts_to_regions,
         model_year=snakemake.params.model_year,
-        sh_key=snakemake.params.space_heating_key,
-        wh_key=snakemake.params.water_heating_key,
+        sh_key=snakemake.params.space_heat_key,
+        wh_key=snakemake.params.water_heat_key,
         c_key=snakemake.params.cooking_key,
-        out_path_sh=snakemake.output.space_heating,
-        out_path_wh=snakemake.output.water_heating,
+        out_path_sh=snakemake.output.space_heat,
+        out_path_wh=snakemake.output.water_heat,
         out_path_c=snakemake.output.cooking,
     )

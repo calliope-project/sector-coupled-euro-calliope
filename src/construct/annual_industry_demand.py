@@ -33,14 +33,14 @@ def get_industry_demand(
     nat_gas_consumption = (
         get_carrier_demand('Natural gas (incl. biogas)', demand, energy_df)
         .drop(electrical_consumption.droplevel('carrier').index, errors='ignore')
-        .assign(carrier='natural_gas').set_index('carrier', append=True)
+        .assign(carrier='methane').set_index('carrier', append=True)
     )
     # If it can only be met by diesel (backup generators) then it's oil
     diesel_consumption = (
         get_carrier_demand('Diesel oil (incl. biofuels)', demand, energy_df)
         .drop(nat_gas_consumption.droplevel('carrier').index, errors='ignore')
         .drop(electrical_consumption.droplevel('carrier').index, errors='ignore')
-        .assign(carrier='oil').set_index('carrier', append=True)
+        .assign(carrier='diesel').set_index('carrier', append=True)
     )
 
     steel_energy_consumption = get_steel_energy_consumption(energy_df, prod_df)
@@ -59,7 +59,7 @@ def get_industry_demand(
         .drop(['Iron and steel', 'Chemicals Industry'], level='cat_name')
         .xs('Low enthalpy heat', level='subsection')
         .sum(level=['cat_name', 'country_code', 'unit'])
-        .assign(carrier='space_heating').set_index('carrier', append=True)
+        .assign(carrier='space_heat').set_index('carrier', append=True)
     )
 
     all_consumption = pd.concat([
@@ -221,7 +221,7 @@ def get_steel_energy_consumption(energy_df, prod_df):
         energy_df
         .xs(('demand', 'Electric arc', 'Low enthalpy heat'))
         .div(prod_df.xs('Electric arc').droplevel('unit'))
-        .assign(carrier='space_heating').set_index('carrier', append=True)
+        .assign(carrier='space_heat').set_index('carrier', append=True)
         .sum(level=total_specific_consumption.index.names)
     )
     space_heat_specific_demand.index = space_heat_specific_demand.index.set_levels(['ktoe/kt'], level='unit')
@@ -247,7 +247,7 @@ def get_chem_energy_consumption(electrical_consumption, prod_df, demand):
         .sum(level=['country_code', 'unit', 'carrier'])
     )
 
-    h2_demand = {  # kg/t
+    h2_demand = {  # t/t
         'Ethylene': 0,
         'Propylene': 0,
         'BTX': 0,
@@ -321,7 +321,7 @@ def get_chem_energy_consumption(electrical_consumption, prod_df, demand):
          chem_co2_consumption.assign(unit='kt').set_index('unit', append=True),
          space_heat_demand],
 
-        names=['carrier'], keys=['electricity', 'methanol', 'hydrogen', 'co2', 'space_heating']
+        names=['carrier'], keys=['electricity', 'methanol', 'hydrogen', 'co2', 'space_heat']
     )
 
     chem_consumption = chem_consumption.assign(cat_name='Chemicals Industry').set_index('cat_name', append=True)

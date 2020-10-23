@@ -32,7 +32,7 @@ idx = pd.IndexSlice
 
 def subnationalise_demand(
     population, units, building_demand, building_heat_electricity_consumption,
-    industry_demand, road_distance, rail_demand, air_demand, marine_demand,
+    industry_demand, road_distance, road_vehicles, rail_demand, air_demand, marine_demand,
     road_bau_electricity, rail_bau_electricity, industry_bau_electricity, emissions,
     freight, employees, gva, ch_gva, nuts_to_regions, industry_activity_codes,
     out_path, scaling_factors
@@ -51,6 +51,7 @@ def subnationalise_demand(
             .rename(columns={'EuroSPORES': 'region'})
         )
     road_distance_df = util.read_tdf(road_distance)
+    road_vehicles_df = util.read_tdf(road_vehicles)
     rail_demand_df = util.read_tdf(rail_demand)
     road_bau_electricity_df = util.read_tdf(road_bau_electricity)
     rail_bau_electricity_df = util.read_tdf(rail_bau_electricity)
@@ -61,24 +62,29 @@ def subnationalise_demand(
 
     pop_weighted_df = subnational_pop_weighted_demand(
         units, building_demand_df, building_heat_electricity_consumption_df,
-        road_distance_df, rail_demand_df, road_bau_electricity_df, rail_bau_electricity_df,
+        road_distance_df, road_vehicles_df, rail_demand_df, road_bau_electricity_df, rail_bau_electricity_df,
         population
     )
     commercial_df = subnational_commercial_demand(
-        building_demand_df, building_heat_electricity_consumption_df, road_distance_df,
+        building_demand_df, building_heat_electricity_consumption_df,
+        road_distance_df, road_vehicles_df,
         road_bau_electricity_df, units, nuts_dfs[2016], gva, ch_gva
     )
     industry_df = subnational_industry_demand(
-        units, industry_demand, road_distance_df, rail_demand_df,
+        units, industry_demand, road_distance_df, road_vehicles_df, rail_demand_df,
         air_demand, marine_demand, emissions, freight,
         rail_bau_electricity_df, industry_bau_electricity,
         employees, nuts_dfs[2006], industry_activity_codes
     )
 
-    all_df = (
-        pd.concat([commercial_df, industry_df, pop_weighted_df])
-        .groupby(level=['dataset', 'cat_name', 'year', 'id', 'unit', 'end_use']).sum()
-    )
+    all_df = pd.concat([commercial_df, industry_df, pop_weighted_df])
+
+
+    #FillNA for any missing info
+    _df = all_df.unstack('id').stack(dropna=False)
+    print("Filling missing data for {}".format(_df[_df.isna()].sum(level=['dataset', 'cat_name', 'id']).index.remove_unused_levels()))
+    all_df = _df.fillna(0).groupby(level=['dataset', 'cat_name', 'year', 'id', 'unit', 'end_use']).sum()
+
     # Scale
     all_df.loc[all_df.index.get_level_values('unit') == 'twh'] *= scaling_factors['energy']
     all_df.loc[all_df.index.get_level_values('unit') == 'kt'] *= scaling_factors['co2']
@@ -93,7 +99,7 @@ def subnationalise_demand(
 
 
 def subnational_pop_weighted_demand(
-    units, heat_demand, heat_electricity_consumption, road_distance_df,
+    units, heat_demand, heat_electricity_consumption, road_distance_df, road_vehicles_df,
     rail_demand_df, road_bau_electricity_df, rail_bau_electricity_df, population
 ):
     concat_dfs = []
@@ -116,7 +122,7 @@ def subnational_pop_weighted_demand(
         'Motor coaches, buses and trolley buses': 'bus',
         'Passenger cars': 'passenger_car', 'Powered 2-wheelers': 'motorcycle'
     }
-    for df in [road_distance_df, road_bau_electricity_df]:
+    for df in [road_distance_df, road_bau_electricity_df, road_vehicles_df]:
         passenger_df = align_and_scale(
             df.rename(util.get_alpha3, level='country_code')
             .drop(['Heavy duty vehicles', 'Light duty vehicles'], level=0),
@@ -150,14 +156,15 @@ def subnational_pop_weighted_demand(
         names=['dataset', 'cat_name'],
         keys=[('heat_demand', 'household'), ('heat_demand', 'household'),
               ('transport_demand', 'road'), ('transport_demand', 'road'),
+              ('transport_vehicles', 'road'),
               ('transport_demand', 'rail'), ('transport_demand', 'rail')]
     )
     return household_scaled_df
 
 
 def subnational_commercial_demand(
-    heat_demand, heat_electricity_consumption, road_distance, road_bau_electricity,
-    units, nuts_2016, gva, ch_gva
+    heat_demand, heat_electricity_consumption, road_distance, road_vehicles,
+    road_bau_electricity, units, nuts_2016, gva, ch_gva
 ):
     """
     Commercial sector demand is subdivided based on gross value added of economic
@@ -221,28 +228,38 @@ def subnational_commercial_demand(
     )
     ldv_road_distance = ldv_road_distance.to_frame('ldv').rename_axis(columns='end_use').stack()
 
+    ldv_road_vehicles = align_and_scale(
+        road_vehicles.xs('Light duty vehicles')
+        .rename(util.get_alpha3, level='country_code'),
+        gva_intensity, units
+    )
+    ldv_road_vehicles = ldv_road_vehicles.to_frame('ldv').rename_axis(columns='end_use').stack()
+
     ldv_road_bau_electricity = align_and_scale(
         road_bau_electricity.xs('Light duty vehicles')
         .rename(util.get_alpha3, level='country_code'),
         gva_intensity, units
     )
+
     ldv_road_bau_electricity = ldv_road_bau_electricity.to_frame('ldv_bau_electricity').rename_axis(columns='end_use').stack()
 
     commercial_scaled_df = pd.concat(
         [commercial_heat_demand.reorder_levels(LEVEL_ORDER),
          commercial_heat_electricity_consumption.reorder_levels(LEVEL_ORDER),
          ldv_road_distance.reorder_levels(LEVEL_ORDER),
+         ldv_road_vehicles.reorder_levels(LEVEL_ORDER),
          ldv_road_bau_electricity.reorder_levels(LEVEL_ORDER)],
         names=['dataset', 'cat_name'],
         keys=[('heat_demand', 'commercial'), ('heat_demand', 'commercial'),
-              ('transport_demand', 'road'), ('transport_demand', 'road')]
+              ('transport_demand', 'road'), ('transport_vehicles', 'road'),
+              ('transport_demand', 'road')]
     )
 
     return commercial_scaled_df
 
 
 def subnational_industry_demand(
-    units, industry_demand, road_distance_df, rail_demand_df,
+    units, industry_demand, road_distance_df, road_vehicles_df, rail_demand_df,
     air_demand, marine_demand, emissions, freight,
     rail_bau_electricity_df, industry_bau_electricity,
     employees, nuts_2006, industry_activity_codes
@@ -405,23 +422,6 @@ def subnational_industry_demand(
         .stack()
     )
 
-    # Air and Marine energy demand is based on petrochemical intensity (i.e. refineries)
-    print(all_subsectors_industry_intensity.index.levels[-1])
-    air_energy = align_and_scale(
-        util.read_tdf(air_demand)
-        .loc[idx[:, [i for i in YEAR_RANGE], :]]
-        .rename_axis(index={'country': 'country_code'}),
-        all_subsectors_industry_intensity.xs('Chemicals Industry', level='subsector'),
-        units
-    ).to_frame('kerosene').rename_axis(columns='end_use').stack()
-    marine_energy = align_and_scale(
-        util.read_tdf(marine_demand)
-        .loc[idx[:, [i for i in YEAR_RANGE], :]]
-        .rename_axis(index={'country': 'country_code'}),
-        all_subsectors_industry_intensity.xs('Chemicals Industry', level='subsector'),
-        units
-    ).to_frame('diesel').rename_axis(columns='end_use').stack()
-
     # Next three datasets can't handle industry subsectors, so we create a new
     # intensity df, based on all subsector energy consumption
     industry_energy_intensity = (
@@ -430,10 +430,14 @@ def subnational_industry_demand(
         .sum(level=['id', 'country_code', 'year'])
         .div(industry_energy_df.xs('twh', level='unit').sum(level=['country_code', 'year']))
     )
-    road_freight = align_and_scale(
+    road_distance = align_and_scale(
         road_distance_df.xs('Heavy duty vehicles'), industry_energy_intensity, units
     )
-    road_freight = road_freight.to_frame('hdv').rename_axis(columns='end_use').stack()
+    road_distance = road_distance.to_frame('hdv').rename_axis(columns='end_use').stack()
+    road_vehicles = align_and_scale(
+        road_vehicles_df.xs('Heavy duty vehicles'), industry_energy_intensity, units
+    )
+    road_vehicles = road_vehicles.to_frame('hdv').rename_axis(columns='end_use').stack()
 
     rail_freight = align_and_scale(
         rail_demand_df.xs('Freight'), industry_energy_intensity, units
@@ -446,17 +450,35 @@ def subnational_industry_demand(
     )
     rail_freight_bau = rail_freight_bau.to_frame('bau_electricity').rename_axis(columns='end_use').stack()
 
+    # Air and Marine energy demand is also distributed according to total industry
+    air_energy = align_and_scale(
+        util.read_tdf(air_demand)
+        .loc[idx[:, [i for i in YEAR_RANGE], :]]
+        .rename_axis(index={'country': 'country_code'}),
+        industry_energy_intensity,
+        units
+    ).to_frame('kerosene').rename_axis(columns='end_use').stack()
+    marine_energy = align_and_scale(
+        util.read_tdf(marine_demand)
+        .loc[idx[:, [i for i in YEAR_RANGE], :]]
+        .rename_axis(index={'country': 'country_code'}),
+        industry_energy_intensity,
+        units
+    ).to_frame('diesel').rename_axis(columns='end_use').stack()
+
     industry_scaled_df = pd.concat(
         [industry_energy_df.reorder_levels(LEVEL_ORDER),
          industry_bau_electricity_df.reorder_levels(LEVEL_ORDER),
-         road_freight.reorder_levels(LEVEL_ORDER),
+         road_distance.reorder_levels(LEVEL_ORDER),
+         road_vehicles.reorder_levels(LEVEL_ORDER),
          rail_freight.reorder_levels(LEVEL_ORDER),
          rail_freight_bau.reorder_levels(LEVEL_ORDER),
          air_energy.reorder_levels(LEVEL_ORDER),
          marine_energy.reorder_levels(LEVEL_ORDER)],
         names=['dataset', 'cat_name'],
         keys=[('industry_demand', 'industry'), ('industry_demand', 'industry'),
-              ('industry_demand', 'road'), ('industry_demand', 'rail'),
+              ('industry_demand', 'road'), ('transport_vehicles', 'road'),
+              ('industry_demand', 'rail'),
               ('industry_demand', 'rail'), ('industry_demand', 'air'),
               ('industry_demand', 'marine')]
     )
@@ -471,23 +493,12 @@ def align_and_scale(orig_df, scaling_df, units):
 
     # make sure numbers add up
     check_scaling_df = scaled_df.sum(level=orig_df.index.names)
+
     assert np.allclose(
         check_scaling_df.sum(level='country_code'),
-        orig_df.reindex(check_scaling_df.index).sum(level='country_code')
+        orig_df.reindex(check_scaling_df.index).sum(level='country_code'),
+        equal_nan=True
     )
-    # make sure all regions are represented
-    if not units.id.isin(scaled_df.index.get_level_values('id')).all():
-        print(
-            "Filling missing data for regions {} with zeroes for data with head\n{}"
-            .format(set(units.id.values).difference(scaled_df.index.get_level_values('id')), scaled_df.head())
-        )
-        scaled_df = (
-            scaled_df
-            .unstack(['country_code', 'id'])
-            .rename(util.get_alpha3, level='country_code', axis=1)
-            .reindex(columns=units.set_index(['id', 'country_code']).index, fill_value=0)
-            .stack([0, 1])
-        )
 
     return scaled_df
 
@@ -505,10 +516,11 @@ if __name__ == "__main__":
     subnationalise_demand(
         population=snakemake.input.population,
         units=snakemake.input.units,
-        building_demand=snakemake.input.annual_demand,
+        building_demand=snakemake.input.annual_heat_demand,
         building_heat_electricity_consumption=snakemake.input.annual_heat_electricity_consumption,
         industry_demand=snakemake.input.industry_demand,
         road_distance=snakemake.input.road_distance,
+        road_vehicles=snakemake.input.road_vehicles,
         rail_demand=snakemake.input.rail_demand,
         air_demand=snakemake.input.air_demand,
         marine_demand=snakemake.input.marine_demand,

@@ -55,8 +55,9 @@ def get_cop(
     )
 
     soil_temp_df = _prep_weather_data(
-        soil_temp_ds.temperature, model_year, mapped_pop
-    )
+        soil_temp_ds.soil_temperture_5, model_year, mapped_pop
+    ) - 273.15  # soil temperature is in K
+
     temperature = pd.concat([air_temp_df, soil_temp_df], axis=1, keys=['air', 'soil'], names=['source'])
     sink_t_dict = heat_tech_params['heating_temperature']
 
@@ -79,8 +80,8 @@ def get_cop(
         .rename_axis(columns={'country': 'id'})
     )
 
-    region_data.xs(('water', 'soil'), level=('sink', 'source')).to_csv(gshp_water_heat_out_path)
-    region_data.xs(('water', 'air'), level=('sink', 'source')).to_csv(ashp_water_heat_out_path)
+    region_data.xs(('water', 'soil'), level=('sink', 'source'), axis=1).to_csv(gshp_water_heat_out_path)
+    region_data.xs(('water', 'air'), level=('sink', 'source'), axis=1).to_csv(ashp_water_heat_out_path)
 
     heat_sink_ratio_dict = heat_tech_params['heat_sink_ratio']
     space_heat_data(region_data, heat_sink_ratio_dict, 'soil').to_csv(gshp_space_heat_out_path)
@@ -89,12 +90,12 @@ def get_cop(
 
 def space_heat_data(region_cop, heat_sink_ratio_dict, source):
     def _heat_sink_wavg(x, ratio_keys, ratio_vals):
-        weighted_avg = np.average(x.loc[idx[:, ratio_keys], :], weights=ratio_vals, axis=1)
+        weighted_avg = np.average(x.loc[:, idx[:, ratio_keys]], weights=ratio_vals, axis=1)
         return pd.Series(data=weighted_avg, index=x.index)
 
     return (
         region_cop
-        .xs(source, level='source')
+        .xs(source, level='source', axis=1)
         .groupby('id', axis=1)
         .apply(_heat_sink_wavg,
                ratio_keys=[i for i in heat_sink_ratio_dict.keys()],
@@ -103,7 +104,6 @@ def space_heat_data(region_cop, heat_sink_ratio_dict, source):
 
 
 def temperature_to_characteristic(x, hp_data, sink_t):
-    x = x - 273.15
     if x.name[0] == 'air':
         _data = hp_data.xs('air', level='source').unstack()
         source_t = x

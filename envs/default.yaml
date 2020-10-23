@@ -11,3 +11,4 @@ dependencies:
     - matplotlib=3.2.2
     - seaborn=0.10.1
     - xlrd=1.2.0
+    - jinja2
