@@ -11,6 +11,9 @@ __pycache__
 
 build
 build-by-euler
+inputs
+logs
+outputs
 
 data/automatic
 data/capacityfactors/

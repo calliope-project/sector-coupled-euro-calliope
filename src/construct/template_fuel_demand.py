@@ -19,7 +19,7 @@ overrides:
                 techs: [{{ demand }}]
                 locs: [{{ idx }}]
                 carrier_con_equals:
-                    {{ demand_key[1] }}: {{ annual_demand.loc[idx, demand_key] }}  # {{ demand_key[2] }}
+                    {{ demand_key[1] }}: {{ -1 * annual_demand.loc[idx, demand_key] * timedelta }}  # {{ demand_key[2] }}
             {% endfor %}
 
             {% endfor %}
@@ -79,7 +79,7 @@ scenarios:
 """
 
 
-def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, scaling_factors, path_to_biofuel_costs):
+def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, scaling_factors, path_to_biofuel_costs, model_time):
     """Generate a file that represents links in Calliope."""
     annual_demand = util.read_tdf(path_to_annual_demand)
     annual_demand = annual_demand.xs(('industry_demand', model_year), level=('dataset', 'year'))
@@ -93,20 +93,23 @@ def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, 
     )
     demand_keys = {'demand_{}_{}'.format(*i[:-1]): i for i in keys}
     scaling_factors["specific_costs"] = scaling_factors["monetary"] / scaling_factors["power"]
+    model_timedelta = util.get_timedelta(model_time, model_year)
+
     with open(path_to_biofuel_costs, "r") as f_biofuel_costs:
         biofuel_fuel_cost = float(f_biofuel_costs.readline())
 
     env = jinja2.Environment(lstrip_blocks=True, trim_blocks=True)
     env.filters["unit"] = filters.unit
 
-    links = env.from_string(TEMPLATE).render(
+    fuel = env.from_string(TEMPLATE).render(
         annual_demand=annual_demand.unstack(keys.names)[keys].fillna(0),
         demand_keys=demand_keys,
         scaling_factors=scaling_factors,
-        biofuel_fuel_cost=biofuel_fuel_cost
+        biofuel_fuel_cost=biofuel_fuel_cost,
+        timedelta=model_timedelta
     )
     with open(path_to_result, "w") as result_file:
-        result_file.write(links)
+        result_file.write(fuel)
 
 
 if __name__ == "__main__":
@@ -115,5 +118,6 @@ if __name__ == "__main__":
         path_to_result=snakemake.output[0],
         model_year=snakemake.params.model_year,
         scaling_factors=snakemake.params.scaling_factors,
+        model_time=snakemake.params.model_time,
         path_to_biofuel_costs=snakemake.input.biofuel_cost
     )

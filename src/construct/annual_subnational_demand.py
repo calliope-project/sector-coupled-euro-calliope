@@ -38,17 +38,17 @@ def subnationalise_demand(
     out_path, scaling_factors
 ):
 
-    nuts_to_regions_df = pd.read_excel(nuts_to_regions, sheet_name='locations')
+    nuts_to_regions_df = pd.read_csv(nuts_to_regions)
     units = gpd.read_file(units)
     nuts_dfs = {}
     for i in [2006, 2010, 2016]:
         nuts_dfs[i] = (
             nuts_to_regions_df
             .dropna(subset=[f'NUTS3_{i}'])
-            .assign(country_code=nuts_to_regions_df.EuroSPORES.str.split('_', expand=True)[0])
+            .assign(country_code=nuts_to_regions_df.country_code.apply(util.get_alpha3))
             .set_index(f'NUTS3_{i}')
-            [['EuroSPORES', 'country_code']]
-            .rename(columns={'EuroSPORES': 'region'})
+            [['id', 'country_code']]
+            .rename(columns={'id': 'region'})
         )
     road_distance_df = util.read_tdf(road_distance)
     road_vehicles_df = util.read_tdf(road_vehicles)

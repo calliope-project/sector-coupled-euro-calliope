@@ -63,3 +63,12 @@ def read_tdf(filename):
     df = pd.read_csv(filename, header=0)
     tdf = df.set_index([i for i in df.columns[:-1]]).squeeze()
     return tdf
+
+
+def get_timedelta(model_time, model_year):
+    model_timedelta = (pd.to_datetime(model_time[1]) - pd.to_datetime(model_time[0])).days + 1
+    if pd.to_datetime(model_year).is_leap_year:
+        model_timedelta = model_timedelta / 366
+    else:
+        model_timedelta = model_timedelta / 365
+    return model_timedelta

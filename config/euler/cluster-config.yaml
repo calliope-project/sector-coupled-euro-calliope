@@ -20,5 +20,6 @@ test:
 uncertainty_analysis:
     runtime: 120
 input_netcdf:
-    runtime: 480
-    memory: 240000
+    runtime: 240
+    memory: 40000
+    cores: 4

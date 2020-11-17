@@ -13,6 +13,8 @@ rule maps:
         src = "src/analyse/maps.py",
         model = "inputs/{resolution}/model.nc",
         units = eurocalliope("build/data/eurospores/units.geojson")
+    params:
+        bounds = config["scope"]["bounds"]
     output:
         "inputs/{resolution}/map.pdf"
     conda: "../envs/plots.yaml"
@@ -20,12 +22,12 @@ rule maps:
 
 
 rule input_netcdf:
-    message: "Creating Calliope {wildcards.resolution} map"
+    message: "Creating Calliope {wildcards.resolution} resolution NetCDF model"
     input:
         src = "src/analyse/run.py",
         model_yaml_path = "build/model/{resolution}/model.yaml"
     params:
-        scenario = "directional-rooftop-pv,industry_fuel,transport,heat",
+        scenario = "directional-rooftop-pv,industry_fuel,transport,heat,config_overrides",
         run = False
     output:
         output_model_path = "inputs/{resolution}/model.nc"

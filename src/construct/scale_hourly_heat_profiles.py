@@ -117,13 +117,13 @@ def _get_dwelling_ratio(path_to_dwellings, units, nuts_to_regions):
     dwellings.index = dwellings.index.str.split(',', expand=True).rename(
         ['housing', 'building_type', 'unit', 'year']
     )
-    dwellings.columns = dwellings.columns.str.strip().rename('region')
+    dwellings.columns = dwellings.columns.str.strip().rename('id')
 
     dwellings = dwellings.droplevel(['unit', 'year']).apply(util.to_numeric)
 
-    nuts_2010 = pd.read_excel(nuts_to_regions, sheet_name='locations')
-    nuts_2010['NUTS3_2010'] = nuts_2010["NUTS3_2010"].fillna(nuts_2010.Country.where(nuts_2010.Source != 'NUTS3'))
-    nuts_2010 = nuts_2010.dropna(subset=['NUTS3_2010']).set_index('NUTS3_2010').EuroSPORES
+    nuts_2010 = pd.read_csv(nuts_to_regions)
+    nuts_2010['NUTS3_2010'] = nuts_2010["NUTS3_2010"].fillna(nuts_2010.country_code.where(nuts_2010.Source != 'NUTS3'))
+    nuts_2010 = nuts_2010.dropna(subset=['NUTS3_2010']).set_index('NUTS3_2010').id
 
     # group dwelling data into eurospores regions
     dwellings_eurospores = dwellings.groupby(nuts_2010, axis=1).sum()

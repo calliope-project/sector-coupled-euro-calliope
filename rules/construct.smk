@@ -22,7 +22,7 @@ subworkflow landeligibility:
     configfile: "land-eligibility/config/default.yaml"
 
 localrules: copy_euro_calliope, copy_resolution_specific_euro_calliope, model, links, outer_countries, eurostat_data_tsv, ch_data_xlsx, when2heat
-ruleorder: model > links > outer_countries > copy_euro_calliope > annual_subnational_demand > heat_demand_profiles > scaled_heat_demand_profiles > scaled_bau_electricity_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > copy_resolution_specific_euro_calliope
+ruleorder: model > links > outer_countries > copy_euro_calliope > annual_subnational_demand > heat_demand_profiles > scaled_heat_demand_profiles > scaled_bau_electricity_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > calliope_config_overrides > copy_resolution_specific_euro_calliope
 wildcard_constraints:
     definition_file = "[^\/]*" # must not travers into directories
 
@@ -46,8 +46,10 @@ rule links:
     message: "Create links for {wildcards.resolution} resolution."
     input:
         src = "src/construct/template_links.py",
-        gtc = "data/eurospores.xlsx"
-    params: scaling_factor = config["scaling-factors"]["power"]
+        gtc = "data/transmission.csv"
+    params:
+        scaling_factors = config["scaling-factors"],
+        costs = config["parameters"]["transmission-costs"]
     conda: "../envs/default.yaml"
     output: "build/model/{resolution}/links.yaml"
     script: "../src/construct/template_links.py"
@@ -196,7 +198,7 @@ rule annual_subnational_demand:
         employees = rules.eurostat_data_tsv.output.employees,
         gva = rules.eurostat_data_tsv.output.gva,
         ch_gva = rules.ch_data_xlsx.output.gva,
-        nuts_to_regions = "data/eurospores.xlsx",
+        nuts_to_regions = "data/nuts_to_regions.csv",
         industry_activity_codes = "data/industry/industry_activity_codes.csv"
     conda: "../envs/geodata.yaml"
     params:
@@ -238,7 +240,7 @@ rule scaled_heat_demand_profiles:
         units = landeligibility("build/{resolution}/units.geojson"),
         annual_demand = rules.annual_subnational_demand.output.all_annual,
         dwellings = rules.eurostat_data_tsv.output.dwellings,
-        nuts_to_regions = "data/eurospores.xlsx",
+        nuts_to_regions = "data/nuts_to_regions.csv",
         space_profiles = rules.heat_demand_profiles.output.space_heat,
         water_profiles = rules.heat_demand_profiles.output.water_heat,
         cooking_profiles = 'data/cooking_profiles.csv.gz'
@@ -262,7 +264,7 @@ rule scaled_bau_electricity_heat_demand_profiles:
         units = landeligibility("build/{resolution}/units.geojson"),
         annual_demand = rules.annual_subnational_demand.output.all_annual,
         dwellings = rules.eurostat_data_tsv.output.dwellings,
-        nuts_to_regions = "data/eurospores.xlsx",
+        nuts_to_regions = "data/nuts_to_regions.csv",
         space_profiles = rules.heat_demand_profiles.output.space_heat,
         water_profiles = rules.heat_demand_profiles.output.water_heat,
         cooking_profiles = 'data/cooking_profiles.csv.gz'
@@ -313,6 +315,7 @@ rule heat_pump_characteristics:
     message: "Generate {wildcards.resolution} timeseries of heat pump coefficients of performance (COPs)"
     input:
         src = "src/construct/heat_pump_characteristics.py",
+        dep_src = "src/construct/hourly_heat_profiles.py",
         units = landeligibility("build/{resolution}/units.geojson"),
         path_to_population_tif = landeligibility("build/population-europe.tif"),
         soil_temp = "data/weather/tsoil5.nc",
@@ -357,7 +360,8 @@ rule annual_fuel_demand_constraints:
         )
     params:
         model_year = config["year"],
-        scaling_factors = config["scaling-factors"]
+        scaling_factors = config["scaling-factors"],
+        model_time = config["calliope-parameters"]["model.subset_time"]
     conda: "../envs/default.yaml"
     output: "build/model/{resolution}/fuel_group_constraints.yaml"
     script: "../src/construct/template_fuel_demand.py"
@@ -371,7 +375,8 @@ rule annual_vehicle_constraints:
     params:
         model_year = config["year"],
         transport = config["parameters"]["transport"],
-        scaling = config["scaling-factors"]["transport"]
+        scaling = config["scaling-factors"]["transport"],
+        model_time = config["calliope-parameters"]["model.subset_time"]
     conda: "../envs/default.yaml"
     output: "build/model/{resolution}/vehicle_group_constraints.yaml"
     script: "../src/construct/template_vehicle_demand.py"
@@ -391,6 +396,17 @@ rule annual_heat_constraints:
     script: "../src/construct/template_heat_demand.py"
 
 
+rule calliope_config_overrides:
+    message: "create overrides file based on config options under `calliope-parameters`"
+    params:
+        overrides = config["calliope-parameters"]
+    output: "build/model/{resolution}/config_overrides.yaml"
+    run:
+        import yaml
+        with open(output[0], "w") as out:
+            yaml.dump({'overrides': {'config_overrides': params.overrides}}, out)
+
+
 rule model:
     message: "Build entire model on resolution {wildcards.resolution}."
     input:
@@ -408,8 +424,9 @@ rule model:
         rules.annual_vehicle_constraints.output,
         rules.annual_heat_constraints.output,
         rules.links.output,
-        rules.outer_countries.output,
+        #rules.outer_countries.output,
         rules.ev_energy_cap.output,
+        rules.calliope_config_overrides.output,
         expand(
             "build/model/{{resolution}}/{characteristic}-{technology}-{end_use}.csv",
             characteristic=["energy-cap", "cop"], technology=["ashp", "gshp"],

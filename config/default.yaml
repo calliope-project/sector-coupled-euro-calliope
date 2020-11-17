@@ -4,8 +4,8 @@ scaling-factors:
     monetary: 0.000000001 # from EUR to 1000 Mio EUR
     distance: 1
     energy: 10 # from TW(h) to 100 GW(h)
-    transport: 0.0001  # from Mio km to 100h00 Mio km
-    co2: 1
+    transport: 0.01  # from Mio km to 100 Mio km
+    co2: 0.0001  # from kt to 10 Mt
 capacity-factors:
     min: 0.001 # consider smaller values to be 0; this helps numerics in the LP
     max: 10 # for hydro reservoirs, leading to a numerical range of 1e5 (hourly resolution)
@@ -31,6 +31,12 @@ parameters:
         S: 0.1821
         W: 0.1681
         flat: 0.3020
+    transmission-costs:
+        ac-ohl: 0.175  # median, Eur/MW
+        ac-ohl-mountain: 0.516  # median, Eur/MW
+        dc-ohl: 0.600  # median, Eur/MW
+        dc-underground: 0.755  # median, Eur/MW
+        dc-subsea: 0.942  # median, Eur/MW
     transport:
         efficiency:  # MWh / mio km 25th percentile efficiency of all countries in 2015 [JRC_IDEES]
             hdv:
@@ -96,7 +102,7 @@ parameters:
 
 
 calliope-parameters: # arbitrary many calliope parameters applied as override
-    model.subset_time: ['2016-01-01', '2016-12-31']
+    model.subset_time: ['2016-01-01', '2016-01-02']
 year: 2016
 connected-regions: # regions with insufficient potentials can be connected to neighbours
     AUT-9_1: AUT-3_1 # Vienna: Lower Austria

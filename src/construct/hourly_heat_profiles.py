@@ -172,6 +172,7 @@ def _prep_weather_data(dataarray, model_year, mapped_pop):
         country=mapped_pop.id
     ).set_index(['country', 'latitude', 'longitude'])
     _df.columns = pd.to_datetime(_df.columns)
+    _df = _df[(_df.fillna(0) != 0).any(axis=1)]  # remove sites with no data (seems to be logged as all zeros)
 
     return _df.T
 

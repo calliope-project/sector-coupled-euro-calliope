@@ -1,74 +1,72 @@
+import sys
+
 import jinja2
 import numpy as np
 import pandas as pd
-import pycountry
+
+sys.path.append('euro-calliope/src/')
+import filters
+
 
 TEMPLATE = """
 links:
     {% for row_id, row in gtcs.iterrows() %}
-    {{ row.Link_from }},{{ row.Link_to }}.techs:
-    {% if row.ac > 0 %}
-        ac_transmission:
+    {{ row_id[0] }},{{ row_id[1] }}.techs:
+        {% for link, data in row.iteritems() %}
+        {% if data > 0 %}
+        {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission:
             constraints:
-                energy_cap_equals: {{ row.ac }} # [{{ pow_scaling_factor }} MW]
-    {% endif %}
-    {% if row.dc > 0 %}
-        dc_transmission:
-            constraints:
-                energy_cap_equals: {{ row.dc }} # [{{ pow_scaling_factor }} MW]
-    {% endif %}
+                energy_cap_min: {{ data * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+            costs.monetary.energy_cap: {{ costs["{}-{}".format(link[0], link[1].lower())] * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR/MW") }}
+        {% if link[2] == "one-way" %}
+            one_way: true
+        {% endif %}
+        {% endif %}
+        {% endfor %}
     {% endfor %}
 """
-COUNTRY_CODE_COLUMN = "country_code"
 
 
-
-def generate_links(path_to_gtc, scaling_factor, path_to_result, resolution):
+def generate_links(path_to_gtc, scaling_factors, path_to_result, resolution, costs):
     """Generate a file that represents links in Calliope."""
-    gtcs = _read_gtcs(path_to_gtc, scaling_factor, resolution)
+    gtcs = _read_gtcs(path_to_gtc, resolution)
 
-    template = jinja2.Environment(lstrip_blocks=True, trim_blocks=True).from_string(TEMPLATE)
-    links = template.render(
+    scaling_factors["specific_costs"] = scaling_factors["monetary"] / scaling_factors["power"]
+
+    env = jinja2.Environment(lstrip_blocks=True, trim_blocks=True)
+    env.filters["unit"] = filters.unit
+
+    links = env.from_string(TEMPLATE).render(
         gtcs=gtcs,
-        pow_scaling_factor=1 / scaling_factor
+        scaling_factors=scaling_factors,
+        costs=costs
     )
     with open(path_to_result, "w") as result_file:
         result_file.write(links)
 
 
-def _read_gtcs(path_to_gtc, scaling_factor, resolution):
-    def _get_alpha3(alpha2):
-        if alpha2 == 'UK':
-            alpha2 = 'GB'
-        return pycountry.countries.get(alpha_2=alpha2).alpha_3
+def _read_gtcs(path_to_gtc, resolution):
 
-    gtcs = pd.read_excel(path_to_gtc, sheet_name="links_internal", header=0)
-
-    locations = pd.read_excel(path_to_gtc, sheet_name="locations", header=0, index_col=0)
-    locations.index = locations.index.str.lower()
-    locations['Country'] = locations.Country.map(_get_alpha3)
-
-    if resolution == 'national':
-        gtcs['Link_from'] = gtcs.Link_from.replace(locations['Country'])
-        gtcs['Link_to'] = gtcs.Link_to.replace(locations['Country'])
-    elif resolution == 'eurospores':
-        gtcs['Link_from'] = gtcs.Link_from.replace(locations['EuroSPORES'])
-        gtcs['Link_to'] = gtcs.Link_to.replace(locations['EuroSPORES'])
     gtcs = (
-        gtcs[['Link_from', 'Link_to', "('GTC', 'AC')", "('GTC', 'DC')"]]
-        .groupby(['Link_from', 'Link_to']).sum()
-    ).rename(columns={"('GTC', 'AC')": 'ac', "('GTC', 'DC')": 'dc'})
-    # Remove reference to internal links
-    gtcs = gtcs.loc[gtcs.index.get_level_values(0) != gtcs.index.get_level_values(1)]
-    gtcs
-    return gtcs.astype(np.float32).mul(scaling_factor).reset_index()
+        pd.read_csv(path_to_gtc, header=0)
+        .set_index(['from', 'to', 'current', 'type', 'direction'])
+        .drop('comment', axis=1)
+        .squeeze()
+        .unstack(['current', 'type', 'direction'])
+    )
+    if resolution == 'national':
+        gtcs.index = gtcs.index.map(lambda x: tuple(i.split('_')[0] for i in x))
+        # Remove internal links and sum links across the same borders
+        gtcs = gtcs.groupby(level=[0, 1]).sum().drop([i for i in gtcs.index.values if i[0] == i[1]])
+
+    return gtcs
 
 
 if __name__ == "__main__":
     generate_links(
         path_to_gtc=snakemake.input.gtc,
         path_to_result=snakemake.output[0],
-        scaling_factor=snakemake.params.scaling_factor,
+        scaling_factors=snakemake.params.scaling_factors,
+        costs=snakemake.params.costs,
         resolution=snakemake.wildcards[0]
     )
-

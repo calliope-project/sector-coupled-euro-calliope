@@ -25,13 +25,13 @@ COLORS = {
 }
 
 
-def plot_system(path_to_model, path_to_units, path_to_output):
+def plot_system(path_to_model, path_to_units, path_to_output, bounds):
     gdf = gpd.read_file(path_to_units)
 
     fig = plt.figure(figsize=(15, 16))
     gs = gridspec.GridSpec(2, 1, figure=fig, height_ratios=[20, 1], hspace=0)  # rows, columns
 
-    extent = (-11, 35, 30, 72) # (minx, maxx, miny, maxy)
+    extent = (bounds['x_min'], bounds['x_max'], bounds['y_min'], bounds['y_max'])
     centroid = [np.mean((extent[0], extent[1])), np.mean((extent[2], extent[3]))]
 
     ax_eu = plt.subplot(gs[0, 0], projection=PROJ)
@@ -68,7 +68,7 @@ def plot_system(path_to_model, path_to_units, path_to_output):
     ax_leg = plt.subplot(gs[1, 0])
     make_legend(ax_leg)
 
-    fig.savefig(path_to_output, bbox_inches='tight', pad_inches=1)
+    fig.savefig(path_to_output, bbox_inches='tight', pad_inches=0.1)
 
 
 def add_links(path_to_model, ax):
@@ -85,7 +85,7 @@ def add_links(path_to_model, ax):
         ))
 
     m = calliope.read_netcdf(path_to_model)
-    links = m.inputs.energy_cap_equals.loc[
+    links = m.inputs.energy_cap_min.loc[
         {'loc_techs': m._model_data.loc_techs_transmission}
     ].to_pandas()
     links.index = (
@@ -106,8 +106,8 @@ def add_links(path_to_model, ax):
         point_from = _xy_from_longlat(link_lons[link[0]], link_lats[link[0]], ax)
         point_to = _xy_from_longlat(link_lons[link[1]], link_lats[link[1]], ax)
 
-        cap_ac = cap['ac_transmission']
-        cap_dc = cap['dc_transmission']
+        cap_ac = cap.filter(regex='ac_').sum(min_count=1)
+        cap_dc = cap.filter(regex='dc_').sum(min_count=1)
 
         if any([f'{i}_1' in link for i in OUTER_COUNTRIES]):
             ac_color = COLORS['outer']
@@ -165,4 +165,5 @@ if __name__ == '__main__':
         path_to_model=snakemake.input.model,
         path_to_units=snakemake.input.units,
         path_to_output=snakemake.output[0],
+        bounds=snakemake.params.bounds
 )

@@ -42,10 +42,10 @@ overrides:
             {% for idx in annual_distance.index %}
             {% for tech in annual_distance.columns %}
             {{ tech }}_{{ idx }}_annual_distance:
-                techs: [{{ tech }}_transport_ev, {{ tech }}_transport_ice]
+                techs: [demand_{{ tech }}_transport]
                 locs: [{{ idx }}]
                 carrier_con_equals:
-                    {{ tech }}_transport: {{ annual_distance.loc[idx, tech] }}  # {{ distance_unit }}
+                    {{ tech }}_transport: {{ -1 * annual_distance.loc[idx, tech] * timedelta }}  # {{ distance_unit }}
             {% endfor %}
 
             {% endfor %}
@@ -54,7 +54,7 @@ scenarios:
 """
 
 
-def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, transport_params, scaling):
+def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, transport_params, scaling, model_time):
     """Generate a file that represents links in Calliope."""
     annual_demand = util.read_tdf(path_to_annual_demand)
 
@@ -69,6 +69,8 @@ def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, 
         return _df.droplevel('unit').unstack('end_use'), _unit[0]
     annual_distance, distance_unit = _get_data(annual_demand, 'transport_demand')
     annual_vehicles, vehicles_unit = _get_data(annual_demand, 'transport_vehicles')
+    model_timedelta = util.get_timedelta(model_time, model_year)
+
     template = jinja2.Environment(lstrip_blocks=True, trim_blocks=True).from_string(TEMPLATE)
     road_transport_constraints = template.render(
         annual_distance=annual_distance,
@@ -76,7 +78,8 @@ def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, 
         annual_vehicles=annual_vehicles,
         ev_battery_capacity=transport_params['ev_battery_capacity'],
         efficiency=transport_params['efficiency'],
-        scaling=scaling  # to scale the distance part of efficiency
+        scaling=scaling,  # to scale the distance part of efficiency
+        timedelta=model_timedelta
     )
     with open(path_to_result, "w") as result_file:
         result_file.write(road_transport_constraints)
@@ -88,5 +91,6 @@ if __name__ == "__main__":
         path_to_result=snakemake.output[0],
         model_year=snakemake.params.model_year,
         transport_params=snakemake.params.transport,
-        scaling=snakemake.params.scaling
+        model_time=snakemake.params.model_time,
+        scaling=snakemake.params.scaling,
     )

@@ -4,6 +4,10 @@ build-by-euler/
 data/
 land-eligibility
 euro-calliope
+logs/
+inputs/
+outputs/
+*.nc
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
