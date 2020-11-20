@@ -1,6 +1,13 @@
+import sys
+
 import jinja2
+import numpy as np
+import pandas as pd
 
 import util
+
+sys.path.append('euro-calliope/src/')
+import filters
 
 TEMPLATE = """
 
@@ -9,33 +16,19 @@ overrides:
         locations:
         {% for idx in annual_vehicles.index %}
             {{ idx }}.techs:
-                hdv_transport_ice:
-                ldv_transport_ice:
-                ldv_transport_ev:
-                bus_transport_ice:
-                bus_transport_ev:
-                motorcycle_transport_ice:
-                motorcycle_transport_ev:
-                passenger_car_transport_ice:
-                passenger_car_transport_ev:
-                demand_passenger_car_transport:
-                demand_bus_transport:
-                demand_motorcycle_transport:
-                demand_ldv_transport:
-                demand_hdv_transport:
-            {% endfor %}
-
-    max_ev_battery_charge_capacity:
-        locations:
-        {% for idx in annual_vehicles.index %}
-            {{ idx }}.techs:
-            {% for tech in annual_vehicles.columns %}
-                {% if ev_battery_capacity[tech] is defined and efficiency[tech].electricity is defined %}
-                {{ tech }}_transport_ev.constraints.energy_cap_max: {{ annual_vehicles.loc[idx, tech] * ev_battery_capacity[tech] / (efficiency[tech].electricity / scaling) }}  # {{ distance_unit }}
+                {% for tech in annual_vehicles.columns %}
+                {{ tech }}_transport_ice:
+                    constraints:
+                        energy_eff: {{ efficiency_ice.loc[idx, tech] * scaling_factors.transport_efficiency }}  # {{ (1 / scaling_factors.transport_efficiency) | unit("Miokm/MWh") }}
+                {% if ev_cap[tech].sum() > 0 %}
+                {{ tech }}_transport_ev:
+                    constraints:
+                        energy_eff: {{ efficiency_ev.loc[idx, tech] * scaling_factors.transport_efficiency }}  # {{ (1 / scaling_factors.transport_efficiency) | unit("Miokm/MWh") }}
+                        energy_cap_max: {{ ev_cap.loc[idx, tech] * scaling_factors.transport }}  # {{ (1 / scaling_factors.transport) | unit("Miokm") }}
                 {% endif %}
+                demand_{{ tech }}_transport:
+                {% endfor %}
             {% endfor %}
-
-        {% endfor %}
 
     annual_transport_distance:
         group_constraints:
@@ -45,16 +38,16 @@ overrides:
                 techs: [demand_{{ tech }}_transport]
                 locs: [{{ idx }}]
                 carrier_con_equals:
-                    {{ tech }}_transport: {{ -1 * annual_distance.loc[idx, tech] * timedelta }}  # {{ distance_unit }}
+                    {{ tech }}_transport: {{ -1 * annual_distance.loc[idx, tech] * timedelta }}  # {{ (1 / scaling_factors.transport) | unit("Miokm") }}
             {% endfor %}
 
             {% endfor %}
 scenarios:
-    transport: [all_transport, max_ev_battery_charge_capacity, annual_transport_distance]
+    transport: [all_transport, annual_transport_distance]
 """
 
 
-def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, transport_params, scaling, model_time):
+def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, transport_params, scaling_factors, model_time):
     """Generate a file that represents links in Calliope."""
     annual_demand = util.read_tdf(path_to_annual_demand)
 
@@ -64,21 +57,47 @@ def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, 
             .drop(annual_demand.filter(regex='electricity').index)
             .xs((dataset, 'road', model_year), level=('dataset', 'cat_name', 'year'))
         )
-        _unit = _df.index.get_level_values('unit').unique()
-        assert len(_unit) == 1
-        return _df.droplevel('unit').unstack('end_use'), _unit[0]
-    annual_distance, distance_unit = _get_data(annual_demand, 'transport_demand')
-    annual_vehicles, vehicles_unit = _get_data(annual_demand, 'transport_vehicles')
-    model_timedelta = util.get_timedelta(model_time, model_year)
 
-    template = jinja2.Environment(lstrip_blocks=True, trim_blocks=True).from_string(TEMPLATE)
-    road_transport_constraints = template.render(
+        return _df.droplevel('unit').unstack('end_use')
+    annual_distance = _get_data(annual_demand, 'transport_demand')
+    annual_vehicles = _get_data(annual_demand, 'transport_vehicles')
+
+    def _get_efficiency(x, fuel):
+        return pd.Series(
+            data=[1 / transport_params['efficiency'][i].get(fuel, np.nan) for i in x.index],
+            index=x.index
+        )
+
+    def _wavg(x, weights):
+        return pd.Series(
+            data=np.average(x, weights=weights[x.columns], axis=1),
+            index=x.index
+        )
+
+    efficiency_ice = annual_distance.apply(_get_efficiency, fuel='diesel', axis=1)
+    efficiency_ev = annual_distance.apply(_get_efficiency, fuel='electricity', axis=1)
+    ev_cap = annual_vehicles.mul(transport_params['ev_battery_capacity']).div({k: v.get('electricity', np.nan) for k, v in transport_params['efficiency'].items()}).fillna(0)
+
+    if transport_params.get('group', None) is not None:
+        efficiency_ice = efficiency_ice.groupby(transport_params['group'], axis=1).apply(_wavg, weights=annual_distance)
+        efficiency_ev = efficiency_ev.groupby(transport_params['group'], axis=1).apply(_wavg, weights=annual_distance)
+        ev_cap = ev_cap.groupby(transport_params['group'], axis=1).sum()
+        annual_distance = annual_distance.groupby(transport_params['group'], axis=1).sum()
+        annual_vehicles = annual_vehicles.groupby(transport_params['group'], axis=1).sum()
+
+    model_timedelta = util.get_timedelta(model_time, model_year)
+    scaling_factors["transport_efficiency"] = scaling_factors["transport"] / scaling_factors["power"]
+
+    env = jinja2.Environment(lstrip_blocks=True, trim_blocks=True)
+    env.filters["unit"] = filters.unit
+
+    road_transport_constraints = env.from_string(TEMPLATE).render(
         annual_distance=annual_distance,
-        distance_unit=distance_unit,
         annual_vehicles=annual_vehicles,
-        ev_battery_capacity=transport_params['ev_battery_capacity'],
-        efficiency=transport_params['efficiency'],
-        scaling=scaling,  # to scale the distance part of efficiency
+        efficiency_ice=efficiency_ice,
+        efficiency_ev=efficiency_ev,
+        ev_cap=ev_cap,
+        scaling_factors=scaling_factors,
         timedelta=model_timedelta
     )
     with open(path_to_result, "w") as result_file:
@@ -92,5 +111,5 @@ if __name__ == "__main__":
         model_year=snakemake.params.model_year,
         transport_params=snakemake.params.transport,
         model_time=snakemake.params.model_time,
-        scaling=snakemake.params.scaling,
+        scaling_factors=snakemake.params.scaling_factors,
     )

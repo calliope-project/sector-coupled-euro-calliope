@@ -375,7 +375,7 @@ rule annual_vehicle_constraints:
     params:
         model_year = config["year"],
         transport = config["parameters"]["transport"],
-        scaling = config["scaling-factors"]["transport"],
+        scaling_factors = config["scaling-factors"],
         model_time = config["calliope-parameters"]["model.subset_time"]
     conda: "../envs/default.yaml"
     output: "build/model/{resolution}/vehicle_group_constraints.yaml"

@@ -59,6 +59,12 @@ parameters:
             motorcycle: 0.01  # own assumption
             bus: 0.2  # own assumption based on HDVs from [EUCAR_2019]
             passenger_car: 0.08  # average from [EUCAR_2019]
+        group:
+            hdv: heavy
+            ldv: light
+            motorcycle: light
+            bus: heavy
+            passenger_car: light
 
     heat-end-use:
         space_heat_techs:
