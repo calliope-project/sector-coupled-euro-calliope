@@ -35,7 +35,7 @@ def subnationalise_demand(
     industry_demand, road_distance, road_vehicles, rail_demand, air_demand, marine_demand,
     road_bau_electricity, rail_bau_electricity, industry_bau_electricity, emissions,
     freight, employees, gva, ch_gva, nuts_to_regions, industry_activity_codes,
-    out_path, scaling_factors
+    out_path, scaling_factors, industry_config
 ):
 
     nuts_to_regions_df = pd.read_csv(nuts_to_regions)
@@ -74,7 +74,7 @@ def subnationalise_demand(
         units, industry_demand, road_distance_df, road_vehicles_df, rail_demand_df,
         air_demand, marine_demand, emissions, freight,
         rail_bau_electricity_df, industry_bau_electricity,
-        employees, nuts_dfs[2006], industry_activity_codes
+        employees, nuts_dfs[2006], industry_activity_codes, industry_config
     )
 
     all_df = pd.concat([commercial_df, industry_df, pop_weighted_df])
@@ -262,7 +262,7 @@ def subnational_industry_demand(
     units, industry_demand, road_distance_df, road_vehicles_df, rail_demand_df,
     air_demand, marine_demand, emissions, freight,
     rail_bau_electricity_df, industry_bau_electricity,
-    employees, nuts_2006, industry_activity_codes
+    employees, nuts_2006, industry_activity_codes, industry_config
 ):
     """
     Some industry subsectors are subdivided based on employment data per NUTS3 region.
@@ -483,6 +483,24 @@ def subnational_industry_demand(
               ('industry_demand', 'marine')]
     )
 
+    # Electrify any end uses according to workflow configuration
+    to_electrify = {
+        i: 'electricity'
+        for i in industry_config["electrification_efficiency"].keys()
+        if i not in industry_config["carriers"]
+    }
+    electrification = {
+        i: industry_config["electrification_efficiency"][i] if i in to_electrify else 1
+        for i in industry_scaled_df.index.get_level_values('end_use').unique()
+    }
+    industry_scaled_df = (
+        industry_scaled_df
+        .unstack('end_use')
+        .mul(electrification)
+        .rename(columns=to_electrify)
+        .groupby(level=0, axis=1).sum(min_count=1)
+        .stack()
+    )
     return industry_scaled_df
 
 
@@ -535,5 +553,6 @@ if __name__ == "__main__":
         nuts_to_regions=snakemake.input.nuts_to_regions,
         industry_activity_codes=snakemake.input.industry_activity_codes,
         scaling_factors=snakemake.params.scaling_factors,
+        industry_config=snakemake.params.industry_config,
         out_path=snakemake.output.all_annual
     )

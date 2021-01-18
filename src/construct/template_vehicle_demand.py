@@ -13,6 +13,12 @@ TEMPLATE = """
 
 overrides:
     all_transport:
+        techs:
+            {% for tech in annual_vehicles.columns %}
+            {{ tech }}_transport_ice.exists: true
+            {{ tech }}_transport_ev.exists: true
+            demand_{{ tech }}_transport.exists: true
+            {% endfor %}
         locations:
         {% for idx in annual_vehicles.index %}
             {{ idx }}.techs:
@@ -79,6 +85,7 @@ def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, 
     ev_cap = annual_vehicles.mul(transport_params['ev_battery_capacity']).div({k: v.get('electricity', np.nan) for k, v in transport_params['efficiency'].items()}).fillna(0)
 
     if transport_params.get('group', None) is not None:
+        # I.e. we group vehicle classes into either 'light' or 'heavy'
         efficiency_ice = efficiency_ice.groupby(transport_params['group'], axis=1).apply(_wavg, weights=annual_distance)
         efficiency_ev = efficiency_ev.groupby(transport_params['group'], axis=1).apply(_wavg, weights=annual_distance)
         ev_cap = ev_cap.groupby(transport_params['group'], axis=1).sum()

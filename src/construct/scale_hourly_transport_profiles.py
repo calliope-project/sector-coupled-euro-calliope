@@ -3,16 +3,21 @@ import util
 
 
 def get_transport_profiles(
-    annual_demand, rail_profiles, model_year, out_path
+    regions, annual_demand, rail_profiles, model_year, out_path
 ):
     """
     Take DeStInEe rail profiles for weekday, saturday, and sunday and create rail demand
     profiles for all eurospores regions, based on specific year and country timezone.
     We assume that these profiles are valid for rail and electric buses(?).
     """
-    annual_demand_df = util.read_tdf(annual_demand)
-    annual_demand_df = annual_demand_df.xs(model_year, level='year').droplevel('unit')
+    annual_demand_df = (
+        util.read_tdf(annual_demand)
+        .unstack('id')
+        .droplevel('unit')
+        .xs(('transport_demand', 'rail', model_year))
+    )
 
+    regions_df = pd.read_csv(regions, index_col=0, squeeze=True)
     profiles = pd.read_csv(rail_profiles, index_col=0, header=0)
     profiles.columns = profiles.columns.astype(float)
     profiles.index = profiles.index.astype(float)
@@ -33,23 +38,27 @@ def get_transport_profiles(
         pd.to_timedelta(annual_profile.index.get_level_values('hour').astype(int), unit='h')
     )
     annual_profile = annual_profile.sort_index()
+    annual_profile = pd.concat(
+        [annual_profile.div(annual_profile.sum())['profiles'] for i in regions_df.index],
+        axis=1, keys=regions_df.index, names=['id']
+    )
 
-    for i in annual_demand_df.index.get_level_values('id').unique():
-        country = util.get_alpha2(i.split('_')[0])
-        country_profile = (
-            util.update_timeseries_timezone(annual_profile['profiles'], country, model_year)
+    def _scale_and_shift(x):
+        return (-1) * util.update_timeseries_timezone(
+            x.mul(annual_demand_df.loc['electricity', x.name]),
+            util.get_alpha2(regions_df.loc[x.name], eurostat=False),
+            model_year
         )
-        annual_profile[i] = (-1) * (  # negate for use in Calliope as a demand
-            country_profile / country_profile.sum() *
-            annual_demand_df.loc[('transport_demand', 'rail', i, 'electricity')]
-        )
+
+    annual_profile = annual_profile.apply(_scale_and_shift)
 
     # Save
-    annual_profile.drop('profiles', axis=1).rename_axis(columns='id').to_csv(out_path)
+    annual_profile.to_csv(out_path)
 
 
 if __name__ == "__main__":
     get_transport_profiles(
+        regions=snakemake.input.regions,
         annual_demand=snakemake.input.annual_demand,
         rail_profiles=snakemake.input.rail_profiles,
         model_year=snakemake.params.model_year,

@@ -1,16 +1,15 @@
 import pandas as pd
-import geopandas as gpd
 
 
 def get_hourly_ev_profiles(
-    units_path, ev_profiles_path, model_year, out_path
+    regions_path, ev_profiles_path, model_year, out_path
 ):
     """
     Fill empty countries and map EV profiles to national subregions.
     Profiles are already normalised relative to total number of vehicles in
     the fleet.
     """
-    units_gdf = gpd.read_file(units_path)
+    regions_df = pd.read_csv(regions_path).set_index(['id', 'country_code'])
     ev_profiles_df = (
         pd.read_csv(ev_profiles_path, index_col=[0, 1, 2], parse_dates=[0], squeeze=True)
         .xs(model_year, level='year')
@@ -29,11 +28,7 @@ def get_hourly_ev_profiles(
          'BIH': ['HRV', 'HUN'], 'MNE': ['HRV'], 'ISL': ['GBR'], 'SRB': ['HUN']}
     )
     ev_profiles_df = (
-        pd.merge(
-            ev_profiles_df, units_gdf.set_index(['country_code', 'id']).name,
-            left_index=True, right_index=True
-        )
-        .ev_profiles
+        ev_profiles_df.align(regions_df)[0]
         .droplevel('country_code')
         .unstack('id')
     )
@@ -44,7 +39,7 @@ def get_hourly_ev_profiles(
 
 if __name__ == "__main__":
     get_hourly_ev_profiles(
-        units_path=snakemake.input.units,
+        regions_path=snakemake.input.regions,
         ev_profiles_path=snakemake.input.ev_profiles,
         model_year=snakemake.params.model_year,
         out_path=snakemake.output[0],

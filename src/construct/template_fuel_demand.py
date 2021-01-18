@@ -9,21 +9,31 @@ import util
 sys.path.append('euro-calliope/src/')
 import filters
 
+
 TEMPLATE = """
 overrides:
     annual_fuel_demand:
         group_constraints:
             {% for idx in annual_demand.index %}
-            {% for demand, demand_key in demand_keys.items() %}
-            {{ demand }}_{{ idx }}:
-                techs: [{{ demand }}]
+            {% for carrier in carriers %}
+            {% if annual_demand.loc[idx, carrier] > 1e-6 %}
+            {{ idx }}_{{ carrier }}:
+                techs: [demand_industry_{{ carrier }}]
                 locs: [{{ idx }}]
-                carrier_con_equals:
-                    {{ demand_key[1] }}: {{ -1 * annual_demand.loc[idx, demand_key] * timedelta }}  # {{ demand_key[2] }}
+                carrier_con_min:
+                    {{ carrier }}: {{ -1 * annual_demand.loc[idx, carrier] * timedelta }}
+                #carrier_con_max:
+                #    {{ carrier }}: {{ -1 * annual_demand.loc[idx, carrier] * timedelta * 1.1}}
+            {% endif %}
             {% endfor %}
 
             {% endfor %}
     industry_techs:
+        techs:
+            {% for carrier in carriers %}
+            demand_industry_{{ carrier }}.exists: true
+            {% endfor %}
+
         locations:
         {% for idx in annual_demand.index %}
             {{ idx }}.techs:
@@ -36,17 +46,17 @@ overrides:
                 hydrogen_to_methane:
                 electrolysis:
                 dac:
-                demand_air_kerosene:
-                demand_marine_diesel:
-                demand_industry_hydrogen:
-                demand_industry_methanol:
-                demand_industry_co2:
-                demand_industry_methane:
-                demand_industry_diesel:
+                {% for carrier in carriers %}
+                {% if annual_demand.loc[idx, carrier] > 1e-6 %}
+                demand_industry_{{ carrier }}:
+                {% else %}
+                demand_industry_{{ carrier }}.exists: false
+                {% endif %}
+                {% endfor %}
         {% endfor %}
     new_hydrogen_storage:
         techs:
-            hydrogen: # based on [Danish energy agency, energy storage, 151a Hydrogen Storage - Tanks, 2050]
+            hydrogen_storage: # based on [Danish energy agency, energy storage, 151a Hydrogen Storage - Tanks, 2050]
                 essentials:
                     name: Hydrogen power storage
                     parent: storage
@@ -79,19 +89,21 @@ scenarios:
 """
 
 
-def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, scaling_factors, path_to_biofuel_costs, model_time):
+def fill_constraint_template(
+    path_to_annual_demand, path_to_result, model_year, scaling_factors,
+    path_to_biofuel_costs, model_time, industry_carriers
+):
     """Generate a file that represents links in Calliope."""
     annual_demand = util.read_tdf(path_to_annual_demand)
-    annual_demand = annual_demand.xs(('industry_demand', model_year), level=('dataset', 'year'))
-    keys = (
+    annual_demand = (
         annual_demand
-        .droplevel(['id'])
-        .index.drop_duplicates()
-        .drop(['rail', 'road'], level='cat_name')
-        .drop(['bau_electricity', 'electricity', 'space_heat'], level='end_use')
-        .reorder_levels(['cat_name', 'end_use', 'unit'])
+        .xs(('industry_demand', model_year), level=('dataset', 'year'))
+        .sum(level=['id', 'end_use'])
+        .unstack('end_use')
+        .apply(util.filter_small_values, rel_tol=1e-4)  # remove excessively small values
+        .loc[:, industry_carriers]
     )
-    demand_keys = {'demand_{}_{}'.format(*i[:-1]): i for i in keys}
+
     scaling_factors["specific_costs"] = scaling_factors["monetary"] / scaling_factors["power"]
     model_timedelta = util.get_timedelta(model_time, model_year)
 
@@ -102,11 +114,11 @@ def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, 
     env.filters["unit"] = filters.unit
 
     fuel = env.from_string(TEMPLATE).render(
-        annual_demand=annual_demand.unstack(keys.names)[keys].fillna(0),
-        demand_keys=demand_keys,
+        annual_demand=annual_demand,
         scaling_factors=scaling_factors,
         biofuel_fuel_cost=biofuel_fuel_cost,
-        timedelta=model_timedelta
+        timedelta=model_timedelta,
+        carriers=industry_carriers
     )
     with open(path_to_result, "w") as result_file:
         result_file.write(fuel)
@@ -118,6 +130,7 @@ if __name__ == "__main__":
         path_to_result=snakemake.output[0],
         model_year=snakemake.params.model_year,
         scaling_factors=snakemake.params.scaling_factors,
+        industry_carriers=snakemake.params.industry_carriers,
         model_time=snakemake.params.model_time,
         path_to_biofuel_costs=snakemake.input.biofuel_cost
     )

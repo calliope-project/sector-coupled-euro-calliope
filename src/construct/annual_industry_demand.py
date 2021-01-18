@@ -35,7 +35,7 @@ def get_industry_demand(
         .drop(electrical_consumption.droplevel('carrier').index, errors='ignore')
         .assign(carrier='methane').set_index('carrier', append=True)
     )
-    # If it can only be met by diesel (backup generators) then it's oil
+    # If it can only be met by diesel (backup generators) then it's diesel
     diesel_consumption = (
         get_carrier_demand('Diesel oil (incl. biofuels)', demand, energy_df)
         .drop(nat_gas_consumption.droplevel('carrier').index, errors='ignore')

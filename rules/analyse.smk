@@ -27,7 +27,7 @@ rule input_netcdf:
         src = "src/analyse/run.py",
         model_yaml_path = "build/model/{resolution}/model.yaml"
     params:
-        scenario = "directional-rooftop-pv,industry_fuel,transport,heat,config_overrides",
+        scenario = "industry_fuel,transport,heat,config_overrides",
         run = False
     output:
         output_model_path = "inputs/{resolution}/model.nc"

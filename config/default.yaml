@@ -32,11 +32,11 @@ parameters:
         W: 0.1681
         flat: 0.3020
     transmission-costs:
-        ac-ohl: 0.175  # median, Eur/MW
-        ac-ohl-mountain: 0.516  # median, Eur/MW
-        dc-ohl: 0.600  # median, Eur/MW
-        dc-underground: 0.755  # median, Eur/MW
-        dc-subsea: 0.942  # median, Eur/MW
+        ac-ohl: 175000  # median, Eur/MW
+        ac-ohl-mountain: 516000  # median, Eur/MW
+        dc-ohl: 600000  # median, Eur/MW
+        dc-underground: 755000  # median, Eur/MW
+        dc-subsea: 942000  # median, Eur/MW
     transport:
         efficiency:  # MWh / mio km 25th percentile efficiency of all countries in 2015 [JRC_IDEES]
             hdv:
@@ -65,8 +65,17 @@ parameters:
             motorcycle: light
             bus: heavy
             passenger_car: light
-
+    industry:
+        carriers: [diesel, kerosene, methanol, methane]  # choice of [diesel, kerosene, methane, methanol, co2, hydrogen], everything else will be incorporated into industry electricity demand
+        electrification_efficiency:  # see transformation-techs.yaml
+            co2: 5  # kt_CO2/MWhe
+            diesel: 0.5  # MWh_diesel/MWhe
+            kerosene: 0.5  # MWh_kerosene/MWhe
+            methane: 0.54  # MWh_methane/MWhe
+            methanol: 0.47 # MWh_methanol/MWhe
+            hydrogen: 0.66  # MWh_H2/MWhe
     heat-end-use:
+        carriers: heat  # also could be [space-heat, water-heat]
         space_heat_techs:
             carnot_performance: 0.36  # [Nouvel_2015]
             gas_eff: 0.97  # [DEA_2016], but 70-80% according to [Qu_2014]
@@ -105,10 +114,25 @@ parameters:
             underfloor: 0.1  # pure assumption
             radiator_large: 0.15  # pure assumption
             radiator_conventional: 0.75  # pure assumption
+        heat_pump_ratio:  # see https://www.ehpa.org/fileadmin/red/07._Market_Data/2018/2018-05-06_Heat_Pumps_in_Europe_2019.pdf and https://www.ehpa.org/fileadmin/red/07._Market_Data/Heat_Pumps_in_Europe_2017.pdf
+            ashp: 0.91
+            gshp: 0.09
 
 
 calliope-parameters: # arbitrary many calliope parameters applied as override
-    model.subset_time: ['2016-01-01', '2016-01-02']
+    model.subset_time: ['2016-01-01', '2016-12-31']
+    techs:
+        chp_biofuel.exists: false  # not using for overall simplification (less prominent CHP techs)
+        chp_methane_back_pressure_simple.exists: false  # not using for overall simplification (less prominent CHP techs)
+        chp_methane_back_pressure_combined.exists: false  # not using for overall simplification (less prominent CHP techs)
+        solar_thermal_collector.exists: false  # TODO: create ST timeseries to allow these techs to exist
+        solar_thermal_energy.exists: false  # TODO: create ST timeseries to allow these techs to exist
+        ashp.exists: false
+        gshp.exists: false
+        hp.exists: true
+        building_heat_to_storage.exists: false
+        demand_space_heat.exists: false
+        demand_water_heat.exists: false
 year: 2016
 connected-regions: # regions with insufficient potentials can be connected to neighbours
     AUT-9_1: AUT-3_1 # Vienna: Lower Austria

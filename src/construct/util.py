@@ -72,3 +72,32 @@ def get_timedelta(model_time, model_year):
     else:
         model_timedelta = model_timedelta / 365
     return model_timedelta
+
+
+def verify_profiles(profile, key, annual_demand):
+    assert (profile <= 0).all().all()
+    if isinstance(key, list):
+        demand = sum([annual_demand.xs(_k, level='end_use').sum(level='id') for _k in key])
+    else:
+        demand = annual_demand.xs(key, level='end_use').sum(level='id')
+    assert np.allclose(-1 * profile.sum(), demand)
+
+
+def filter_small_values(data, rel_tol=1e-5):
+    """
+    Ignore any values in a dataset that are rel_tol smaller than the maximum value
+    `data` can be a pandas Series or DataFrame. If DataFrame, each column will be dealt
+    with independently.
+    """
+    data_sum = data.sum()
+
+    data[abs(data) < abs(data).max() * rel_tol] = 0
+
+    # Resulting sum of deviation should be smaller or equal to the rel_tol, as a crude
+    # measure that data has varied negligibly
+    try:
+        assert all(1 - abs(data.sum() / data_sum) <= rel_tol)
+    except TypeError:
+        assert 1 - abs(data.sum() / data_sum) <= rel_tol
+
+    return data

@@ -23,6 +23,7 @@ overrides:
                 biofuel_boiler:
                 ashp:
                 gshp:
+                hp:
                 solar_thermal_collector:
                 solar_thermal_energy:
                 electric_heater:
@@ -33,29 +34,31 @@ overrides:
                 chp_methane_extraction:
                 chp_methane_back_pressure_simple:
                 chp_methane_back_pressure_combined:
-                building_heat_to_storage:
-                district_to_building_heat:
+                #building_heat_to_storage:
                 demand_space_heat:
                 demand_water_heat:
+                demand_heat:
                 demand_cooking:
         {% endfor %}
 
     heat_tech_grouping:
         group_constraints:
-            cooking_demand_share:
+        {% for idx in storage_requirement.index %}
+            cooking_demand_share_{{ idx }}:
+                locs: [{{ idx }}]
                 techs: [electric_hob, gas_hob]
-                demand_share_per_timestep_decision.cooking: 1
+                demand_share_per_timestep_decision.cooking: 0.95
 
-            heating_demand_share:
-                techs: [biofuel_boiler, methane_boiler, ashp, gshp, solar_thermal_collector, district_to_building_heat]  # TODO: add in building_heat_to_storage?
+            heating_demand_share_{{ idx }}:
+                locs: [{{ idx }}]
+                techs: [biofuel_boiler, methane_boiler, ashp, gshp, hp, solar_thermal_collector, chp_biofuel, chp_biofuel_extraction, chp_methane_extraction, chp_methane_back_pressure_simple
+, hp_methane_back_pressure_combined, electric_heater]  # TODO: add in building_heat_to_storage?  # currently switched off
                 demand_share_per_timestep_decision:
-                    space_heat: 1
-                    water_heat: 1
+                    space_heat: 0.95
+                    water_heat: 0.95
+                    heat: 0.95
 
-            district_heat_share:
-                techs: [chp_biofuel, chp_biofuel_extraction, chp_methane_extraction, chp_methane_back_pressure_simple, chp_methane_back_pressure_combined]
-                demand_share_per_timestep_decision:
-                    district_heat: 1
+        {% endfor %}
 
 
 scenarios:
