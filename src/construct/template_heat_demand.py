@@ -7,18 +7,21 @@ import util
 TEMPLATE = """
 overrides:
     heat_storage_max:
-        locations:
+        group_constraints:
         {% for idx in storage_requirement.index %}
-            {{ idx }}.techs:
-                heat_storage_small.constraints.storage_cap_max: {{ storage_requirement[idx] }}
-                heat_storage_big.constraints.storage_cap_max: {{ storage_requirement[idx] }}
+            storage_small_{{ idx }}:
+                techs: [methane_heat_storage_small, biofuel_heat_storage_small, ashp_heat_storage_small, gshp_heat_storage_small, hp_heat_storage_small, electric_heater_heat_storage_small]
+                locs: [{{ idx }}]
+                storage_cap_max: {{ storage_requirement[idx] }}
+            storage_big_{{ idx }}:
+                techs: [chp_biofuel_heat_storage_big, chp_biofuel_extraction_heat_storage_big, chp_methane_extraction_heat_storage_big, chp_methane_back_pressure_simple_heat_storage_big, chp_methane_back_pressure_combined_heat_storage_big]
+                locs: [{{ idx }}]
+                storage_cap_max: {{ storage_requirement[idx] }}
         {% endfor %}
     heat_techs:
         locations:
         {% for idx in storage_requirement.index %}
             {{ idx }}.techs:
-                heat_storage_small:
-                heat_storage_big:
                 methane_boiler:
                 biofuel_boiler:
                 ashp:
@@ -34,11 +37,32 @@ overrides:
                 chp_methane_extraction:
                 chp_methane_back_pressure_simple:
                 chp_methane_back_pressure_combined:
-                #building_heat_to_storage:
                 demand_space_heat:
                 demand_water_heat:
                 demand_heat:
                 demand_cooking:
+                methane_heat_storage_small:
+                methane_tech_heat_to_demand:
+                biofuel_heat_storage_small:
+                biofuel_tech_heat_to_demand:
+                ashp_heat_storage_small:
+                ashp_tech_heat_to_demand:
+                gshp_heat_storage_small:
+                gshp_tech_heat_to_demand:
+                hp_heat_storage_small:
+                hp_tech_heat_to_demand:
+                electric_heater_heat_storage_small:
+                electric_heater_tech_heat_to_demand:
+                chp_biofuel_heat_storage_big:
+                chp_biofuel_tech_heat_to_demand:
+                chp_biofuel_extraction_heat_storage_big:
+                chp_biofuel_extraction_tech_heat_to_demand:
+                chp_methane_extraction_heat_storage_big:
+                chp_methane_extraction_tech_heat_to_demand:
+                chp_methane_back_pressure_simple_heat_storage_big:
+                chp_methane_back_pressure_simple_tech_heat_to_demand:
+                chp_methane_back_pressure_combined_heat_storage_big:
+                chp_methane_back_pressure_combined_tech_heat_to_demand:
         {% endfor %}
 
     heat_tech_grouping:
@@ -51,11 +75,10 @@ overrides:
 
             heating_demand_share_{{ idx }}:
                 locs: [{{ idx }}]
-                techs: [biofuel_boiler, methane_boiler, ashp, gshp, hp, solar_thermal_collector, chp_biofuel, chp_biofuel_extraction, chp_methane_extraction, chp_methane_back_pressure_simple
-, hp_methane_back_pressure_combined, electric_heater]  # TODO: add in building_heat_to_storage?  # currently switched off
+                techs: [methane_tech_heat_to_demand, biofuel_tech_heat_to_demand, ashp_tech_heat_to_demand, gshp_tech_heat_to_demand, hp_tech_heat_to_demand, electric_heater_tech_heat_to_demand, chp_biofuel_tech_heat_to_demand, chp_biofuel_extraction_tech_heat_to_demand, chp_methane_extraction_tech_heat_to_demand, chp_methane_back_pressure_simple_tech_heat_to_demand, chp_methane_back_pressure_combined_tech_heat_to_demand]
                 demand_share_per_timestep_decision:
-                    space_heat: 0.95
-                    water_heat: 0.95
+                    space_heat: 1
+                    water_heat: 1
                     heat: 0.95
 
         {% endfor %}

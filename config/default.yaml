@@ -121,6 +121,9 @@ parameters:
 
 calliope-parameters: # arbitrary many calliope parameters applied as override
     model.subset_time: ['2016-01-01', '2016-12-31']
+    model.time:
+        function: resample
+        function_options.resolution: 12H
     techs:
         chp_biofuel.exists: false  # not using for overall simplification (less prominent CHP techs)
         chp_methane_back_pressure_simple.exists: false  # not using for overall simplification (less prominent CHP techs)
@@ -130,9 +133,30 @@ calliope-parameters: # arbitrary many calliope parameters applied as override
         ashp.exists: false
         gshp.exists: false
         hp.exists: true
-        building_heat_to_storage.exists: false
         demand_space_heat.exists: false
         demand_water_heat.exists: false
+        methane_heat_storage_small.exists: true
+        methane_tech_heat_to_demand.exists: true
+        biofuel_heat_storage_small.exists: true
+        biofuel_tech_heat_to_demand.exists: true
+        ashp_heat_storage_small.exists: false
+        ashp_tech_heat_to_demand.exists: false
+        gshp_heat_storage_small.exists: false
+        gshp_tech_heat_to_demand.exists: false
+        hp_heat_storage_small.exists: true
+        hp_tech_heat_to_demand.exists: true
+        electric_heater_heat_storage_small.exists: true
+        electric_heater_tech_heat_to_demand.exists: true
+        chp_biofuel_heat_storage_big.exists: false
+        chp_biofuel_tech_heat_to_demand.exists: false
+        chp_biofuel_extraction_heat_storage_big.exists: true
+        chp_biofuel_extraction_tech_heat_to_demand.exists: true
+        chp_methane_extraction_heat_storage_big.exists: true
+        chp_methane_extraction_tech_heat_to_demand.exists: true
+        chp_methane_back_pressure_simple_heat_storage_big.exists: false
+        chp_methane_back_pressure_simple_tech_heat_to_demand.exists: false
+        chp_methane_back_pressure_combined_heat_storage_big.exists: false
+        chp_methane_back_pressure_combined_tech_heat_to_demand.exists: false
 year: 2016
 connected-regions: # regions with insufficient potentials can be connected to neighbours
     AUT-9_1: AUT-3_1 # Vienna: Lower Austria

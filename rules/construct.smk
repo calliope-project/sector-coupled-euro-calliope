@@ -86,6 +86,27 @@ rule eurostat_data_tsv:
         """
 
 
+#rule eurostat_data_tif:
+#    message: "Get various datasets from Eurostat"
+#    input:
+#        eurostat_data = eurostat_data_tsv.output
+#    output:
+#        energy_balance = protected("data/automatic/annual_energy_balances.tsv.gz"),
+#        hh_end_use = protected("data/automatic/hh_end_use.tsv.gz"),
+#        freight = protected("data/automatic/freight.tsv.gz"),
+#        employees = protected("data/automatic/employees.tsv.gz"),
+#        gva = protected("data/automatic/gva.tsv.gz"),
+#        dwellings = protected("data/automatic/dwellings.tsv.gz"),
+#    shell:
+#        """
+#        curl -sLo {output.energy_balance} '{URL_ENERGY_BALANCE}'
+#        curl -sLo {output.hh_end_use} '{URL_HH_END_USE}'
+#        curl -sLo {output.freight} '{URL_FREIGHT}'
+#        curl -sLo {output.employees} '{URL_EMPLOYEES}'
+#        curl -sLo {output.gva} '{URL_GVA}'
+#        curl -sLo {output.dwellings} '{URL_DWELLINGS}'
+#        """
+
 rule ch_data_xlsx:
     message: "Get Swiss annual energy balances and household end uses"
     output:
@@ -184,7 +205,7 @@ rule annual_subnational_demand:
         units = landeligibility("build/{resolution}/units.geojson"),
         annual_heat_demand = rules.annual_heat_demand.output.demand,
         annual_heat_electricity_consumption = rules.annual_heat_demand.output.electricity,
-        industry_demand = rules.annual_industry_demand.output[0],
+        industry_demand = rules.annual_industry_demand.output.new_demand,
         road_distance = rules.annual_transport_demand.output.distance,
         road_vehicles = rules.annual_transport_demand.output.vehicles,
         rail_demand = rules.annual_transport_demand.output.rail_energy,
