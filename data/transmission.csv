@@ -1,0 +1,222 @@
+﻿from,to,current,type,direction,value,comment
+ESP_1,ESP_2,ac,OHL,two-way,7200,
+ESP_1,PRT_1,ac,OHL,two-way,1200,
+ESP_2,ESP_3,ac,OHL,two-way,19100,
+ESP_2,ESP_4,ac,OHL,two-way,2400,
+ESP_2,ESP_8,ac,OHL,two-way,2400,
+ESP_2,PRT_1,ac,OHL,two-way,950,
+ESP_3,ESP_4,ac,OHL,two-way,7100,
+ESP_3,ESP_5,ac,OHL,two-way,3900,
+ESP_3,ESP_7,ac,OHL,two-way,10200,
+ESP_3,ESP_11,ac,OHL,two-way,2700,
+ESP_4,ESP_5,ac,OHL,two-way,900,
+BEL_1,DEU_3,dc,underground,two-way,2000,"TYNDP_proj: 225,92"
+ESP_5,ESP_6,ac,OHL,two-way,7000,
+ESP_5,ESP_11,ac,OHL,two-way,5700,
+ESP_5,FRA_1,ac,OHL,two-way,100,
+ESP_6,ESP_11,ac,OHL,two-way,1100,
+BEL_1,GBR_1,dc,subsea,two-way,2400,"TYNDP proj: 121,74"
+ESP_7,ESP_8,ac,OHL,two-way,8700,
+ESP_7,ESP_11,ac,OHL,two-way,2100,
+ESP_8,ESP_9,ac,OHL,two-way,6100,
+ESP_8,ESP_10,ac,OHL,two-way,4000,
+ESP_8,PRT_2,ac,OHL,two-way,900,
+ESP_9,ESP_10,ac,OHL,two-way,8100,
+ESP_9,PRT_2,ac,OHL,two-way,500,
+ESP_10,ESP_11,ac,OHL,two-way,3200,
+PRT_1,PRT_2,ac,OHL,two-way,4000,
+FRA_1,FRA_2,ac,OHL,two-way,2000,
+FRA_1,FRA_4,ac,OHL,two-way,3000,
+FRA_1,FRA_5,ac,OHL,two-way,1100,
+FRA_2,FRA_3,ac,OHL,two-way,3500,
+FRA_2,FRA_5,ac,OHL,two-way,4500,
+FRA_3,FRA_6,ac,OHL,two-way,5200,
+FRA_3,FRA_7,ac,OHL,two-way,450,
+FRA_4,FRA_5,ac,OHL,two-way,4200,
+FRA_4,FRA_8,ac,OHL,two-way,5400,
+FRA_4,FRA_9,ac,OHL,two-way,250,
+FRA_5,FRA_6,ac,OHL,two-way,2200,
+FRA_5,FRA_10,ac,OHL,two-way,10000,
+FRA_5,FRA_11,ac,OHL,two-way,125,
+FRA_6,FRA_7,ac,OHL,two-way,6000,
+FRA_6,FRA_11,ac,OHL,two-way,2500,
+CHE_2,ITA_1,ac,OHL-mountain,two-way,7500,
+CHE_2,ITA_1,dc,underground,two-way,1000,TYNDP proj: 174
+FRA_7,FRA_11,ac,OHL,two-way,3000,
+FRA_7,FRA_12,ac,OHL,two-way,1150,
+FRA_7,CHE_1,ac,OHL,two-way,4300,
+FRA_7,CHE_2,ac,OHL,two-way,1300,
+FRA_7,ITA_1,ac,OHL-mountain,two-way,4800,
+FRA_8,FRA_9,ac,OHL,two-way,7000,
+CYP_1,GRC_2,dc,subsea,two-way,2000,TYNDP proj: 219
+FRA_9,FRA_10,ac,OHL,two-way,2400,
+FRA_9,FRA_13,ac,OHL,two-way,3200,
+DEU_1,DEU_3,ac,OHL,two-way,15330,
+DEU_1,DEU_3,dc,OHL,two-way,2000,TYNDP proj: 132
+FRA_10,FRA_11,ac,OHL,two-way,3500,
+FRA_10,FRA_12,ac,OHL,two-way,4000,
+FRA_10,FRA_13,ac,OHL,two-way,17900,
+FRA_10,FRA_14,ac,OHL,two-way,1100,
+FRA_11,FRA_12,ac,OHL,two-way,4200,
+FRA_12,FRA_14,ac,OHL,two-way,3500,
+FRA_12,BEL_1,ac,OHL,two-way,400,
+FRA_12,DEU_5,ac,OHL,two-way,2100,
+DEU_1,DEU_5,ac,OHL,two-way,4300,
+DEU_1,DEU_5,dc,OHL,two-way,2000,TYNDP proj: 133
+FRA_12,CHE_1,ac,OHL,two-way,3900,
+FRA_13,FRA_14,ac,OHL,two-way,4900,
+FRA_13,BEL_1,ac,OHL,two-way,2900,
+FRA_14,BEL_1,ac,OHL,two-way,1300,
+BEL_1,LUX_1,ac,OHL,two-way,700,
+BEL_1,NLD_1,ac,OHL,two-way,3500,
+DEU_1,DEU_6,dc,OHL,two-way,4000,TYNDP proj: 235
+DEU_1,NOR_1,dc,subsea,two-way,1400,TYNDP proj: 37
+LUX_1,DEU_5,ac,OHL,two-way,2900,
+NLD_1,DEU_1,ac,OHL,two-way,1400,
+NLD_1,DEU_3,ac,OHL,two-way,7100,
+DEU_1,SWE_4,dc,subsea,two-way,2600,"1400 from TYNDP proj: 176,267"
+DEU_2,DNK_2,dc,subsea,two-way,1950,"1350 from TYNDP proj: 179,36,232"
+DEU_3,DEU_6,dc,OHL,two-way,2000,TYNDP proj: 254
+DEU_1,DEU_2,ac,OHL,two-way,5400,
+DEU_4,DEU_7,ac,OHL,two-way,12840,
+DEU_4,DEU_7,dc,underground,two-way,2000,TYNDP proj: 130
+DNK_1,DNK_2,dc,subsea,two-way,600,TYNDP_proj: 175
+DNK_1,NOR_1,dc,subsea,two-way,1700,
+DNK_1,SWE_3,dc,subsea,two-way,740,
+DEU_1,DNK_1,ac,OHL,two-way,3000,
+ESP_4,FRA_1,ac,OHL-mountain,two-way,1000,
+ESP_4,FRA_1,dc,subsea,two-way,2000,TYNDP proj: 16
+ESP_6,FRA_2,ac,OHL-mountain,two-way,1000,
+ESP_6,FRA_2,dc,underground,two-way,800,
+DEU_2,DEU_4,ac,OHL,two-way,9300,
+DEU_2,POL_4,ac,OHL,two-way,3400,
+EST_1,FIN_2,dc,subsea,two-way,1000,
+DEU_3,DEU_5,ac,OHL,two-way,19050,
+FRA_12,DEU_6,ac,OHL,two-way,800,
+DEU_4,DEU_5,ac,OHL,two-way,2600,
+FRA_13,GBR_1,dc,underground,two-way,3000,1000 from TYNDP proj: 172
+DEU_4,CZE_1,ac,OHL,two-way,1700,
+DEU_4,POL_4,ac,OHL,two-way,1700,
+DEU_5,DEU_6,ac,OHL,two-way,7700,
+DEU_5,DEU_7,ac,OHL,two-way,6130,
+DEU_6,DEU_7,ac,OHL,two-way,7500,
+DEU_6,CHE_1,ac,OHL,two-way,6000,
+DEU_6,AUT_1,ac,OHL-mountain,two-way,2800,
+DEU_7,CZE_1,ac,OHL,two-way,2000,
+DEU_7,AUT_1,ac,OHL-mountain,two-way,2500,
+DEU_7,AUT_2,ac,OHL,two-way,5500,
+FRA_7,ITA_1,dc,underground,two-way,1100,TYNDP proj: 21
+FRA_8,IRL_1,dc,subsea,two-way,700,TYNDP proj: 107
+FRA_9,GBR_1,dc,subsea,two-way,3000,"TYNDP proj: 247,25"
+CZE_1,CZE_2,ac,OHL,two-way,7600,
+CZE_2,POL_3,ac,OHL,two-way,2100,
+CZE_2,SVK_1,ac,OHL,two-way,2700,
+CZE_2,AUT_3,ac,OHL,two-way,2100,
+POL_1,POL_2,ac,OHL,two-way,4700,
+POL_1,POL_3,ac,OHL,two-way,4900,
+POL_1,POL_4,ac,OHL,two-way,3400,
+POL_1,POL_5,ac,OHL,two-way,4400,
+POL_1,LTU_1,ac,OHL,two-way,1000,
+POL_2,POL_3,ac,OHL,two-way,4300,
+POL_2,SVK_1,ac,OHL,two-way,600,
+POL_3,POL_4,ac,OHL,two-way,4000,
+POL_4,POL_5,ac,OHL,two-way,8900,
+GBR_3,IRL_1,dc,subsea,two-way,1750,"1250 from TYNDP proj: 349,286"
+SVK_1,HUN_1,ac,OHL,two-way,5400,
+CHE_1,CHE_2,ac,OHL-mountain,two-way,19800,
+CHE_1,AUT_1,ac,OHL-mountain,two-way,900,
+CHE_2,AUT_1,ac,OHL-mountain,two-way,1500,
+GBR_4,GBR_6,dc,subsea,two-way,1000,500 from TYNDP proj: 189
+AUT_1,AUT_2,ac,OHL,two-way,6300,
+AUT_1,ITA_1,ac,OHL-mountain,two-way,2300,
+AUT_2,AUT_3,ac,OHL,two-way,6100,
+AUT_2,SVN_1,ac,OHL-mountain,two-way,1600,
+AUT_3,HUN_1,ac,OHL,two-way,1600,
+ITA_1,ITA_2,ac,OHL,two-way,2200,
+ISL_1,GBR_5,dc,subsea,two-way,1000,TYNDP proj: 214
+ITA_2,ITA_3,ac,OHL,two-way,2000,
+ITA_1,SVN_1,ac,OHL,two-way,2600,
+ITA_1,SVN_1,dc,underground,two-way,1000,TYNDP proj: 150
+ITA_2,FRA_15,dc,subsea,two-way,400,100 from TYNDP proj: 299
+ITA_3,ITA_4,ac,OHL,two-way,10000,
+ITA_3,ITA_6,dc,subsea,two-way,1700,1000 from TYNDP proj: 339
+ITA_4,ITA_5,ac,OHL,two-way,1100,
+ITA_3,MNE_1,dc,subsea,two-way,1200,TYNDP proj: 28
+SVN_1,HUN_1,ac,OHL,two-way,900,
+SVN_1,HRV_1,ac,OHL,two-way,3400,
+HUN_1,ROU_1,ac,OHL,two-way,1400,
+HUN_1,HRV_1,ac,OHL,two-way,2300,
+HUN_1,SRB_1,ac,OHL,two-way,700,
+ROU_1,ROU_2,ac,OHL,two-way,3500,
+ROU_1,ROU_3,ac,OHL,two-way,900,
+ROU_2,ROU_3,ac,OHL,two-way,4700,
+ROU_2,SRB_1,ac,OHL,two-way,2500,
+ROU_2,BGR_1,ac,OHL,two-way,800,
+ROU_3,BGR_1,ac,OHL,two-way,900,
+HRV_1,BIH_1,ac,OHL,two-way,4000,
+HRV_1,SRB_1,ac,OHL,two-way,700,
+BIH_1,MNE_1,ac,OHL-mountain,two-way,1400,
+BIH_1,SRB_1,ac,OHL,two-way,3100,
+MNE_1,SRB_1,ac,OHL-mountain,two-way,2900,
+MNE_1,ALB_1,ac,OHL,two-way,900,
+SRB_1,BGR_1,ac,OHL,two-way,900,
+SRB_1,MKD_1,ac,OHL,two-way,1900,
+SRB_1,ALB_1,ac,OHL,two-way,900,
+BGR_1,MKD_1,ac,OHL,two-way,700,
+BGR_1,GRC_1,ac,OHL,two-way,500,
+MKD_1,GRC_1,ac,OHL,two-way,600,
+MKD_1,ALB_1,ac,OHL-mountain,two-way,700,
+GRC_1,GRC_2,ac,OHL,two-way,11600,
+GRC_1,ALB_1,ac,OHL-mountain,two-way,800,
+DNK_2,SWE_4,ac,OHL,two-way,1700,
+ITA_4,GRC_1,dc,subsea,two-way,1000,
+EST_1,LVA_1,ac,OHL,two-way,950,
+FIN_1,FIN_2,ac,OHL,two-way,3500,
+FIN_1,NOR_7,ac,OHL,two-way,50,
+FIN_1,SWE_1,ac,OHL,two-way,1800,
+FIN_2,SWE_3,ac,OHL,two-way,1350,
+LTU_1,LVA_1,ac,OHL,two-way,1500,
+ITA_6,FRA_15,dc,subsea,two-way,400,
+NOR_1,NOR_2,ac,OHL,two-way,1500,
+NOR_1,NOR_3,ac,OHL,two-way,1700,
+LTU_1,SWE_3,dc,subsea,two-way,700,
+NOR_2,NOR_3,ac,OHL,two-way,1500,
+NOR_2,NOR_4,ac,OHL,two-way,5300,
+NOR_3,NOR_5,ac,OHL,two-way,800,
+NOR_4,NOR_5,ac,OHL,two-way,400,
+NOR_4,SWE_3,ac,OHL,two-way,2148,
+NOR_5,NOR_6,ac,OHL,two-way,200,
+NOR_5,SWE_2,ac,OHL,two-way,1000,
+NOR_6,NOR_7,ac,OHL,two-way,700,
+NOR_6,SWE_1,ac,OHL,two-way,700,
+NOR_6,SWE_2,ac,OHL,two-way,250,
+SWE_1,SWE_2,ac,OHL,two-way,4200,
+SWE_2,SWE_3,ac,OHL,two-way,7300,
+SWE_3,SWE_4,ac,OHL,two-way,6500,
+GBR_1,GBR_2,ac,OHL,two-way,7600,
+GBR_1,GBR_3,ac,OHL,two-way,8000,
+GBR_2,GBR_3,ac,OHL,two-way,5000,
+GBR_3,GBR_4,ac,OHL,two-way,7900,
+NLD_1,DNK_1,dc,subsea,two-way,700,TYNDP proj: 71
+GBR_4,GBR_5,ac,OHL,two-way,4500,
+NLD_1,GBR_1,dc,subsea,two-way,1000,
+GBR_6,IRL_1,ac,OHL,two-way,1100,
+NLD_1,NOR_1,dc,subsea,two-way,700,
+NOR_1,GBR_4,dc,subsea,two-way,1400,TYNDP proj: 110
+POL_5,SWE_4,dc,subsea,two-way,600,
+DNK_2,POL_5,dc,subsea,two-way,600,TYNDP proj: 234
+GBR_3,DNK_1,dc,subsea,two-way,1400,TYNDP proj: 167
+SWE_3,FIN_2,dc,subsea,two-way,800,TYNDP proj: 239
+ESP_6,FRA_3,dc,subsea,one-way,700,TYNDP proj: 282
+ESP_4,FRA_1,dc,underground,two-way,3500,"TYNDP proj: 276,270"
+FRA_3,ITA_1,dc,subsea,two-way,1000,TYNDP proj: 282
+FRA_13,GBR_1,dc,subsea,two-way,1400,TYNDP proj: 285
+FRA_9,GBR_2,dc,subsea,two-way,1400,TYNDP proj: 153
+GBR_3,GBR_5,dc,subsea,two-way,2400,TYNDP proj: 77
+GBR_4,GBR_5,dc,subsea,two-way,2000,TYNDP proj: 351
+NOR_3,GBR_5,dc,subsea,two-way,2000,"TYNDP proj: 294,190"
+GBR_2,FRA_8,dc,subsea,two-way,1800,TYNDP proj: 296
+FRA_8,ESP_4,dc,subsea,one-way,1800,TYNDP proj: 296
+GBR_1,DEU_1,dc,subsea,two-way,1400,TYNDP proj: 309
+ITA_3,ITA_5,dc,subsea,two-way,1000,TYNDP proj: 339
+ITA_6,ITA_5,dc,subsea,two-way,1000,TYNDP proj: 339
