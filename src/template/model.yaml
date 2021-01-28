@@ -7,10 +7,11 @@ import:
     - '../transformation-techs.yaml'
     - '../transport-techs.yaml'
     - '../demand-techs.yaml'
+    - '../legacy-techs.yaml'
     - './locations.yaml'
     - './links.yaml'
     - './directional-rooftop.yaml'
-    - './outer-countries.yaml'
+    #- './outer-countries.yaml'  # todo add this in as an override option
     - './vehicle_group_constraints.yaml'
     - './heat_group_constraints.yaml'
     - './fuel_group_constraints.yaml'
@@ -60,3 +61,20 @@ overrides:
             hydrogen_storage:
                 constraints:
                     energy_cap_per_storage_cap_max: 0.25 # min 4h full-power discharge
+
+    res_2h:
+        model.time:
+            function: resample
+            function_options.resolution: 2H
+    res_3h:
+        model.time:
+            function: resample
+            function_options.resolution: 3H
+    res_6h:
+        model.time:
+            function: resample
+            function_options.resolution: 6H
+    res_12h:
+        model.time:
+            function: resample
+            function_options.resolution: 12H

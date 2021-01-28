@@ -197,6 +197,18 @@ rule annual_heat_demand:
     script: "../src/construct/annual_heat_demand.py"
 
 
+rule annual_waste_supply:
+    message: "Calculate the energy content of waste available in each {wildcards.resolution} region for incineration and energy recovery"
+    input:
+        energy_balance = rules.annual_energy_balances.output[0],
+        population = landeligibility("build/{resolution}/population.csv"),
+        units = landeligibility("build/{resolution}/units.geojson"),
+    conda: "../envs/geodata.yaml"
+    output:
+        "build/{resolution}/annual_waste_supply.csv"
+    script: "../src/construct/annual_waste_supply.py"
+
+
 rule annual_subnational_demand:
     message: "Scale national demand to {wildcards.resolution} resolution"
     input:
@@ -415,12 +427,14 @@ rule annual_heat_constraints:
     message: "create all {wildcards.resolution} constraints associated with annual heat demand"
     input:
         src = "src/construct/template_heat_demand.py",
-        space_heat_demand="build/model/{resolution}/space-heat-demand.csv",
-        water_heat_demand="build/model/{resolution}/water-heat-demand.csv",
-        heat_demand="build/model/{resolution}/heat-demand.csv",
+        space_heat_demand = "build/model/{resolution}/space-heat-demand.csv",
+        water_heat_demand = "build/model/{resolution}/water-heat-demand.csv",
+        heat_demand = "build/model/{resolution}/heat-demand.csv",
+        waste_supply = rules.annual_waste_supply.output[0]
     params:
         model_year = config["year"],
-        storage_period = 48  # there can only be as much storage as is reasonable for 48hrs of demand
+        storage_period = 48,  # there can only be as much storage as is reasonable for 48hrs of demand
+        scaling_factors = config["scaling-factors"]
     conda: "../envs/default.yaml"
     output: "build/model/{resolution}/heat_group_constraints.yaml"
     script: "../src/construct/template_heat_demand.py"
@@ -448,6 +462,7 @@ rule model:
         "build/model/transformation-techs.yaml",
         "build/model/transport-techs.yaml",
         "build/model/link-techs.yaml",
+        "build/model/legacy-techs.yaml",
         "build/model/{resolution}/locations.yaml",
         "build/model/{resolution}/directional-rooftop.yaml",
         rules.annual_fuel_demand_constraints.output,

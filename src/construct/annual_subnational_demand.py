@@ -98,17 +98,22 @@ def subnationalise_demand(
     all_df.to_csv(out_path)
 
 
+def get_population_intensity(path_to_population, units):
+    population_df = (
+        pd.read_csv(path_to_population, index_col=0)
+        .set_index(units.set_index(['id', 'country_code']).index)
+    )
+    return (
+        population_df.div(population_df.sum(level='country_code')).population_sum
+    )
+
+
 def subnational_pop_weighted_demand(
     units, heat_demand, heat_electricity_consumption, road_distance_df, road_vehicles_df,
     rail_demand_df, road_bau_electricity_df, rail_bau_electricity_df, population
 ):
     concat_dfs = []
-    population_df = (
-        pd.read_csv(population, index_col=0).set_index(units.set_index(['id', 'country_code']).index)
-    )
-    population_intensity = (
-        population_df.div(population_df.sum(level='country_code')).population_sum
-    )
+    population_intensity = get_population_intensity(population, units)
 
     concat_dfs.append(align_and_scale(
         heat_demand.xs('household', level='cat_name'), population_intensity, units

@@ -33,6 +33,10 @@ def tj_to_twh(array):
     return pj_to_twh(array) * 1e-3
 
 
+def gwh_to_tj(array):
+    return array * 3.6
+
+
 def ktoe_to_twh(array):
     return array * 1.163e-2
 

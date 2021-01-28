@@ -121,9 +121,6 @@ parameters:
 
 calliope-parameters: # arbitrary many calliope parameters applied as override
     model.subset_time: ['2016-01-01', '2016-12-31']
-    model.time:
-        function: resample
-        function_options.resolution: 12H
     techs:
         chp_biofuel.exists: false  # not using for overall simplification (less prominent CHP techs)
         chp_methane_back_pressure_simple.exists: false  # not using for overall simplification (less prominent CHP techs)

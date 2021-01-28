@@ -44,47 +44,44 @@ def generate_annual_energy_balance_nc(
 
     # Add CH energy use (only covers a subset of sectors and carriers, but should be enough)
     ch_energy_use_tdf = add_ch_energy_balance(
-        path_to_ch_excel, path_to_ch_industry_excel
-    ).reorder_levels(tdf.index.names)
+        path_to_ch_excel, path_to_ch_industry_excel, index_levels=tdf.index.names
+    )
     tdf = pd.concat([tdf, ch_energy_use_tdf]).sort_index(axis=0)
 
     tdf.to_csv(path_to_result)
 
 
-def add_ch_energy_balance(path_to_ch_excel, path_to_ch_industry_excel):
+def add_ch_energy_balance(path_to_ch_excel, path_to_ch_industry_excel, index_levels):
     ch_hh_energy_use = get_ch_energy_balance_sheet(
-        path_to_ch_excel, 'T17a', skipfooter=9
-    ).assign(cat_code='FC_OTH_HH_E').reset_index()
+        path_to_ch_excel, 'T17a', skipfooter=9, cat_code='FC_OTH_HH_E'
+    )
     ch_ind_energy_use = get_ch_energy_balance_sheet(
-        path_to_ch_excel, 'T17b', skipfooter=12
-    ).assign(cat_code='FC_IND_E').reset_index()
+        path_to_ch_excel, 'T17b', skipfooter=12, cat_code='FC_IND_E'
+    )
     ch_ser_energy_use = get_ch_energy_balance_sheet(
-        path_to_ch_excel, 'T17c', skipfooter=12
-    ).assign(cat_code='FC_OTH_CP_E').reset_index()
+        path_to_ch_excel, 'T17c', skipfooter=12, cat_code='FC_OTH_CP_E'
+    )
+
+    ch_waste_energy_use = get_ch_waste_consumption(path_to_ch_excel)
     ch_industry_subsector_energy_use = get_ch_industry_energy_balance(path_to_ch_industry_excel)
     ch_transport_energy_use = get_ch_transport_energy_balance(path_to_ch_excel)
 
-    ch_energy_use_tdf = (
-        pd.concat([ch_hh_energy_use, ch_ind_energy_use, ch_ser_energy_use])
+    ch_energy_use_tdf = pd.concat([
+        i
+        .reset_index('year')
         .assign(country='CH', unit='TJ')
-        .set_index(['cat_code', 'year', 'country', 'unit'])
-        .stack()
-    )
-
-    ch_energy_use_tdf = pd.concat(
-        [ch_energy_use_tdf] + [
-            i
-            .assign(country='CH', unit='TJ')
-            .set_index(['country', 'unit'], append=True)
-            .stack()
-            .reorder_levels(ch_energy_use_tdf.index.names)
-            for i in [ch_industry_subsector_energy_use, ch_transport_energy_use]
+        .set_index(['year', 'country', 'unit'], append=True)
+        .reorder_levels(index_levels)
+        for i in [
+            ch_hh_energy_use, ch_ind_energy_use, ch_ser_energy_use, ch_waste_energy_use,
+            ch_industry_subsector_energy_use, ch_transport_energy_use
         ]
-    )
+    ])
+
     return ch_energy_use_tdf
 
 
-def get_ch_energy_balance_sheet(path_to_excel, sheet, skipfooter):
+def get_ch_energy_balance_sheet(path_to_excel, sheet, skipfooter, cat_code):
     ch_energy_carriers = {
         'Erdölprodukte': 'O4000XBIO',
         'Elektrizität': 'E7000',
@@ -112,9 +109,38 @@ def get_ch_energy_balance_sheet(path_to_excel, sheet, skipfooter):
     )
     _df.index.rename('year', inplace=True)
 
-    _df = _df.apply(util.to_numeric).astype(float)
+    _df = (
+        _df
+        .apply(util.to_numeric)
+        .astype(float)
+        .assign(cat_code=cat_code)
+        .set_index("cat_code", append=True)
+        .stack()
+    )
 
     return _df
+
+
+def get_ch_waste_consumption(path_to_excel):
+    """
+    In a different sheet in the CH GEST dataset, get data on the consumed quantity of
+    waste burned in WtE plants, ignoring the small (~2-3%) quantity of fossil fuels
+    also consumed in WtE plants to kickstart the process.
+    """
+    waste_stream_gwh = pd.read_excel(
+        path_to_excel, sheet_name='T27',
+        skiprows=5, index_col=0, header=[0, 1], skipfooter=8
+    )[("Consommation d'énergie (GWh)", "Ordures")]
+    waste_stream_tj = waste_stream_gwh.apply(util.gwh_to_tj)
+    waste_stream_tdf = (
+        waste_stream_tj
+        .to_frame("W6100_6220")  # carrier code
+        .rename_axis(index="year", columns="carrier_code")
+        .assign(cat_code="TI_EHG_E")  # cat code
+        .set_index("cat_code", append=True)
+        .stack()
+    )
+    return waste_stream_tdf
 
 
 def get_ch_transport_energy_balance(path_to_excel):
@@ -159,6 +185,7 @@ def get_ch_transport_energy_balance(path_to_excel):
         .T
         .assign(cat_code=_df.columns.map(categories))
         .set_index('cat_code', append=True)
+        .stack()
     )
 
     return _df
@@ -206,9 +233,10 @@ def get_ch_industry_energy_balance(path_to_excel):
         .dropna(subset=['TOTAL'])
     )
     df.columns = df.columns.str.extract('(\d+)', expand=False).fillna(0).astype(int).map(ch_subsectors)
+    # combine any data that now has the same cat_code or carrier_code by using groupby
     df = df.groupby(axis=1, level=0).sum().groupby(level=[0, 1]).sum()
 
-    return df
+    return df.stack()
 
 
 if __name__ == "__main__":

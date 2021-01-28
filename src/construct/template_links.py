@@ -24,6 +24,119 @@ links:
         {% endif %}
         {% endfor %}
     {% endfor %}
+
+overrides:
+    link_cap_20:
+        tech_groups:
+            dc_transmission.constraints.energy_cap_max: 0.2
+            ac_transmission.constraints.energy_cap_max: 0.2
+
+    link_cap_40:
+        tech_groups:
+            dc_transmission.constraints.energy_cap_max: 0.4
+            ac_transmission.constraints.energy_cap_max: 0.4
+
+    link_cap_10_40:
+        tech_groups:
+            dc_transmission.constraints.energy_cap_max: 0.1
+            ac_transmission.constraints.energy_cap_max: 0.4
+
+    link_cap_1x:
+        links:
+            {% for row_id, row in gtcs.iterrows() %}
+            {{ row_id[0] }},{{ row_id[1] }}.techs:
+                {% for link, data in row.iteritems() %}
+                {% if data > 0 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_equals: {{ data * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+    link_cap_2x:
+        links:
+            {% for row_id, row in gtcs.iterrows() %}
+            {{ row_id[0] }},{{ row_id[1] }}.techs:
+                {% for link, data in row.iteritems() %}
+                {% if data > 0 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 2 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+    link_cap_5x:
+        links:
+            {% for row_id, row in gtcs.iterrows() %}
+            {{ row_id[0] }},{{ row_id[1] }}.techs:
+                {% for link, data in row.iteritems() %}
+                {% if data > 0 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 5 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+    link_cap_10x:
+        links:
+            {% for row_id, row in gtcs.iterrows() %}
+            {{ row_id[0] }},{{ row_id[1] }}.techs:
+                {% for link, data in row.iteritems() %}
+                {% if data > 0 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 10 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+    link_cap_50x:
+        links:
+            {% for row_id, row in gtcs.iterrows() %}
+            {{ row_id[0] }},{{ row_id[1] }}.techs:
+                {% for link, data in row.iteritems() %}
+                {% if data > 0 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 50 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+    link_cap_100x:
+        links:
+            {% for row_id, row in gtcs.iterrows() %}
+            {{ row_id[0] }},{{ row_id[1] }}.techs:
+                {% for link, data in row.iteritems() %}
+                {% if data > 0 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 100 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+    link_cap_500x:
+        links:
+            {% for row_id, row in gtcs.iterrows() %}
+            {{ row_id[0] }},{{ row_id[1] }}.techs:
+                {% for link, data in row.iteritems() %}
+                {% if data > 0 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 500 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+
+    link_cap_dynamic:
+        links:
+            {% for row_id, row in gtcs.iterrows() %}
+            {{ row_id[0] }},{{ row_id[1] }}.techs:
+                {% for link, data in row.iteritems() %}
+                {% if data > 0 and data <= 1000 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 40 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% elif data > 1000 and data <= 5000 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 10 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% elif data > 5000 and data <= 10000 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 5 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% elif data > 10000 and data <= 15000 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 3 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% elif data > 15000 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 2 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% endif %}
+                {% endfor %}
+            {% endfor %}
 """
 
 
