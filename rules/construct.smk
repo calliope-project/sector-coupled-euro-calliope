@@ -10,6 +10,7 @@ URL_FREIGHT = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDown
 URL_EMPLOYEES = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?file=data/sbs_r_nuts06_r2.tsv.gz"
 URL_GVA = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?file=data/nama_10r_3gva.tsv.gz"
 URL_CH_GVA = "https://www.bfs.admin.ch/bfsstatic/dam/assets/10647597/master"
+URL_GAS_STORAGE = "https://www.gie.eu/maps_data/downloads/2018/Storage_DB_Dec2018.xlsx"
 
 subworkflow eurocalliope:
     workdir: "euro-calliope"
@@ -22,7 +23,7 @@ subworkflow landeligibility:
     configfile: "land-eligibility/config/default.yaml"
 
 localrules: copy_euro_calliope, copy_resolution_specific_euro_calliope, model, links, outer_countries, eurostat_data_tsv, ch_data_xlsx, when2heat
-ruleorder: model > links > outer_countries > copy_euro_calliope > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > calliope_config_overrides > copy_resolution_specific_euro_calliope
+ruleorder: model > links > outer_countries > copy_euro_calliope > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > calliope_config_overrides > gas_storage > copy_resolution_specific_euro_calliope
 wildcard_constraints:
     definition_file = "[^\/]*" # must not travers into directories
 
@@ -451,6 +452,27 @@ rule calliope_config_overrides:
             yaml.dump({'overrides': {'config_overrides': params.overrides}}, out)
 
 
+rule gas_storage_xlsx:
+    message: "Get latest data on underground gas storage available in each country"
+    output: "data/automatic/gas_storage.xlsx"
+    shell: "curl -sLo {output[0]} '{URL_GAS_STORAGE}'"
+
+
+rule gas_storage:
+    message: "Assign gas storage facilities to {wildcards.resolution} regions"
+    input:
+        src = "src/gas_storage.py",
+        gas_storage_data = rules.gas_storage_xlsx.output[0],
+        shapes = rules.units.output[0],
+    output:
+        table = "build/{resolution}/gas_storage.csv",
+        yaml = "build/model/{resolution}/gas_storage.yaml"
+    params:
+        scaling_factors = config["scaling-factors"]
+    conda: "envs/geo.yaml"
+    script: "src/gas_storage.csv"
+
+
 rule model:
     message: "Build entire model on resolution {wildcards.resolution}."
     input:
@@ -465,6 +487,7 @@ rule model:
         "build/model/legacy-techs.yaml",
         "build/model/{resolution}/locations.yaml",
         "build/model/{resolution}/directional-rooftop.yaml",
+        "build/model/{resolution}/gas_storage.yaml",
         rules.annual_fuel_demand_constraints.output,
         rules.annual_vehicle_constraints.output,
         rules.annual_heat_constraints.output,
