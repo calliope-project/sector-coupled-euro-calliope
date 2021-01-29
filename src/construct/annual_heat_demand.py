@@ -58,8 +58,8 @@ def get_heat_demand(
 
     # get commercial energy consumption by end use
     annual_consumption = get_commercial_energy_consumption(
-        energy_balance_dfs['com'], path_to_ch_end_use, path_to_commercial_demand,
-        country_codes, annual_consumption
+        energy_balance_dfs['com'].add(energy_balance_dfs['oth'], fill_value=0),
+        path_to_ch_end_use, path_to_commercial_demand, country_codes, annual_consumption
     )
 
     # Fix data gaps for some countries
@@ -67,11 +67,6 @@ def get_heat_demand(
         annual_consumption, energy_balance_dfs['hh']
     )
 
-    ## get industrial energy consumption by end use
-    #annual_consumption = get_industrial_energy_consumption(
-    #    energy_balance_dfs['ind'], path_to_ch_end_use, path_to_industry_demand,
-    #    path_to_carrier_names, country_codes, annual_consumption
-    #)
     # get electricity consumption data specifically, to remove from ENTSOE timeseries
     electricity_consumption = get_annual_electricity_consumption(
         annual_consumption, energy_balance_dfs
@@ -94,22 +89,23 @@ def get_energy_balances(energy_balance, carrier_names, country_codes):
     carrier_names_df = pd.read_csv(carrier_names, index_col=0, header=0)
 
     balances = {}
-    balance_codes = {'hh': r'^FC_OTH_HH_E', 'com': r'^FC_OTH_CP_E'}
+    balance_codes = {
+        'hh': ['FC_OTH_HH_E'],
+        'com': ['FC_OTH_CP_E'],
+        'oth': ['FC_OTH_AF_E', 'FC_OTH_FISH_E', 'FC_OTH_NSP_E']
+    }
     for balance_code, cat_code in balance_codes.items():
-        _df = energy_balance_df[
-            energy_balance_df.index.get_level_values('cat_code').str.contains(cat_code)
-        ]
+        _df = energy_balance_df.loc[cat_code]  # cat_code is always the first element
         _df = (
             _df.xs('TJ', level='unit')
             .apply(util.tj_to_twh)  # TJ -> TWh
-            .unstack(['cat_code', 'year'])
+            .unstack('year')
             .groupby(
                 [carrier_names_df[f'{balance_code}_carrier_name'].dropna().to_dict(), country_codes],
                 level=['carrier_code', 'country']
             )
             .sum()
             .rename_axis(['carrier_name', 'country_code'], axis=0)
-            .droplevel('cat_code', axis=1)
         )
         balances[balance_code] = _df
 

@@ -35,7 +35,7 @@ overrides:
 
 
 def regionalise_gas_storage(
-    path_to_storage_data, path_to_shapes, path_to_table_results, path_to_yaml_results,
+    path_to_storage_data, path_to_units, path_to_table_results, path_to_yaml_results,
     scaling_factors
 ):
     """
@@ -46,6 +46,8 @@ def regionalise_gas_storage(
     handle some non-machine-readable elements.
 
     Currently assigning storage info evenly to all regions on a subnational level.
+    Would be better to use exact locatonal data, as shown here:
+    https://www.gie.eu/download/maps/2018/GIE_STOR_2018_A0_1189x841_FULL_FINAL.pdf
     """
 
     all_sites = pd.read_excel(
@@ -71,7 +73,7 @@ def regionalise_gas_storage(
     )
     gas_storage_data.index = gas_storage_data.index.map(util.get_alpha3).rename('country_code')
 
-    units = gpd.read_file(path_to_shapes).set_index(["id", "country_code"])
+    units = gpd.read_file(path_to_units).set_index(["id", "country_code"])
 
     # TODO: split gas to subcountry levels in a way that is based on actual postion of
     # storage facilities. Currently being split evenly across all regions.
@@ -101,7 +103,7 @@ def regionalise_gas_storage(
 if __name__ == "__main__":
     regionalise_gas_storage(
         path_to_storage_data=snakemake.input.gas_storage,
-        path_to_shapes=snakemake.input.shapes,
+        path_to_units=snakemake.input.units,
         scaling_factors=snakemake.params.scaling_factors,
         path_to_table_results=snakemake.output.table,
         path_to_yaml_results=snakemake.output.yaml

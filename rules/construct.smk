@@ -463,7 +463,7 @@ rule gas_storage:
     input:
         src = "src/gas_storage.py",
         gas_storage_data = rules.gas_storage_xlsx.output[0],
-        shapes = rules.units.output[0],
+        units = landeligibility("build/{resolution}/units.geojson"),
     output:
         table = "build/{resolution}/gas_storage.csv",
         yaml = "build/model/{resolution}/gas_storage.yaml"
