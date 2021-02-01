@@ -8,7 +8,8 @@ include: "rules/analyse.smk"
 
 localrules: all, clean, make_runs
 onstart:
-    shell("mkdir -p build/logs")
+    shell("mkdir -p build/logs build/eurospores build/national build/model")
+
 onsuccess:
     if "email" in config.keys():
         shell("echo "" | mail -s 'eurospores succeeded' {config[email]}")

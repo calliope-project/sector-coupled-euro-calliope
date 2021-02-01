@@ -42,7 +42,7 @@ def get_transport_demand(
         energy_balances
         .loc[idx[['FC_OTH_AF_E', 'FC_OTH_NSP_E'], 'O4000XBIO', :, :, :]]
         .sum(level=['country', 'year'])
-        .sub(other_transport_aviation, fill_value=0)
+        .sub(other_transport_aviation, fill_value=0)  # remove fuel use assumed for aviation
         .to_frame('diesel')
         .rename_axis(columns='carrier')
         .stack()
@@ -158,7 +158,7 @@ def get_all_distance_efficiency(
         .rename_axis(columns='carrier')
         .droplevel('unit')
         .stack()
-        .add(other_transport_road)
+        .add(other_transport_road, fill_value=0)
         .apply(util.tj_to_twh)
         .rename_axis(index=['country_code', 'year', 'carrier'])
     )

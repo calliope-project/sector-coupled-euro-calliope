@@ -27,8 +27,8 @@ overrides:
             {% if gas_storage.loc[idx].sum() > 0 %}
             {{ idx }}:
                 techs.methane_storage.constraints:
-                    energy_cap_equals: {{ gas_storage.loc[idx, energy_cap_gas_storage_mw] * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
-                    storage_cap_equals: {{ gas_storage.loc[idx, storage_cap_gas_storage_mwh] * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MWh") }}
+                    energy_cap_equals: {{ gas_storage.loc[idx, 'energy_cap_gas_storage_mw'] * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                    storage_cap_equals: {{ gas_storage.loc[idx, 'storage_cap_gas_storage_mwh'] * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MWh") }}
             {% endif %}
             {% endfor %}
 """
@@ -68,8 +68,10 @@ def regionalise_gas_storage(
     )
 
     gas_storage_data = pd.concat(
-        [hourly_energy_cap * 1e3, gas_storage_cap.reindex(hourly_energy_cap.index) * 1e6],  # scale to MW/MWh
-        keys=['energy_cap_gas_storage_mw', 'storage_cap_gas_storage_mwh']
+        [hourly_energy_cap * 1e3,  # Scale GW to MW
+         gas_storage_cap.reindex(hourly_energy_cap.index).Total * 1e6],  # scale TWh to MWh
+        keys=['energy_cap_gas_storage_mw', 'storage_cap_gas_storage_mwh'],
+        axis=1
     )
     gas_storage_data.index = gas_storage_data.index.map(util.get_alpha3).rename('country_code')
 
@@ -102,7 +104,7 @@ def regionalise_gas_storage(
 
 if __name__ == "__main__":
     regionalise_gas_storage(
-        path_to_storage_data=snakemake.input.gas_storage,
+        path_to_storage_data=snakemake.input.gas_storage_data,
         path_to_units=snakemake.input.units,
         scaling_factors=snakemake.params.scaling_factors,
         path_to_table_results=snakemake.output.table,

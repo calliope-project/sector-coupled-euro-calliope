@@ -469,8 +469,8 @@ rule gas_storage:
         yaml = "build/model/{resolution}/gas_storage.yaml"
     params:
         scaling_factors = config["scaling-factors"]
-    conda: "envs/geo.yaml"
-    script: "src/gas_storage.csv"
+    conda: "../envs/geodata.yaml"
+    script: "../src/construct/gas_storage.py"
 
 
 rule model:
