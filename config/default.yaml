@@ -68,12 +68,12 @@ parameters:
     industry:
         carriers: [diesel, kerosene, methanol, methane]  # choice of [diesel, kerosene, methane, methanol, co2, hydrogen], everything else will be incorporated into industry electricity demand
         electrification_efficiency:  # see transformation-techs.yaml
-            co2: 5  # kt_CO2/MWhe
-            diesel: 0.5  # MWh_diesel/MWhe
-            kerosene: 0.5  # MWh_kerosene/MWhe
-            methane: 0.54  # MWh_methane/MWhe
-            methanol: 0.47 # MWh_methanol/MWhe
-            hydrogen: 0.66  # MWh_H2/MWhe
+            co2: 5000000.0  # kt_CO2/TWhe
+            diesel: 0.5  # TWh_diesel/TWhe
+            kerosene: 0.5  # TWh_kerosene/TWhe
+            methane: 0.54  # TWh_methane/TWhe
+            methanol: 0.47 # TWh_methanol/TWhe
+            hydrogen: 0.66  # TWh_H2/TWhe
     heat-end-use:
         carriers: heat  # also could be [space-heat, water-heat]
         space_heat_techs:

@@ -12,7 +12,7 @@ METHANOL_LHV_KTOE = 0.476  # 19.915 MJ/kg LHV -> 19915000MJ/kt -> 0.476ktoe/kt
 
 
 def get_industry_demand(
-    path_to_energy_balances, path_to_cat_names,
+    path_to_energy_balances, path_to_cat_names, path_to_carrier_names,
     path_to_jrc_industry_end_use, path_to_jrc_industry_production,
     path_to_new_output, path_to_bau_output
 ):
@@ -20,6 +20,7 @@ def get_industry_demand(
     prod_df = pd.read_csv(path_to_jrc_industry_production, index_col=[0, 1, 2, 3])
     energy_balances = pd.read_csv(path_to_energy_balances, index_col=[0, 1, 2, 3, 4], squeeze=True)
     cat_names = pd.read_csv(path_to_cat_names, header=0, index_col=0)
+    carrier_names = pd.read_csv(path_to_carrier_names, header=0, index_col=0)
 
     demand = energy_df.xs('demand').sum(level=['section', 'subsection', 'country_code', 'cat_name', 'unit'])
 
@@ -70,7 +71,7 @@ def get_industry_demand(
     ])
     all_consumption.columns = all_consumption.columns.astype(int).rename('year')
 
-    all_filled_consumption = fill_missing_data(energy_balances, cat_names, all_consumption)
+    all_filled_consumption = fill_missing_data(energy_balances, cat_names, carrier_names, all_consumption)
     units = all_filled_consumption.index.get_level_values('unit')
     all_filled_consumption.loc[units == 'ktoe'] = (
         all_filled_consumption.loc[units == 'ktoe'].apply(util.ktoe_to_twh)
@@ -329,7 +330,7 @@ def get_chem_energy_consumption(electrical_consumption, prod_df, demand):
     return chem_consumption
 
 
-def fill_missing_data(energy_balances, cat_names, energy_consumption):
+def fill_missing_data(energy_balances, cat_names, carrier_names, energy_consumption):
     """
     There are 7 countries without relevant data in JRC_IDEES, so we use their
     Eurostat energy balance data to estimate future energy consumption, relative to the
@@ -340,9 +341,11 @@ def fill_missing_data(energy_balances, cat_names, energy_consumption):
     industry_energy_balances = (
         energy_balances
         .unstack(['year', 'country'])
-        .xs('TOTAL', level='carrier_code')
-        .groupby(cat_names.jrc_idees.dropna().to_dict(), level=0)
-        .sum()
+        .groupby([
+            cat_names.jrc_idees.dropna().to_dict(),
+            carrier_names.ind_carrier_name.dropna().to_dict()
+        ], level=['cat_code', 'carrier_code']).sum()
+        .sum(level='cat_code')
         .stack('country')
         .rename_axis(index=['cat_name', 'country_code'])
     )
@@ -398,6 +401,7 @@ if __name__ == "__main__":
     get_industry_demand(
         path_to_energy_balances=snakemake.input.energy_balances,
         path_to_cat_names=snakemake.input.cat_names,
+        path_to_carrier_names=snakemake.input.carrier_names,
         path_to_jrc_industry_end_use=snakemake.input.jrc_industry_end_use,
         path_to_jrc_industry_production=snakemake.input.jrc_industry_production,
         path_to_new_output=snakemake.output.new_demand,

@@ -2,6 +2,7 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 
+from annual_national_demand import electrify_industry_demand
 import util
 
 
@@ -79,8 +80,7 @@ def subnationalise_demand(
 
     all_df = pd.concat([commercial_df, industry_df, pop_weighted_df])
 
-
-    #FillNA for any missing info
+    # FillNA for any missing info
     _df = all_df.unstack('id').stack(dropna=False)
     print("Filling missing data for {}".format(_df[_df.isna()].sum(level=['dataset', 'cat_name', 'id']).index.remove_unused_levels()))
     all_df = _df.fillna(0).groupby(level=['dataset', 'cat_name', 'year', 'id', 'unit', 'end_use']).sum()
@@ -263,19 +263,9 @@ def subnational_commercial_demand(
     return commercial_scaled_df
 
 
-def subnational_industry_demand(
-    units, industry_demand, road_distance_df, road_vehicles_df, rail_demand_df,
-    air_demand, marine_demand, emissions, freight,
-    rail_bau_electricity_df, industry_bau_electricity,
-    employees, nuts_2006, industry_activity_codes, industry_config
+def industry_subsector_regional_intensity(
+    units, emissions, freight, employees, nuts_2006, industry_activity_codes, industry_demand_df
 ):
-    """
-    Some industry subsectors are subdivided based on employment data per NUTS3 region.
-    Where this isn't available, we use freight loading data. Both datasets have
-    subcategories relating to industry subsectors.
-    The more emitting subsectors (e.g. iron & steel) are subdivided using EU-ETS emissions
-    data.
-    """
     # Get freight data
     freight_df = load_eurostat_tsv(freight, ['subsector', 'unit', 'region'])
 
@@ -380,25 +370,64 @@ def subnational_industry_demand(
         .groupby(['id', 'Subsector', 'country_code']).sum()
         .apply(lambda x: x / x.sum(level=['Subsector', 'country_code']))
         .reset_index('country_code', drop=True)
-        .emissions
-        .drop('Other Industrial Sectors')
-        .unstack(0)
+        .loc[:, 'emissions']
+        .drop('Other Industrial Sectors', level='Subsector')
+        .unstack('Subsector')
     )
 
     # Combine freight/employee subsector intensities with emissions subsector intensities
-    all_subsectors_industry_intensity = (
+    all_intensities = (
         pd.concat([emissions_intensity_eu, subsector_employee_freight_intensity], axis=1)
         .reindex(units.set_index('id').index)
         .where(units.set_index('id')['type'] != 'country', other=1)
         .rename_axis(columns='subsector')
+        .reindex(industry_demand_df.index.levels[0], axis=1)
         .set_index(units.set_index('country_code').index.map(util.get_alpha2), append=True)
-        .stack()
     )
+    # Find subsectors with zero intensity across all subregions in the country
+    missing_intensities = (
+        all_intensities.sum(level='country_code', min_count=1).isna().stack().where(lambda x: x).dropna()
+    )
+    # we normalise the average intensity, since it sometimes doesn't quite
+    # add up to 1 in a country.
+    average_intensity = (
+        all_intensities.mean(axis=1).div(all_intensities.mean(axis=1).sum(level='country_code'))
+    )
+    for i in missing_intensities.index:
+        print(
+            "Missing industry regional subsector intensities for {}; "
+            "filling with average from other subsectors as {}"
+            .format(i, average_intensity.loc[idx[:, i[0]]])
+        )
+        all_intensities.loc[idx[:, i[0]], i[1]] = average_intensity.loc[idx[:, [i[0]]]]
+
+    assert (all_intensities.sum(level='country_code').round(5) == 1).all().all()
+    # anything else (e.g. one region in a country with NaN intensity): fill with zero
+    return all_intensities.fillna(0).stack()
+
+
+def subnational_industry_demand(
+    units, industry_demand, road_distance_df, road_vehicles_df, rail_demand_df,
+    air_demand, marine_demand, emissions, freight,
+    rail_bau_electricity_df, industry_bau_electricity,
+    employees, nuts_2006, industry_activity_codes, industry_config
+):
+    """
+    Some industry subsectors are subdivided based on employment data per NUTS3 region.
+    Where this isn't available, we use freight loading data. Both datasets have
+    subcategories relating to industry subsectors.
+    The more emitting subsectors (e.g. iron & steel) are subdivided using EU-ETS emissions
+    data.
+    """
 
     industry_demand_df = util.read_tdf(industry_demand)
+
+    all_subsectors_industry_intensity = industry_subsector_regional_intensity(
+        units, emissions, freight, employees, nuts_2006, industry_activity_codes, industry_demand_df
+    )
     # FIXME: move this yearrange into config yaml
     industry_demand_df = industry_demand_df[
-        industry_demand_df.index.get_level_values('year').isin(range(2000, 2019))
+        industry_demand_df.index.get_level_values('year').isin(YEAR_RANGE)
 
     ]
     industry_energy_df = align_and_scale(
@@ -407,7 +436,7 @@ def subnational_industry_demand(
     industry_energy_df = (
         industry_energy_df
         .sum(level=['id', 'country_code', 'unit', 'year', 'carrier'])
-        .rename_axis(index=['id', 'country_code', 'unit', 'year', 'end_use'])
+        .rename_axis(index={'carrier': 'end_use'})
     )
 
     # BAU electricity
@@ -487,25 +516,10 @@ def subnational_industry_demand(
               ('industry_demand', 'rail'), ('industry_demand', 'air'),
               ('industry_demand', 'marine')]
     )
-
-    # Electrify any end uses according to workflow configuration
-    to_electrify = {
-        i: 'electricity'
-        for i in industry_config["electrification_efficiency"].keys()
-        if i not in industry_config["carriers"]
-    }
-    electrification = {
-        i: industry_config["electrification_efficiency"][i] if i in to_electrify else 1
-        for i in industry_scaled_df.index.get_level_values('end_use').unique()
-    }
-    industry_scaled_df = (
-        industry_scaled_df
-        .unstack('end_use')
-        .mul(electrification)
-        .rename(columns=to_electrify)
-        .groupby(level=0, axis=1).sum(min_count=1)
-        .stack()
+    industry_scaled_df = electrify_industry_demand(
+        industry_scaled_df, industry_config, level_order=LEVEL_ORDER
     )
+
     return industry_scaled_df
 
 

@@ -23,7 +23,7 @@ subworkflow landeligibility:
     configfile: "land-eligibility/config/default.yaml"
 
 localrules: copy_euro_calliope, copy_resolution_specific_euro_calliope, model, links, outer_countries, eurostat_data_tsv, ch_data_xlsx, when2heat
-ruleorder: model > links > outer_countries > copy_euro_calliope > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > calliope_config_overrides > gas_storage > copy_resolution_specific_euro_calliope
+ruleorder: model > links > outer_countries > copy_euro_calliope > annual_national_demand > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > calliope_config_overrides > gas_storage > copy_resolution_specific_euro_calliope
 wildcard_constraints:
     definition_file = "[^\/]*" # must not travers into directories
 
@@ -147,6 +147,7 @@ rule annual_industry_demand:
         src = "src/construct/annual_industry_demand.py",
         energy_balances = rules.annual_energy_balances.output[0],
         cat_names = "data/energy_balance_category_names.csv",
+        carrier_names = "data/energy_balance_carrier_names.csv",
         jrc_industry_end_use = "data/industry/jrc_idees_processed_energy.csv.gz",
         jrc_industry_production = "data/industry/jrc_idees_processed_production.csv.gz",
     conda: "../envs/default.yaml"
@@ -210,6 +211,31 @@ rule annual_waste_supply:
     script: "../src/construct/annual_waste_supply.py"
 
 
+rule annual_national_demand:
+    message: "Scale national demand to national resolution"
+    input:
+        src = "src/construct/annual_national_demand.py",
+        annual_heat_demand = rules.annual_heat_demand.output.demand,
+        annual_heat_electricity_consumption = rules.annual_heat_demand.output.electricity,
+        industry_demand = rules.annual_industry_demand.output.new_demand,
+        road_distance = rules.annual_transport_demand.output.distance,
+        road_vehicles = rules.annual_transport_demand.output.vehicles,
+        rail_demand = rules.annual_transport_demand.output.rail_energy,
+        air_demand = rules.annual_transport_demand.output.air_energy,
+        marine_demand = rules.annual_transport_demand.output.marine_energy,
+        road_bau_electricity=rules.annual_transport_demand.output.road_bau_electricity,
+        rail_bau_electricity=rules.annual_transport_demand.output.rail_bau_electricity,
+        industry_bau_electricity=rules.annual_industry_demand.output.bau_electricity,
+    conda: "../envs/default.yaml"
+    params:
+        scaling_factors = config["scaling-factors"],
+        industry_config = config["parameters"]["industry"],
+        countries = config["scope"]["countries"]
+    output:
+        all_annual = "build/national/annual-demand.csv",
+    script: "../src/construct/annual_national_demand.py"
+
+
 rule annual_subnational_demand:
     message: "Scale national demand to {wildcards.resolution} resolution"
     input:
@@ -237,7 +263,7 @@ rule annual_subnational_demand:
     conda: "../envs/geodata.yaml"
     params:
         scaling_factors = config["scaling-factors"],
-        industry_config = config["parameters"]["industry"],
+        industry_config = config["parameters"]["industry"]
     output:
         all_annual = "build/{resolution}/annual-demand.csv",
     script: "../src/construct/annual_subnational_demand.py"
@@ -300,7 +326,7 @@ rule cooking_heat_demand:
     input:
         cooking_profiles = "data/cooking_profiles.csv.gz",
         regions = "build/{resolution}/regions.csv",
-        annual_demand = rules.annual_subnational_demand.output.all_annual,
+        annual_demand = "build/{resolution}/annual-demand.csv",
     conda: "../envs/default.yaml"
     params:
         model_year = config["year"],
@@ -313,7 +339,7 @@ rule scaled_heat_demand_profiles:
     message: "Scale {wildcards.end_use}heat{wildcards.demand_key} profiles at {wildcards.resolution} resolution according to annual demand."
     input:
         src = "src/construct/scale_hourly_heat_profiles.py",
-        annual_demand = rules.annual_subnational_demand.output.all_annual,
+        annual_demand = "build/{resolution}/annual-demand.csv",
         dwelling_ratio = rules.regional_dwelling_ratio.output[0],
         profile = "build/{resolution}/{end_use,.*}heat-profile.csv",
     params:
@@ -330,7 +356,7 @@ rule scaled_public_transport_demand_profiles:
     input:
         src = "src/construct/scale_hourly_transport_profiles.py",
         regions = "build/{resolution}/regions.csv",
-        annual_demand = rules.annual_subnational_demand.output.all_annual,
+        annual_demand = "build/{resolution}/annual-demand.csv",
         rail_profiles = "data/transport/rail_daily_profiles_destinee.csv",
     params:
         model_year = config["year"]
@@ -347,7 +373,7 @@ rule update_electricity_with_other_sectors:
         water_heat = "build/model/{resolution}/water-heat-bau-electricity-demand.csv",
         cooking = "build/model/{resolution}/cooking-bau-electricity-demand.csv",
         public_transport = "build/{resolution}/public-transport-demand.csv",
-        annual_demand = rules.annual_subnational_demand.output.all_annual,
+        annual_demand = "build/{resolution}/annual-demand.csv",
         hourly_electricity = eurocalliope("build/model/{resolution}/electricity-demand.csv")
     params:
         model_year = config["year"]
@@ -363,7 +389,7 @@ rule heat_pump_characteristics:
         dep_src = "src/construct/hourly_heat_profiles.py",
         weather_pop = "build/{resolution}/weather_pop.csv.gz",
         hp_characteristics = "data/heat_pump_characteristics.csv",
-        annual_demand = rules.annual_subnational_demand.output.all_annual
+        annual_demand = "build/{resolution}/annual-demand.csv"
     params:
         heat_tech_params = config["parameters"]["heat-end-use"],
         characteristic = "{characteristic}",
@@ -393,7 +419,7 @@ rule annual_fuel_demand_constraints:
     message: "create all {wildcards.resolution} group constraints associated with annual fuel demand"
     input:
         src = "src/construct/template_fuel_demand.py",
-        annual_demand=rules.annual_subnational_demand.output.all_annual,
+        annual_demand="build/{resolution}/annual-demand.csv",
         biofuel_cost = eurocalliope(
             "build/data/regional/biofuel/{scenario}/costs-eur-per-mwh.csv".format(
             scenario=config["parameters"]["jrc-biofuel"]["scenario"]
@@ -413,7 +439,7 @@ rule annual_vehicle_constraints:
     message: "create all {wildcards.resolution} constraints associated with annual road vehicle demand"
     input:
         src = "src/construct/template_vehicle_demand.py",
-        annual_demand=rules.annual_subnational_demand.output.all_annual
+        annual_demand="build/{resolution}/annual-demand.csv"
     params:
         model_year = config["year"],
         transport = config["parameters"]["transport"],

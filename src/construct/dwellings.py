@@ -12,7 +12,7 @@ def get_dwelling_ratio(path_to_dwellings, regions, nuts_to_regions, out_path):
     the national average applied to each region in a country.
     Missing locations (e.g. croatia) get the average across all other datasets
     """
-    regions_df = pd.read_csv(regions, index_col=0)
+    regions_df = pd.read_csv(regions, index_col=0, squeeze=True)
     dwellings = pd.read_csv(path_to_dwellings, delimiter='\t', index_col=0)
     dwellings.index = dwellings.index.str.split(',', expand=True).rename(
         ['housing', 'building_type', 'unit', 'year']
@@ -21,7 +21,7 @@ def get_dwelling_ratio(path_to_dwellings, regions, nuts_to_regions, out_path):
 
     dwellings = dwellings.droplevel(['unit', 'year']).apply(util.to_numeric)
     if "national" in out_path:
-        grouper = regions_df.index.apply(util.get_alpha2)
+        grouper = regions_df.rename(index=util.get_alpha2)
     else:
         nuts_2010 = pd.read_csv(nuts_to_regions)
         nuts_2010['NUTS3_2010'] = nuts_2010["NUTS3_2010"].fillna(

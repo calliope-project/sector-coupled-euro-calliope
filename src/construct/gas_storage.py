@@ -89,7 +89,6 @@ def regionalise_gas_storage(
 
     gas_storage_data_per_region.to_csv(path_to_table_results)
 
-
     env = jinja2.Environment(lstrip_blocks=True, trim_blocks=True)
     env.filters["unit"] = filters.unit
 
