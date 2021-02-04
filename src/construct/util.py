@@ -84,7 +84,7 @@ def verify_profiles(profile, key, annual_demand):
         demand = sum([annual_demand.xs(_k, level='end_use').sum(level='id') for _k in key])
     else:
         demand = annual_demand.xs(key, level='end_use').sum(level='id')
-    assert np.allclose(-1 * profile.sum(), demand)
+    assert np.allclose(profile.sum().abs().reindex(demand.index), demand.abs())
 
 
 def filter_small_values(data, rel_tol=1e-5):
