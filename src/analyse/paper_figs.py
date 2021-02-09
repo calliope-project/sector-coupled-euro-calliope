@@ -13,20 +13,13 @@ from src.construct import util
 idx = pd.IndexSlice
 
 cmaps = {
-    'Air/shipping fuel': 'GnBu',
-    'CO$_2$ feedstock': 'GnBu',
-    'Cooking heat': 'Oranges',
+    'Road vehicle mileage': 'BuPu',
     'Electricity': 'Blues',
-    'Energy feedstock': 'GnBu',
-    'High enthalpy heat': 'YlOrRd',
-    'Hot water': 'Oranges',
-    'Other vehicles mileage': 'BuPu',
-    'Passenger car mileage': 'BuPu',
-    'Rail electricity': 'Blues',
-    'Space Heat': 'Oranges',
+    'Building Heat': 'Oranges', #'OrRd'
+    'Synthetic fuel': 'YlGnBu',
 }
 timeseries_colors = {
-    'Fuel': '#abd9e9',
+    'Fuel': '#a1dab4',
     'Building heat': '#fdae61',
     'Electricity': '#2c7bb6',
 }
@@ -49,7 +42,8 @@ mpl.rcParams['text.latex.preamble'] = [
 
 def plot_figure_1(
     path_to_units, path_to_annual_demand, path_to_national_units,
-    path_to_electricity_demand, path_to_space_heat_demand, path_to_water_heat_demand,
+    path_to_electricity_demand, path_to_current_electricity_demand,
+    path_to_space_heat_demand, path_to_water_heat_demand,
     path_to_cooking_demand, energy_scaling_factor, model_year, out_path
 ):
     units = gpd.read_file(path_to_units).set_index('id')
@@ -58,7 +52,7 @@ def plot_figure_1(
     space_heat_demand = pd.read_csv(path_to_space_heat_demand, index_col=0, parse_dates=True)
     water_heat_demand = pd.read_csv(path_to_water_heat_demand, index_col=0, parse_dates=True)
     cooking_demand = pd.read_csv(path_to_cooking_demand, index_col=0, parse_dates=True)
-
+    current_electricity_demand = pd.read_csv(path_to_current_electricity_demand, index_col=0, parse_dates=True)
     mean_annual_demand = (
         annual_demand
         .drop(annual_demand.filter(regex=r"bau", axis=0).index)
@@ -66,21 +60,12 @@ def plot_figure_1(
     )
 
     annual_electricity_demand = -1 * electricity_demand.sum()
-    building_electricity = annual_electricity_demand - mean_annual_demand.xs('electricity', level='end_use').sum(level='id')
 
     figure_data_dict = {
-        ('Building demand', 'Space Heat', 'TWh'): mean_annual_demand[idx[:, :, :, 'space_heat']].sum(level='id') / energy_scaling_factor,
-        ('Building demand', 'Hot water', 'TWh'): mean_annual_demand[idx[:, :, :, 'water_heat']].sum(level='id') / energy_scaling_factor,
-        ('Building demand', 'Cooking heat', 'TWh'): mean_annual_demand[idx[:, :, :, 'cooking']].sum(level='id') / energy_scaling_factor,
-        ('Building demand', 'Electricity', 'TWh'): building_electricity / energy_scaling_factor,
-        ('Industry demand', 'Energy feedstock', 'TWh LHV'): mean_annual_demand.loc[idx[:, :, :, ['hydrogen', 'methanol']]].sum(level='id') / energy_scaling_factor,
-        ('Industry demand', 'CO$_2$ feedstock', 'kt'): mean_annual_demand[idx[:, :, :, 'co2']].sum(level='id'),
-        ('Industry demand', 'High enthalpy heat', 'TWh methane'): mean_annual_demand[idx[:, :, :, 'methane']].sum(level='id') / energy_scaling_factor,
-        ('Industry demand', 'Electricity', 'TWh'): mean_annual_demand.loc[idx['industry_demand', 'industry', :, 'electricity']].sum(level='id') / energy_scaling_factor,
-        ('Transport demand', 'Passenger car mileage', 'x10$^{10}$ km'): mean_annual_demand[idx[:, :, :, 'passenger_car']].sum(level='id'),
-        ('Transport demand', 'Other vehicles mileage', 'x10$^{10}$ km'): mean_annual_demand.loc[idx[:, :, :, ['motorcycle', 'bus', 'ldv', 'hdv']]].sum(level='id'),
-        ('Transport demand', 'Air/shipping fuel', 'TWh LHV'): mean_annual_demand.loc[idx[:, ['air', 'shipping'], :, :]].sum(level='id') / energy_scaling_factor,
-        ('Transport demand', 'Rail electricity', 'TWh'): mean_annual_demand[idx[:, 'rail', :, 'electricity']].sum(level='id') / energy_scaling_factor
+        ('Building Heat', 'TWh'): mean_annual_demand.loc[idx[:, :, :, ['space_heat', 'water_heat', 'cooking']]].sum(level='id') / energy_scaling_factor,
+        ('Electricity', 'TWh'): annual_electricity_demand / energy_scaling_factor,
+        ('Synthetic fuel', 'TWh LHV'): mean_annual_demand.loc[idx[:, :, :, ['hydrogen', 'methanol', 'methane', 'kerosene', 'diesel']]].sum(level='id') / energy_scaling_factor,
+        ('Road vehicle mileage', 'x10$^{10}$ km'): mean_annual_demand.loc[idx[:, :, :, ['motorcycle', 'bus', 'ldv', 'hdv', 'passenger_car']]].sum(level='id'),
     }
     figure_data_df = pd.concat(figure_data_dict.values(), axis=1, keys=figure_data_dict.keys())
 
@@ -90,13 +75,14 @@ def plot_figure_1(
         keys=['Electricity', 'Building heat'],
         axis=1
     ).div(-1 * 10)
-    timeseries['Fuel'] = (
-        figure_data_df
-        .loc[:, idx[:, ['Energy feedstock', 'High enthalpy heat', 'Air/shipping fuel'], :]]
-        .sum().sum()
-        / len(timeseries)
+    timeseries['Fuel'] = figure_data_df['Synthetic fuel'].sum().sum() / len(timeseries)
+    current_timeseries = (
+        current_electricity_demand
+        .sum(axis=1)
+        .div(-1 * 10)
+        .rename('Current electricity load')
+        .rename_axis(None)
     )
-
     plot_gdf = (
         units[['country_code', 'geometry']]
         .merge(figure_data_df, right_index=True, left_index=True)
@@ -117,40 +103,28 @@ def plot_figure_1(
     )
 
     ncols = 32
-    fig = plt.figure(figsize=(11, 15))
+    fig = plt.figure(figsize=(15, 10))
     g = plt.GridSpec(
-        nrows=10, ncols=ncols, figure=fig,
-        height_ratios=[1, 1, 10, 2.5, 10, 2.5, 10, 3, 6, 4], hspace=0.12
+        nrows=5, ncols=ncols, figure=fig,
+        height_ratios=[1, 10, 1, 6, 2], hspace=0.1
     )
     axes = {}
     axes['annual_title'] = plt.subplot(g[0, :], frameon=False)
     axes['annual_title'].axis('off')
-    axes['annual_title'].set_title('\\textbf{a. Annual demand}', fontweight='bold', loc='left', y=0.1)
+    axes['annual_title'].set_title('\\textbf{a. Annual demand}', fontweight='bold', loc='left', y=0.5)
     r = 1
-    for row in figure_data_df.columns.levels[0]:
-        c = 0
-        axes[row] = plt.subplot(g[r, :], frameon=False)
-        axes[row].axis('off')
-        axes[row].set_title(f'\\textit{{{row}}}', loc='center', y=0.1)
-        r += 1
-        for col in figure_data_df.xs(row, axis=1).columns:
-            axes[(row, ) + col] = plt.subplot(g[r, int(c * (ncols / 4)):int(c * (ncols / 4) + (ncols / 4))], frameon=False)
-            axes[(row, ) + col].axis('off')
-            axes[(row, ) + col].set_title(col[0])
-            c += 1
-        r += 1
+    c = 0
     for col in figure_data_df.columns:
-        if col[1] == 'Air/shipping fuel':
-            national_gdf.plot(
-                col, ax=axes[col], cmap=cmaps[col[1]], legend=True,
-                legend_kwds={'label': f'\\small{{{col[2]}}}', 'orientation': 'horizontal', 'pad': 0.03}
-            )
-        else:
-            plot_gdf.plot(
-                col, ax=axes[col], cmap=cmaps[col[1]], legend=True,
-                legend_kwds={'label': f'\\small{{{col[2]}}}', 'orientation': 'horizontal', 'pad': 0.03}
-            )
+        axes[col] = plt.subplot(g[r, int(c * (ncols / 4)):int(c * (ncols / 4) + (ncols / 4))], frameon=False)
+        axes[col].axis('off')
+        c += 1
+
+        plot_gdf.plot(
+            col, ax=axes[col], cmap=cmaps[col[0]], legend=True,
+            legend_kwds={'label': f'\\small{{{col[1]}}}', 'orientation': 'horizontal', 'pad': 0.03}
+        )
         national_gdf.plot(fc='None', ec='black', lw=0.1, ax=axes[col], legend=False, linestyle='dashed')
+        axes[col].set_title(col[0])
 
     timeseries_axes = {
         'Title': plt.subplot(g[-3, :], frameon=False),
@@ -169,6 +143,7 @@ def plot_figure_1(
         timeseries_axes[i].set_title(f'\\textit{{{i}}}', loc='center')
         timeseries_axes[i].set_ylim(0, max(timeseries.loc[v].sum(axis=1).max() for v in timeseries_dates.values()))
         timeseries.loc[timeseries_dates[i], timeseries_colors.keys()].plot.area(ax=timeseries_axes[i], legend=False, alpha=0.8, lw=0, color=timeseries_colors.values())
+        current_timeseries.loc[timeseries_dates[i]].plot(ax=timeseries_axes[i], lw=2, c='black', linestyle='--')
         timeseries_axes[i].yaxis.grid(True, zorder=-1)
         timeseries_axes[i].set_axisbelow(True)
         timeseries_axes[i].set_ylabel('Energy demand (TWh)')
@@ -189,6 +164,7 @@ if __name__ == '__main__':
         path_to_annual_demand=snakemake.input.annual_demand,
         path_to_national_units=snakemake.input.national_units,
         path_to_electricity_demand=snakemake.input.electricity_demand,
+        path_to_current_electricity_demand=snakemake.input.current_electricity_demand,
         path_to_space_heat_demand=snakemake.input.space_heat_demand,
         path_to_water_heat_demand=snakemake.input.water_heat_demand,
         path_to_cooking_demand=snakemake.input.cooking_demand,

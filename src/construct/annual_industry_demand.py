@@ -319,7 +319,7 @@ def get_chem_energy_consumption(electrical_consumption, prod_df, demand):
         [chem_electricity_consumption.add(chem_energy_consumption).droplevel('carrier'),
          chem_methanol_consumption.assign(unit='ktoe').set_index('unit', append=True),
          chem_h2_consumption.assign(unit='ktoe').set_index('unit', append=True),
-         chem_co2_consumption.assign(unit='kt').set_index('unit', append=True),
+         chem_co2_consumption.mul(1e3).assign(unit='t').set_index('unit', append=True),
          space_heat_demand],
 
         names=['carrier'], keys=['electricity', 'methanol', 'hydrogen', 'co2', 'space_heat']

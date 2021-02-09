@@ -5,7 +5,7 @@ scaling-factors:
     distance: 1
     energy: 10 # from TW(h) to 100 GW(h)
     transport: 0.01  # from Mio km to 100 Mio km
-    co2: 0.0001  # from kt to 10 Mt
+    co2: 0.0001  # from t to 10 kt
 capacity-factors:
     min: 0.001 # consider smaller values to be 0; this helps numerics in the LP
     max: 10 # for hydro reservoirs, leading to a numerical range of 1e5 (hourly resolution)
@@ -68,7 +68,7 @@ parameters:
     industry:
         carriers: [diesel, kerosene, methanol, methane]  # choice of [diesel, kerosene, methane, methanol, co2, hydrogen], everything else will be incorporated into industry electricity demand
         electrification_efficiency:  # see transformation-techs.yaml
-            co2: 5000000.0  # kt_CO2/TWhe
+            co2: 5000000.0  # tCO2/TWhe
             diesel: 0.5  # TWh_diesel/TWhe
             kerosene: 0.5  # TWh_kerosene/TWhe
             methane: 0.54  # TWh_methane/TWhe

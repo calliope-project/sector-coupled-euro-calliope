@@ -53,11 +53,11 @@ def combine_data(
 
     # Scale
     df.loc[df.index.get_level_values('unit') == 'twh'] *= scaling_factors['energy']
-    df.loc[df.index.get_level_values('unit') == 'kt'] *= scaling_factors['co2']
+    df.loc[df.index.get_level_values('unit') == 't'] *= scaling_factors['co2']
     df.loc[df.index.get_level_values('unit') == 'mio_km'] *= scaling_factors['transport']
     df = df.rename(
         {'twh': '{:.2f} twh'.format(1 / scaling_factors['energy']),
-         'kt': '{:.2f} kt'.format(1 / scaling_factors['co2']),
+         't': '{:.2f} t'.format(1 / scaling_factors['co2']),
          'mio_km': '{:.2f} mio_km'.format(1 / scaling_factors['transport'])},
         level='unit'
     )

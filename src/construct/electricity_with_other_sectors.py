@@ -69,9 +69,10 @@ def update_hourly_electricity(
     # Verify on an annual level
     assert np.allclose(
         hourly_electricity_df.sum(),
-        new_hourly_electricity_df.sum() -
-        bau_electricity.sum(level='id') +
-        annual_demand_df.xs('electricity', level='end_use').sum(level='id')
+        new_hourly_electricity_df.sum()
+        .sub(bau_electricity.sum(level='id'))
+        .add(annual_demand_df.xs('electricity', level='end_use').sum(level='id'))
+        .reindex(hourly_electricity_df.columns)
     )
 
     # Communicate any timesteps which have ended up being positive
