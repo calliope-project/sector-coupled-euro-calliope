@@ -40,7 +40,8 @@ def plot_system(path_to_model, path_to_units, path_to_output, bounds):
 
     ax_eu.add_geometries(
         gdf.geometry.values,
-        crs=CRS, facecolor=COLORS['eu_bg'], edgecolor='None', linewidth=0.3
+        crs=CRS, facecolor=COLORS['eu_bg'], edgecolor='gray', linestyle="--",
+        linewidth=0.3
     )
     ax_eu.add_geometries(
         gdf.dissolve('country_code').geometry.values,

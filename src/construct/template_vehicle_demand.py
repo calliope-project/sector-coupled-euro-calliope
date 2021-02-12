@@ -12,13 +12,23 @@ import filters
 TEMPLATE = """
 
 overrides:
-    all_transport:
+    transport_demand_exists:
+        techs:
+            {% for tech in annual_vehicles.columns %}
+            demand_{{ tech }}_transport.exists: true
+            {% endfor %}
+    transport_ev_exists:
+        techs:
+            {% for tech in annual_vehicles.columns %}
+            {{ tech }}_transport_ev.exists: true
+            {% endfor %}
+    transport_ice_exists:
         techs:
             {% for tech in annual_vehicles.columns %}
             {{ tech }}_transport_ice.exists: true
-            {{ tech }}_transport_ev.exists: true
-            demand_{{ tech }}_transport.exists: true
             {% endfor %}
+
+    all_transport:
         locations:
         {% for idx in annual_vehicles.index %}
             {{ idx }}.techs:
@@ -49,7 +59,7 @@ overrides:
 
             {% endfor %}
 scenarios:
-    transport: [all_transport, annual_transport_distance]
+    transport: [all_transport, annual_transport_distance,transport_demand_exists, transport_ev_exists, transport_ice_exists]
 """
 
 

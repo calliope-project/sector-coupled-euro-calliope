@@ -8,6 +8,8 @@ import:
     - '../transport-techs.yaml'
     - '../demand-techs.yaml'
     - '../legacy-techs.yaml'
+    - '../spores.yaml'
+    - '../fuel_scenarios.yaml'
     - './locations.yaml'
     - './links.yaml'
     - './directional-rooftop.yaml'
@@ -36,6 +38,7 @@ run:
         Crossover: 0 # stop after barrier, do not perform crossover
         FeasibilityTol: 1e-3
         OptimalityTol: 1e-4
+        BarConvTol: 1e-5
 
 overrides:
     no-hydro-costs:

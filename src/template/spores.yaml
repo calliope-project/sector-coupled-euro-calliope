@@ -1,0 +1,84 @@
+overrides:
+    spores_group_constraint:
+        group_constraints:
+            systemwide_cost_max.cost_max.monetary: .inf
+    spores_run_config:
+        run.mode: spores
+        run.spores_options:
+            score_cost_class: 'spores_score'
+            slack_cost_group: 'systemwide_cost_max'
+            slack: 0.1
+            spores_number: 10
+        run.objective_options.cost_class: {'monetary': 1, 'spores_score': 0}
+        run.solver_options.BarHomogeneous: 1
+    spores_score_electricity:
+        tech_groups:
+            pv.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            wind.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+        techs:
+            hydro_run_of_river.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            hydro_reservoir.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            nuclear.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            ccgt.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+    spores_score_fuel:
+        techs:
+            biofuel_to_liquids.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            hydrogen_to_liquids.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            biofuel_to_diesel.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            biofuel_to_gas_and_liquids.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            biofuel_to_methanol.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            hydrogen_to_methanol.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            biofuel_to_methane.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            hydrogen_to_methane.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            electrolysis.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            dac.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+
+    spores_score_transport:
+        techs:
+            heavy_transport_ice.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            heavy_transport_ev.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            light_transport_ice.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            light_transport_ev.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+
+    spores_score_heat:
+        techs:
+            methane_boiler.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            biofuel_boiler.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            hp.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            electric_heater.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            electric_hob.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            gas_hob.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            chp_biofuel_extraction.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            chp_methane_extraction.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            biofuel_heat_storage_small.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            hp_heat_storage_small.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            electric_heater_heat_storage_small.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            waste_supply.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            chp_wte_back_pressure.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+
+    spores_score_heat_storage:
+        tech_groups:
+            heat_storage_small.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            heat_storage_big.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+
+    spores_score_fuel_storage:
+        techs.hydrogen_storage.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+
+    spores_score_electricity_storage:
+        techs:
+            battery.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            pumped_hydro.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+
+    spores_score_transmission:
+        tech_groups:
+            dc_transmission.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            ac_transmission.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+
+scenarios:
+    spores_electricity: [spores_group_constraint, spores_run_config, spores_score_electricity]
+    spores_storage: [spores_group_constraint, spores_run_config, spores_score_heat_storage, spores_score_fuel_storage, spores_score_electricity_storage]
+    spores_transmission: [spores_group_constraint, spores_run_config, spores_score_transmission]
+    spores_fuel: [spores_group_constraint, spores_run_config, spores_score_fuel]
+    spores_transport: [spores_group_constraint, spores_run_config, spores_score_transport]
+    spores_heat: [spores_group_constraint, spores_run_config, spores_score_heat]
+    spores_all: [spores_group_constraint, spores_run_config, spores_score_electricity, spores_score_fuel, spores_score_transport, spores_score_heat, spores_score_heat_storage, spores_score_fuel_storage, spores_score_electricity_storage, spores_score_transmission]

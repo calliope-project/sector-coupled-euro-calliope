@@ -15,12 +15,11 @@ rule maps:
     message: "Creating Calliope {wildcards.resolution} map"
     input:
         src = "src/analyse/maps.py",
-        model = "inputs/{resolution}/model.nc",
-        units = eurocalliope("build/data/eurospores/units.geojson")
+        model = "build/{resolution}/model.nc",
+        units = landeligibility("build/{resolution}/units.geojson")
     params:
         bounds = config["scope"]["bounds"]
-    output:
-        "inputs/{resolution}/map.pdf"
+    output: "build/figures/{resolution}/map.pdf"
     conda: "../envs/plots.yaml"
     script: "../src/analyse/maps.py"
 
@@ -31,12 +30,28 @@ rule input_netcdf:
         src = "src/analyse/run.py",
         model_yaml_path = "build/model/{resolution}/model.yaml"
     params:
-        scenario = "industry_fuel,transport,heat,config_overrides",
+        scenario = "industry_fuel_isolated,transport,heat,config_overrides,gas_storage,link_cap_dynamic",
         run = False
-    output:
-        output_model_path = "inputs/{resolution}/model.nc"
+    output: "build/{resolution}/model.nc"
     conda: "../envs/calliope.yaml"
     script: "../src/analyse/run.py"
+
+
+rule spores:
+    message: "Running Calliope {wildcards.resolution} resolution SPORES model"
+    input:
+        model_yaml_path = "build/model/{resolution}/model.yaml"
+    params:
+        scenario = "industry_fuel_isolated,transport,heat,config_overrides,gas_storage,link_cap_dynamic,spores_electricity",
+        threads = 6,
+        mins = 1440,
+        mem = "rusage[mem=90G]",
+    output:
+        model = "outputs/{resolution}/spores/electricity.nc",
+        logs = "logs/{resolution}/spores/electricity.log"
+    conda: "../envs/calliope.yaml"
+    shell:
+        "bsub -n {params.threads} -W {params.mins} -R {params.mem} -o {output.logs} 'calliope run --save_netcdf {output.model} --scenario {params.scenario} {input.model_yaml_path}'"
 
 
 rule simplified_nuts_units:

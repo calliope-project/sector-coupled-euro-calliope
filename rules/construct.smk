@@ -22,8 +22,8 @@ subworkflow landeligibility:
     snakefile: "land-eligibility/Snakefile"
     configfile: "land-eligibility/config/default.yaml"
 
-localrules: copy_euro_calliope, copy_resolution_specific_euro_calliope, model, links, outer_countries, eurostat_data_tsv, ch_data_xlsx, when2heat
-ruleorder: model > links > outer_countries > copy_euro_calliope > annual_national_demand > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > calliope_config_overrides > gas_storage > copy_resolution_specific_euro_calliope
+localrules: copy_euro_calliope, copy_resolution_specific_euro_calliope, model, links, outer_countries, eurostat_data_tsv, ch_data_xlsx, when2heat, copy_from_template
+ruleorder: model > links > outer_countries > copy_from_template > copy_euro_calliope > annual_national_demand > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > calliope_config_overrides > gas_storage > copy_resolution_specific_euro_calliope
 wildcard_constraints:
     definition_file = "[^\/]*" # must not travers into directories
 
@@ -499,6 +499,16 @@ rule gas_storage:
     script: "../src/construct/gas_storage.py"
 
 
+rule copy_from_template:
+    message: "copy override YAML templates"
+    input:
+        template = "src/template/{template}"
+    output: "build/model/{template}"
+    wildcard_constraints:
+        template = "((spores.yaml)|(fuel_scenarios.yaml))"
+    shell: "cp {input.template} {output}"
+
+
 rule model:
     message: "Build entire model on resolution {wildcards.resolution}."
     input:
@@ -538,6 +548,7 @@ rule model:
                 "hydro-ror", "hydro-reservoir-inflow", "rooftop-pv"
             ],
         ),
+        "build/model/spores.yaml",
         definition = "src/template/model.yaml"
     output:
         model = "build/model/{resolution}/model.yaml"

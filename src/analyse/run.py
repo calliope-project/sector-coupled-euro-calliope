@@ -21,7 +21,7 @@ def create_inputs(model_yaml_path, scenario):
 if __name__ == '__main__':
     build_model(
         model_yaml_path=snakemake.input.model_yaml_path,
-        output_model_path=snakemake.output.output_model_path,
+        output_model_path=snakemake.output[0],
         scenario=snakemake.params.scenario,
         run=snakemake.params.run
     )

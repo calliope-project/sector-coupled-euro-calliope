@@ -12,7 +12,7 @@ import filters
 
 TEMPLATE = """
 overrides:
-    annual_fuel_demand:
+    annual_fuel_demand_isolated:
         group_constraints:
             {% for idx in annual_demand.index %}
             {% for carrier in carriers %}
@@ -26,8 +26,19 @@ overrides:
                 #    {{ carrier }}: {{ -1 * annual_demand.loc[idx, carrier] * timedelta * 1.1}}
             {% endif %}
             {% endfor %}
-
             {% endfor %}
+
+    annual_fuel_demand_shared:
+        group_constraints:
+            {% for carrier in carriers %}
+            {% if annual_demand[carrier].sum() > 1e-6 %}
+            all_{{ carrier }}:
+                techs: [demand_industry_{{ carrier }}]
+                carrier_con_min:
+                    {{ carrier }}: {{ -1 * annual_demand[carrier].sum() * timedelta }}
+            {% endif %}
+            {% endfor %}
+
     industry_techs:
         techs:
             {% for carrier in carriers %}
@@ -40,6 +51,7 @@ overrides:
                 biofuel_to_liquids:
                 hydrogen_to_liquids:
                 biofuel_to_diesel:
+                biofuel_to_gas_and_liquids:
                 biofuel_to_methanol:
                 hydrogen_to_methanol:
                 biofuel_to_methane:
@@ -85,7 +97,8 @@ overrides:
                     om_annual: 0  # negate the costs given in the base euro-calliope definition (anaerobic digection gas turbine)
                     om_con: {{ biofuel_fuel_cost * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR/MWh") }}
 scenarios:
-    industry_fuel: [annual_fuel_demand, industry_techs, new_hydrogen_storage, new_biofuel_supply, biofuel_maximum]
+    industry_fuel_isolated: [annual_fuel_demand_isolated, industry_techs, new_hydrogen_storage, new_biofuel_supply, biofuel_maximum]
+    industry_fuel_shared: [annual_fuel_demand_shared, industry_techs, new_hydrogen_storage, new_biofuel_supply, biofuel_maximum]
 """
 
 
