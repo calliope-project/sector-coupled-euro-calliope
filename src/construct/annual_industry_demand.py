@@ -5,12 +5,12 @@ import util
 
 H2_LHV_KTOE = 2.863  # 0.0333 TWh/kt LHV -> 2.863ktoe/kt
 RECYCLED_STEEL = 0.5  # 50% H-DRI Iron, 50% scrap steel
-H2_TO_STEEL = RECYCLED_STEEL * 0.05  # 0.05t_h2/t_steel in H-DRI
-HDRI_CONSUMPTION = 0.0116  # H-DRI: 135kWh/t = 0.0116ktoe/kt
+H2_TO_STEEL = (1 - RECYCLED_STEEL) * 0.05  # 0.05t_h2/t_steel in H-DRI
+HDRI_CONSUMPTION = 0.0116  # H-DRI: 135kWh_e/t = 0.0116ktoe/kt
 MWH_PER_T_TO_KTOE_PER_KT = 0.08598  # 1 MWh/t -> 1 GWh/kt -> 0.08598 ktoe/kt
 METHANOL_LHV_KTOE = 0.476  # 19.915 MJ/kg LHV -> 19915000MJ/kt -> 0.476ktoe/kt
 
-
+YEAR_RANGE = slice(2000, 2018)
 def get_industry_demand(
     path_to_energy_balances, path_to_cat_names, path_to_carrier_names,
     path_to_jrc_industry_end_use, path_to_jrc_industry_production,
@@ -119,7 +119,21 @@ def get_carrier_demand(carrier, all_demand, energy_df):
 def get_steel_energy_consumption(energy_df, prod_df):
     """
     Calculates energy consumption in the iron and steel industry based on expected
-    change in process to avoid fossil feedstocks
+    change in process to avoid fossil feedstocks. All process specific energy consumption
+    (energy/t_steel) is based on the Electric Arc process (EAF), except sintering, which
+    will be required for iron ore processed using H-DRI, but is not required by EAF.
+
+    This function does the following:
+    1. Finds all the specific consumption values by getting
+        a. process energy demand / produced steel => specific demand
+        b. process electrical demand / electrical consumption => electrical efficiency
+        c. specific demand / electricial efficiency => specific electricity consumption
+    2. Gets total process specific electricity consumption by adding specific consumptions
+    for direct electric processes, EAF, H-DRI, smelting, sintering, refining, and finishing
+    3. Gets specific hydrogen consumption for all countries that will process iron ore
+    4. Gets specific space heat demand based on demand associated with EAF plants
+    5. Gets total demand for electricity, hydrogen, and space heat by multiplying specific
+    demand by total steel production (by both EAF and BF-BOF routes).
     """
     def get_specific_electricity_consumption(process, subprocess, energy_df, prod_df):
         consumption = energy_df.xs(('consumption', process, subprocess))
@@ -136,8 +150,12 @@ def get_steel_energy_consumption(energy_df, prod_df):
             .fillna(efficiency.xs('Electricity', level='carrier_name').mean())
         )
 
-        specific_consumption = specific_demand.div(electrical_efficiency)
-        specific_consumption.index = specific_consumption.index.set_levels(['ktoe/kt'], level='unit')
+        specific_consumption = specific_demand.div(electrical_efficiency).rename(index={'ktoe': 'ktoe/kt'})
+        assert (
+            specific_consumption.fillna(-1).droplevel('unit')
+            >= specific_demand.fillna(-1)
+        ).all().all()
+
         return specific_consumption.fillna(0)
 
     def get_auxiliary_electricity_consumption(process, energy_df, prod_df):
@@ -152,25 +170,25 @@ def get_steel_energy_consumption(energy_df, prod_df):
         specific_consumption.index = specific_consumption.index.set_levels(['ktoe/kt'], level='unit')
         return specific_consumption.fillna(0)
 
-    ## sintering/pelletising
+    # sintering/pelletising
     sintering_specific_consumption = get_specific_electricity_consumption(
         'Integrated steelworks', 'Steel: Sinter/Pellet making',
         energy_df, prod_df
     )
 
-    ## smelters
-    smelting_specific_consumption = get_specific_electricity_consumption(
+    # smelters
+    eaf_smelting_specific_consumption = get_specific_electricity_consumption(
         'Electric arc', 'Steel: Smelters',
         energy_df, prod_df
     )
 
-    ## EAF
+    # EAF
     eaf_specific_consumption = get_specific_electricity_consumption(
         'Electric arc', 'Steel: Electric arc',
         energy_df, prod_df
     )
 
-    ## Rolling & refining
+    # Rolling & refining
     refining_specific_consumption = get_specific_electricity_consumption(
         'Electric arc', 'Steel: Furnaces, Refining and Rolling',
         energy_df, prod_df
@@ -185,17 +203,19 @@ def get_steel_energy_consumption(energy_df, prod_df):
         'Electric arc', energy_df, prod_df
     )
 
-    ## Total
-    ### If the country produces steel from Iron ore:
-    #### sintering/pelletising * 0.5 + smelting * 0.5 + H-DRI + EAF + refining/rolling + finishing + auxiliaries
-    ### If the country only recycles steel:
-    #### smelting + EAF + refining/rolling + finishing + auxiliaries
+    # Total electricity consumption
+    ## If the country produces steel from Iron ore (assuming 50% recycling):
+    ### sintering/pelletising * iron_ore_% + smelting * recycled_steel_% + H-DRI + EAF + refining/rolling + finishing + auxiliaries
+    ## If the country only recycles steel:
+    ### smelting + EAF + refining/rolling + finishing + auxiliaries
 
     total_specific_consumption = (
         sintering_specific_consumption.mul(1 - RECYCLED_STEEL).add(
-            smelting_specific_consumption
+            eaf_smelting_specific_consumption
+            # if no sintering, this country/year recycles 100% of steel
             .where(sintering_specific_consumption == 0)
-            .fillna(smelting_specific_consumption.mul(RECYCLED_STEEL).add(HDRI_CONSUMPTION))
+            # if there is some sintering, we update smelting consumption to equal our assumed 2050 recycling rate and add weighted H-DRI consumption to process the remaining iron ore
+            .fillna(eaf_smelting_specific_consumption.mul(RECYCLED_STEEL).add(HDRI_CONSUMPTION))
         )
         .add(eaf_specific_consumption)
         .add(refining_specific_consumption)
@@ -212,10 +232,17 @@ def get_steel_energy_consumption(energy_df, prod_df):
         .set_index('carrier', append=True)
     )
 
-    # Hydrogen consumption for H-DRI
+    # Hydrogen consumption for H-DRI, only for those country/year combinations that handle iron ore
+    # and don't recycle all their steel
     h2_specific_consumption = H2_LHV_KTOE * H2_TO_STEEL
-    total_specific_h2_consumption = total_specific_consumption.where(lambda x: x < 0).fillna(h2_specific_consumption)
-    total_specific_h2_consumption.index = total_specific_h2_consumption.index.set_levels(['hydrogen'], level='carrier')
+    total_specific_h2_consumption = (
+        total_specific_consumption
+        .where(sintering_specific_consumption > 0)
+        .fillna(0)
+        .where(lambda x: x == 0)
+        .fillna(h2_specific_consumption)
+        .rename(index={'electricity': 'hydrogen'})
+    )
     total_specific_consumption = total_specific_consumption.append(total_specific_h2_consumption)
     # Space heat
     space_heat_specific_demand = (
@@ -224,15 +251,15 @@ def get_steel_energy_consumption(energy_df, prod_df):
         .div(prod_df.xs('Electric arc').droplevel('unit'))
         .assign(carrier='space_heat').set_index('carrier', append=True)
         .sum(level=total_specific_consumption.index.names)
+        .rename(index={'ktoe': 'ktoe/kt'})
     )
-    space_heat_specific_demand.index = space_heat_specific_demand.index.set_levels(['ktoe/kt'], level='unit')
     total_specific_consumption = total_specific_consumption.append(space_heat_specific_demand)
 
-    steel_consumption = total_specific_consumption.mul(
-        prod_df.xs('Iron and steel', level='cat_name').sum(level='country_code'),
-        level='country_code'
+    steel_consumption = (
+        total_specific_consumption
+        .mul(prod_df.xs('Iron and steel', level='cat_name').sum(level='country_code'), level='country_code')
+        .rename(index={'ktoe/kt': 'ktoe'})
     )
-    steel_consumption.index = steel_consumption.index.set_levels(['ktoe'], level='unit')
 
     return steel_consumption
 
@@ -338,26 +365,35 @@ def fill_missing_data(energy_balances, cat_names, carrier_names, energy_consumpt
     2016-2018 data for all 35 countries is filled in based on Eurostat energy balances.
     Any other missing years are filled in based on average consumption of a country.
     """
+    # Get annual energy balances
     industry_energy_balances = (
         energy_balances
         .unstack(['year', 'country'])
         .groupby([
             cat_names.jrc_idees.dropna().to_dict(),
             carrier_names.ind_carrier_name.dropna().to_dict()
-        ], level=['cat_code', 'carrier_code']).sum()
-        .sum(level='cat_code')
+        ], level=['cat_code', 'carrier_code']).sum(min_count=1)
+        .sum(level='cat_code', min_count=1)
         .stack('country')
         .rename_axis(index=['cat_name', 'country_code'])
+        .apply(util.tj_to_ktoe)
     )
+    # If JRC-IDEES data exists, there will be data in 'energy_consumption' for that country
     balances_with_jrc_data = industry_energy_balances.loc[
         pd.IndexSlice[:, energy_consumption.index.levels[1]], energy_consumption.columns
     ]
+    # If JRC-IDEES data does not exist, there will only be data for that country in annual energy balances
     balances_without_jrc_data = industry_energy_balances.drop(
         energy_consumption.index.levels[1], level='country_code'
     )
+    # Compared to countries with JRC data, those without JRC-IDEES data consume X amount of energy
+    # E.g. CH has ~1% of paper and pulp energy consumption compared to all countries with JRC data
     countries_without_jrc_data_contribution = balances_without_jrc_data.div(
         balances_with_jrc_data.sum(level='cat_name')
     )
+    # Multiply the JRC data with the contribution from each country
+    # So all JRC countries consume 3.43e4ktoe electricity in paper and pulp in 2014,
+    # hence CH consumes ~4.34e2ktoe electricity in paper and pulp in 2014
     countries_without_jrc_data_consumption = (
         energy_consumption
         .sum(level=['cat_name', 'unit', 'carrier'])
@@ -374,7 +410,7 @@ def fill_missing_data(energy_balances, cat_names, carrier_names, energy_consumpt
         all_euro_calliope_consumption
         .div(industry_energy_balances)
         .mean(axis=1)
-        .where(lambda x: ~np.isinf(x))
+        .where(lambda x: ~np.isinf(x) & (x > 0))
     )
     # In some instances (e.g. RO: non ferrous metals), JRC IDEES has consumption, but
     # latest Eurostat doesn't, leading to inf values
@@ -389,12 +425,55 @@ def fill_missing_data(energy_balances, cat_names, carrier_names, energy_consumpt
         .reorder_levels(all_euro_calliope_consumption.index.names)
     )
 
-    filled_2016_to_2018 = all_euro_calliope_consumption.fillna(
+    filled_2016_to_2018 = all_euro_calliope_consumption.where(lambda x: x > 0).fillna(
         industry_energy_balances.mul(average_consumption_per_energy_use, axis=0)
     )
-    all_filled = filled_2016_to_2018.T.fillna(filled_2016_to_2018.mean(axis=1)).T
+    fill_mid_gaps = filled_2016_to_2018.interpolate(method='linear', limit_area='inside', axis=1)
+    all_filled = fill_mid_gaps.T.fillna(fill_mid_gaps.mean(axis=1)).T
+
+    verify_data(all_filled, industry_energy_balances)
 
     return all_filled
+
+
+def verify_data(euro_calliope_consumption, industry_energy_balances):
+    """
+    Check that all our processing of data leads to sensible results relative to
+    industry energy balances. What we mean by this is that > 95% of total euro-calliope
+    energy demand should be within 0.5x and 1.5x historical primary energy
+    consumption across subsectors. It's a crude estimate, but should catch cases
+    where we're completely off / have missed some energy demand.
+    """
+    # Get the ratio of euro-calliope energy consumption to eurostat energy consumption
+    consumption_diff = (
+        euro_calliope_consumption
+        .xs('ktoe', level='unit')
+        .sum(level=['cat_name', 'country_code'], min_count=1)
+        .div(industry_energy_balances.where(industry_energy_balances > 0))
+        .loc[:, YEAR_RANGE]
+        .stack()
+    )
+    # If industry energy balances have finite values, so does euro-calliope
+    assert consumption_diff[consumption_diff == 0].sum() == 0
+
+    # Calculate contribution of outliers in the consumption ratios
+    Q1 = consumption_diff.quantile(0.25)
+    Q3 = consumption_diff.quantile(0.75)
+    IQR = Q3 - Q1
+    # We would consider ratios outside 0.5-1.5 to be outliers, so just make sure the
+    # threshold for outliers in the data is at least better than that
+    assert Q1 - IQR * 3 >= 0.5
+    assert Q3 + IQR * 3 <= 1.5
+    outliers = consumption_diff[(consumption_diff < 0.5) | (consumption_diff > 1.5)]
+
+    # We're happy with < 10% outliers
+    assert len(outliers) / len(consumption_diff) <= 0.10
+
+    # We're happy with < 5% of total demand being within the outliers
+    assert (
+        industry_energy_balances.stack().reindex(outliers.index).sum() /
+        industry_energy_balances.loc[:, YEAR_RANGE].stack().sum() <= 0.05
+    )
 
 
 if __name__ == "__main__":

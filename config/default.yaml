@@ -65,6 +65,10 @@ parameters:
             motorcycle: light
             bus: heavy
             passenger_car: light
+        weekly_demand:
+            min: 0.9
+            max: 1.1
+            equals: 1
     industry:
         carriers: [diesel, kerosene, methanol, methane]  # choice of [diesel, kerosene, methane, methanol, co2, hydrogen], everything else will be incorporated into industry electricity demand
         electrification_efficiency:  # see transformation-techs.yaml

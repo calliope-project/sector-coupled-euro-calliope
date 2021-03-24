@@ -1,8 +1,8 @@
 #!/bin/sh
 #BSUB -J eurospores_synthetic_electric_isolated[1-13]
 #BSUB -n 6
-#BSUB -R "rusage[mem=80G]"
-#BSUB -W 1440
+#BSUB -R "rusage[mem=130G]"
+#BSUB -W 7200
 #BSUB -r
 #BSUB -o /cluster/work/cpesm/brynmorp/euro-spores/logs/synthetic_electric_isolated/log_%I.log
 
@@ -13,4 +13,4 @@ declare -a array=("transport,no_biofuel" "no_electric" "no_synthetic" "no_electr
 DIR="/cluster/work/cpesm/brynmorp/euro-spores"
 mkdir -p "${DIR}/outputs/synthetic_electric_${fuel}" "${DIR}/logs/synthetic_electric_${fuel}"
 
-calliope run --scenario "industry_fuel_${fuel},heat,config_overrides,res_2h,gas_storage,link_cap_dynamic,freeze-hydro-capacities,${array[${LSB_JOBINDEX}-1]}" --save_netcdf "${DIR}/outputs/synthetic_electric_${fuel}/${array[${LSB_JOBINDEX}-1]}.nc" "${DIR}/build/model/eurospores/model.yaml"
+calliope run --scenario "industry_fuel_${fuel},heat,config_overrides,gas_storage,link_cap_dynamic,freeze-hydro-capacities,${array[${LSB_JOBINDEX}-1]}" --save_netcdf "${DIR}/outputs/synthetic_electric_${fuel}/${array[${LSB_JOBINDEX}-1]}.nc" "${DIR}/build/model/eurospores/model.yaml"

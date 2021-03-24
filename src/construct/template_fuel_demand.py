@@ -22,8 +22,6 @@ overrides:
                 locs: [{{ idx }}]
                 carrier_con_min:
                     {{ carrier }}: {{ -1 * annual_demand.loc[idx, carrier] * timedelta }}
-                #carrier_con_max:
-                #    {{ carrier }}: {{ -1 * annual_demand.loc[idx, carrier] * timedelta * 1.1}}
             {% endif %}
             {% endfor %}
             {% endfor %}

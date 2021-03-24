@@ -58,8 +58,26 @@ overrides:
             {% endfor %}
 
             {% endfor %}
+
+    weekly_transport_demand_range:
+        techs:
+            {% for tech in annual_distance.columns %}
+            {{ tech }}_transport_ev:
+                constraints:
+                    carrier_prod_per_week_min.{{ tech }}_transport: file=demand-min-{{ tech }}-ev.csv
+                    carrier_prod_per_week_max.{{ tech }}_transport: file=demand-max-{{ tech }}-ev.csv
+            {% endfor %}
+
+    weekly_transport_demand_equality:
+        techs:
+            {% for tech in annual_distance.columns %}
+            {{ tech }}_transport_ev:
+                constraints:
+                    carrier_prod_per_week_equals.{{ tech }}_transport: file=demand-equals-{{ tech }}-ev.csv
+            {% endfor %}
+
 scenarios:
-    transport: [all_transport, annual_transport_distance,transport_demand_exists, transport_ev_exists, transport_ice_exists]
+    transport: [all_transport, annual_transport_distance, transport_demand_exists, transport_ev_exists, transport_ice_exists, weekly_transport_demand_equality]
 """
 
 

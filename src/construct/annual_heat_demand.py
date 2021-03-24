@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 import util
 
@@ -123,23 +124,18 @@ def get_household_energy_consumption(
     carrier_names_df = pd.read_csv(carrier_names, index_col=0, header=0)
 
     # Index name in TSV file is 'nrg_bal,siec,unit,geo\time'
-    hh_end_use_df = pd.read_csv(hh_end_use, delimiter='\t', index_col=0)
-    hh_end_use_df.index = (
-        hh_end_use_df.index.str.split(',', expand=True)
-        .rename(['cat_code', 'carrier_code', 'unit', 'country_code'])
+    hh_end_use_df = util.read_eurostat_tsv(
+        hh_end_use, ['cat_code', 'carrier_code', 'unit', 'country_code']
     )
-
-    # Columns are years
-    hh_end_use_df.columns = hh_end_use_df.columns.astype(int).rename('year')
 
     # Just keep relevant data
     hh_end_use_df = (
         hh_end_use_df.xs('TJ', level='unit')
-        .transform(util.to_numeric)
         .apply(util.tj_to_twh)  # TJ -> TWh
         .astype(float)
         .dropna(how='all')
     )
+    # Add missing renewables data to
     # rename index labels to be more readable
     hh_end_use_df = hh_end_use_df.groupby(
         [END_USE_CAT_NAMES, carrier_names_df['hh_carrier_name'].dropna().to_dict(), country_codes],
@@ -165,6 +161,51 @@ def get_household_energy_consumption(
     )
 
     return hh_end_use_df
+
+
+def update_renewable_energy_consumption(df):
+    """
+    Some household consumption data has a higher overall renewables energy consumption (RA000)
+    than the sum of renewable energy carriers. Here we scale all renewable energy carriers
+    evenly, to match the total of RA000.
+    """
+    def _get_rows_to_update(df):
+        renewables = (
+            df
+            .stack()
+            .unstack("carrier_code")
+            .filter(regex="^R")
+            .where(lambda x: x > 0)
+            .dropna(how='all')
+        )
+        renewables_carriers = renewables.drop('RA000', axis=1).sum(axis=1, min_count=1)
+        renewables_all = renewables.xs('RA000', axis=1)
+        # Only update those rows where the sum of renewable energy carriers != RA000
+        return renewables.loc[~np.isclose(renewables_carriers, renewables_all)], renewables_carriers
+
+    to_update, renewables_carriers = _get_rows_to_update(df)
+    # Some rows have no data other than RA000, so we need to assign that data to one of the
+    # renewable energy carriers. We choose biofuels here (R5110-5150_W6000RI)
+    completely_missing = renewables_carriers[renewables_carriers.isna()].index.intersection(to_update.index)
+    to_update.loc[completely_missing, 'R5110-5150_W6000RI'] = (
+        to_update.loc[completely_missing, 'R5110-5150_W6000RI']
+        .fillna(to_update.loc[completely_missing, 'RA000'])
+    )
+
+    # Now we scale all renewable energy carriers to match RA000
+    mismatch = to_update.xs('RA000', axis=1).div(to_update.drop('RA000', axis=1).sum(axis=1))
+    updated = to_update.drop('RA000', axis=1).mul(mismatch, axis=0)
+    assert np.allclose(updated.sum(axis=1), to_update.xs('RA000', axis=1))
+
+    updated_reordered = updated.stack().unstack('year').reorder_levels(df.index.names)
+    # Add new rows
+    df = df.append(updated_reordered.loc[updated_reordered.index.difference(df.index)])
+    # Update existing rows
+    df.update(updated_reordered)
+    # Ensure everything has been updated as expected
+    assert _get_rows_to_update(df)[0].empty
+
+    return df
 
 
 def ch_hh_consumption(ch_end_use):
@@ -253,8 +294,8 @@ def get_commercial_energy_consumption(
     Add Swiss data from Swiss govt. stats.
     """
 
-    # 'fuel' is actually just generic non-electric energy, which we assign to solid fossil
-    ch_con_fuel = ch_non_hh_consumption(ch_end_use, 'Tabelle 25', 'solid_fuel')
+    # 'fuel' is actually just generic non-electric energy, which distribute based on household data
+    ch_con_fuel = ch_non_hh_consumption(ch_end_use, 'Tabelle 25', annual_consumption)
     ch_con_elec = ch_non_hh_consumption(ch_end_use, 'Tabelle26', 'electricity')
 
     jrc_end_use_df = util.read_tdf(jrc_end_use).xs('consumption', level='energy')
@@ -292,17 +333,28 @@ def get_commercial_energy_consumption(
     return annual_consumption
 
 
-def ch_non_hh_consumption(ch_end_use, sheet_name, carrier_name):
+def ch_non_hh_consumption(ch_end_use, sheet_name, carrier):
     """
     Switzerland data isn't in Eurostat, so we get it from their govt. stats directly
     """
 
+    ch_con = get_ch_sheet(
+        ch_end_use, sheet_name, skipfooter=4, translation=CH_HH_END_USE_TRANSLATION
+    )
+    # this is actually just generic non-electric energy,
+    # which we assign to fuels using household ratios
+    if isinstance(carrier, str):
+        ch_con = ch_con.assign(carrier_name=carrier)
+    else:
+        hh_con = carrier.xs(('CHE', 'household'), level=('country_code', 'cat_name'))
+        hh_ratios = hh_con.div(hh_con.drop('electricity', level='carrier_name').sum(level=['end_use']), axis=0)
+        ch_con_disaggregated = hh_ratios.mul(ch_con, level='end_use', axis=0).dropna(how='all')
+
+        assert np.allclose(ch_con_disaggregated.sum(level='end_use'), ch_con)
+        ch_con = ch_con_disaggregated.reset_index('carrier_name')
     ch_con = (
-        get_ch_sheet(
-            ch_end_use, sheet_name, skipfooter=4, translation=CH_HH_END_USE_TRANSLATION
-        )
-        # this is actually just generic non-electric energy, which we assign to solid fossil
-        .assign(country_code='CHE', carrier_name=carrier_name)
+        ch_con
+        .assign(country_code='CHE')
         .set_index(['country_code', 'carrier_name'], append=True)
         .stack()
         .rename_axis(index=['end_use', 'country_code', 'carrier_name', 'year'])
@@ -414,6 +466,7 @@ def get_national_heat_demand(annual_consumption, energy_balance_dfs, heat_tech_p
             'solid_fossil': heat_tech_params[f'{end_use}_techs'].get('solid_fossil_eff', 1),
             'natural_gas': heat_tech_params[f'{end_use}_techs'].get('gas_eff', 1),
             'manufactured_gas': heat_tech_params[f'{end_use}_techs'].get('gas_eff', 1),
+            'gas': heat_tech_params[f'{end_use}_techs'].get('gas_eff', 1),
             'oil': heat_tech_params[f'{end_use}_techs'].get('oil_eff', 1),
             'solar_thermal': heat_tech_params[f'{end_use}_techs'].get('solar_thermal_eff', 1),
             'renewable_heat': heat_tech_params[f'{end_use}_techs'].get('solar_thermal_eff', 1),
@@ -428,11 +481,18 @@ def get_national_heat_demand(annual_consumption, energy_balance_dfs, heat_tech_p
     # Convert end use consumption data to demand
     demands = []
     for end_use in ['space_heat', 'water_heat', 'cooking']:
-        demands.append(
+        _demand = (
             annual_consumption.loc[[end_use]]
             .mul(efficiencies(end_use), level='carrier_name', axis=0)
             .sum(level=['end_use', 'country_code', 'cat_name'])
         )
+        # sense check: demand is at least the minimum efficiency * consumption
+        assert (_demand >= (
+            annual_consumption.loc[[end_use]]
+            .mul(efficiencies(end_use).min())
+            .sum(level=['end_use', 'country_code', 'cat_name'])
+        )).all().all()
+        demands.append(_demand)
 
     demand = pd.concat(demands).stack().unstack(['end_use', 'cat_name'])
 

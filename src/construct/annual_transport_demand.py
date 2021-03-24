@@ -52,7 +52,7 @@ def get_transport_demand(
         .loc[idx[['FC_OTH_FISH_E'], 'O4000XBIO', :, :, :]]
         .sum(level=['country', 'year'])
     )
-    energy_balances
+
     total_road_distance, road_efficiency, road_bau_consumption = get_all_distance_efficiency(
         energy_balances, 'FC_TRA_ROAD_E', road_energy_df,
         road_distance_df, 'vehicle_subtype', other_transport_road

@@ -26,6 +26,11 @@ links:
     {% endfor %}
 
 overrides:
+    transmission_om_cost:
+        tech_groups:
+            dc_transmission.costs.monetary.om_prod: 1e-5  # dummy cost
+            ac_transmission.costs.monetary.om_prod: 1e-5  # dummy cost
+
     link_cap_20:
         tech_groups:
             dc_transmission.constraints.energy_cap_max: 0.2

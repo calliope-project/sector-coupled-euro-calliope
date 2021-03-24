@@ -1,8 +1,8 @@
 #!/bin/sh
 #BSUB -J eurospores_link_cap_shared[1-11]
 #BSUB -n 6
-#BSUB -R "rusage[mem=80G]"
-#BSUB -W 1440
+#BSUB -R "rusage[mem=140G]"
+#BSUB -W 7200
 #BSUB -r
 #BSUB -o /cluster/work/cpesm/brynmorp/euro-spores/logs/link_cap_test_shared/log_%I.log
 

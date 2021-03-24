@@ -175,7 +175,7 @@ def subnational_commercial_demand(
     Commercial sector demand is subdivided based on gross value added of economic
     activities which can be attributed to the commercial sector.
     """
-    gva_df = load_eurostat_tsv(gva, ['unit', 'cat_name', 'region'])
+    gva_df = util.read_eurostat_tsv(gva, ['unit', 'cat_name', 'region'])
 
     gva_eu = (
         gva_df
@@ -267,7 +267,7 @@ def industry_subsector_regional_intensity(
     units, emissions, freight, employees, nuts_2006, industry_activity_codes, industry_demand_df
 ):
     # Get freight data
-    freight_df = load_eurostat_tsv(freight, ['subsector', 'unit', 'region'])
+    freight_df = util.read_eurostat_tsv(freight, ['subsector', 'unit', 'region'])
 
     nuts_2006.index = nuts_2006.index.str.replace('GR', 'EL')
     freight_eu = (
@@ -287,7 +287,7 @@ def industry_subsector_regional_intensity(
 
     # Get data on number of employees
     # V11210 == local units,  V16110 == persons employed, V13320 == wages and salaries
-    industry_employees = load_eurostat_tsv(
+    industry_employees = util.read_eurostat_tsv(
         employees, ['cat_code', 'indicator', 'region'],
         slice_idx='V16110', slice_lvl='indicator'
     )
@@ -511,7 +511,7 @@ def subnational_industry_demand(
          marine_energy.reorder_levels(LEVEL_ORDER)],
         names=['dataset', 'cat_name'],
         keys=[('industry_demand', 'industry'), ('industry_demand', 'industry'),
-              ('industry_demand', 'road'), ('transport_vehicles', 'road'),
+              ('transport_demand', 'road'), ('transport_vehicles', 'road'),
               ('industry_demand', 'rail'),
               ('industry_demand', 'rail'), ('industry_demand', 'air'),
               ('industry_demand', 'marine')]
@@ -538,15 +538,6 @@ def align_and_scale(orig_df, scaling_df, units):
     )
 
     return scaled_df
-
-
-def load_eurostat_tsv(path_to_tsv, index_names, slice_idx=None, slice_lvl=None):
-    df = pd.read_csv(path_to_tsv, delimiter='\t', index_col=0)
-    df.index = df.index.str.split(',', expand=True).rename(index_names)
-    if slice_idx is not None:
-        df = df.xs(slice_idx, level=slice_lvl)
-    df.columns = df.columns.astype(int)
-    return df.apply(util.to_numeric)
 
 
 if __name__ == "__main__":

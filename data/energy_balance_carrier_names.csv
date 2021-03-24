@@ -58,7 +58,7 @@ R5160,Charcoal,,biofuel,biofuel,biofuel
 R5210P,Pure biogasoline,,oil,oil,oil
 R5210B,Blended biogasoline,,oil,oil,oil
 R5220P,Pure biodiesels,,oil,oil,oil
-R5220B,Blended biodiesels,,ol,ol,oil
+R5220B,Blended biodiesels,,oil,oil,oil
 R5230P,Pure bio jet kerosene,,oil,oil,oil
 R5230B,Blended bio jet kerosene,,oil,oil,oil
 R5290,Other liquid biofuels,,oil,oil,oil

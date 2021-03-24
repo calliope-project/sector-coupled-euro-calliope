@@ -402,16 +402,17 @@ rule heat_pump_characteristics:
 
 
 rule ev_energy_cap:
-    message: "Restructing RAMP-mobility EV plug-in profiles for use in Calliope"
+    message: "Restructing RAMP-mobility EV {wildcards.profile} profiles for use in Calliope"
     input:
         src = "src/construct/hourly_ev_profiles.py",
         regions = "build/{resolution}/regions.csv",
         ev_profiles = "data/transport/ev_profiles_ramp.csv.gz",
     params:
+        dataset_name = "{profile}",
+        demand_range = config["parameters"]["transport"]["weekly_demand"],
         model_year = config["year"],
     conda: "../envs/default.yaml"
-    output:
-        "build/model/{resolution}/energy-cap-ev.csv"
+    output: "build/model/{resolution}/{profile}-ev.csv"
     script: "../src/construct/hourly_ev_profiles.py"
 
 
@@ -500,13 +501,17 @@ rule gas_storage:
 
 
 rule copy_from_template:
-    message: "copy override YAML templates"
+    message: "copy {wildcards.template} template"
     input:
+        src = "src/construct/template_scenarios.py",
         template = "src/template/{template}"
     output: "build/model/{template}"
+    params:
+        shares = [i / 10 for i in range(11)]
     wildcard_constraints:
-        template = "((spores.yaml)|(fuel_scenarios.yaml))"
-    shell: "cp {input.template} {output}"
+        template = "((spores.yaml)|(fuel_scenarios.yaml)|(demand_share.yaml))"
+    conda: "../envs/default.yaml"
+    script: "../src/construct/template_scenarios.py"
 
 
 rule model:
@@ -529,8 +534,14 @@ rule model:
         rules.annual_heat_constraints.output,
         rules.links.output,
         #rules.outer_countries.output,
-        rules.ev_energy_cap.output,
         rules.calliope_config_overrides.output,
+        "build/model/{resolution}/demand-equals-light-ev.csv",
+        "build/model/{resolution}/demand-min-light-ev.csv",
+        "build/model/{resolution}/demand-max-light-ev.csv",
+        "build/model/{resolution}/demand-equals-heavy-ev.csv",
+        "build/model/{resolution}/demand-min-heavy-ev.csv",
+        "build/model/{resolution}/demand-max-heavy-ev.csv",
+        "build/model/{resolution}/plugin-ev.csv",
         expand(
             "build/model/{{resolution}}/{characteristic}-{tech}-{sink}.csv",
             characteristic=["energy-cap", "cop"], tech=["ashp", "gshp", "hp"],
@@ -549,6 +560,8 @@ rule model:
             ],
         ),
         "build/model/spores.yaml",
+        "build/model/fuel_scenarios.yaml",
+        "build/model/demand_share.yaml",
         definition = "src/template/model.yaml"
     output:
         model = "build/model/{resolution}/model.yaml"

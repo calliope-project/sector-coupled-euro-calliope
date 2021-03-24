@@ -10,6 +10,7 @@ import:
     - '../legacy-techs.yaml'
     - '../spores.yaml'
     - '../fuel_scenarios.yaml'
+    - '../demand_share.yaml'
     - './locations.yaml'
     - './links.yaml'
     - './directional-rooftop.yaml'
@@ -38,7 +39,7 @@ run:
         Crossover: 0 # stop after barrier, do not perform crossover
         FeasibilityTol: 1e-3
         OptimalityTol: 1e-4
-        BarConvTol: 1e-5
+        BarConvTol: 1e-4
 
 overrides:
     no-hydro-costs:

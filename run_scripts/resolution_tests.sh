@@ -1,8 +1,8 @@
 #!/bin/sh
 #BSUB -J eurospores_resolution_test[1-5]
 #BSUB -n 6
-#BSUB -R "rusage[mem=90G]"
-#BSUB -W 2880
+#BSUB -R "rusage[mem=140G]"
+#BSUB -W 7200
 #BSUB -r
 #BSUB -o /cluster/work/cpesm/brynmorp/euro-spores/logs/resolution_test/log_%I.log
 

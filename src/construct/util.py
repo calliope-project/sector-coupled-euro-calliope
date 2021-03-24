@@ -41,6 +41,10 @@ def ktoe_to_twh(array):
     return array * 1.163e-2
 
 
+def tj_to_ktoe(array):
+    return array * 23.88e-3
+
+
 def update_timeseries_timezone(x, country, model_year):
     """
     Shift a generic profile forward/backward in time based on a country's timezone
@@ -67,6 +71,15 @@ def read_tdf(filename):
     df = pd.read_csv(filename, header=0)
     tdf = df.set_index([i for i in df.columns[:-1]]).squeeze()
     return tdf
+
+
+def read_eurostat_tsv(path_to_tsv, index_names, slice_idx=None, slice_lvl=None):
+    df = pd.read_csv(path_to_tsv, delimiter='\t', index_col=0)
+    df.index = df.index.str.split(',', expand=True).rename(index_names)
+    if slice_idx is not None:
+        df = df.xs(slice_idx, level=slice_lvl)
+    df.columns = df.columns.astype(int).rename("year")
+    return df.apply(to_numeric)
 
 
 def get_timedelta(model_time, model_year):
