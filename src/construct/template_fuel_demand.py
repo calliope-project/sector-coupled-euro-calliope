@@ -90,7 +90,7 @@ overrides:
                     carrier: biofuel
                 # constraints are applied on a per-location basis
                 costs.monetary:
-                    energy_cap: 0  # negate the costs given in the base euro-calliope definition (anaerobic digection gas turbine)
+                    energy_cap: 0  # negate the costs given in the base euro-calliope definition (anaerobic digestion gas turbine)
                     om_prod: 0  # negate the costs given in the base euro-calliope definition (anaerobic digection gas turbine)
                     om_annual: 0  # negate the costs given in the base euro-calliope definition (anaerobic digection gas turbine)
                     om_con: {{ biofuel_fuel_cost * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR/MWh") }}

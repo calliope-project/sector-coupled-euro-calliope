@@ -52,6 +52,15 @@ overrides:
             hydro_reservoir.costs.spores_score: {energy_cap: 0, interest_rate: 0}
             nuclear.costs.spores_score: {energy_cap: 0, interest_rate: 0}
             ccgt.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+    spores_score_supply:
+        tech_groups:
+            pv.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            wind.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+        techs:
+            hydro_run_of_river.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            hydro_reservoir.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            nuclear.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            biofuel_supply.costs.spores_score: {energy_cap: 0, interest_rate: 0}
     spores_score_fuel:
         techs:
             biofuel_to_liquids.costs.spores_score: {energy_cap: 0, interest_rate: 0}
@@ -98,6 +107,7 @@ overrides:
 
 scenarios:
     spores_electricity: [spores_group_constraint, spores_run_config, spores_score_electricity]
+    spores_supply: [spores_group_constraint, spores_run_config, spores_score_supply]
     spores_storage: [spores_group_constraint, spores_run_config, spores_score_heat_storage, spores_score_fuel_storage, spores_score_electricity_storage]
     spores_transmission: [spores_group_constraint, spores_run_config, spores_score_transmission]
     spores_fuel: [spores_group_constraint, spores_run_config, spores_score_fuel]
