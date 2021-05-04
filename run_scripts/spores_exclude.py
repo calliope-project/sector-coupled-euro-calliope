@@ -1,4 +1,5 @@
 import argparse
+import glob
 
 import numpy as np
 
@@ -9,20 +10,45 @@ EXCL_SCORE_COST = 100
 
 def rerun_model(dir_path, n_spores, techs=None, tech_groups=None):
     calliope.set_log_verbosity()
+    excl_path_string = ",".join([i for i in [techs, tech_groups] if i is not None])
     cost_op_model = calliope.read_netcdf(dir_path + "spore_0.nc")
     print("Loaded cost optimal model")
-    cost_op_model.run_config["spores_options"]["skip_cost_op"] = True
-    cost_op_model.run_config["spores_options"]["objective_cost_class"] = {"spores_score": 1, "excl_score": 10, "monetary": 0}
-    cost_op_model.run_config["spores_options"]["spores_number"] = n_spores
-    cost_op_model.run_config["spores_options"]["save_per_spore_path"] = dir_path + "spore_excl_{}_{{}}.nc".format([i for i in [techs, tech_groups] if i is not None])
+    exclusion_model_paths = glob.glob(dir_path + "spore_excl-{}-*.nc".format(excl_path_string))
 
+    if exclusion_model_paths:
+        latest_spore = sorted([int(i.split("-")[-1].replace(".nc", "")) for i in exclusion_model_paths])[-1]
+        latest_results = calliope.read_netcdf(dir_path + "spore_excl-{}-{}.nc".format(excl_path_string, latest_spore))
+        print("Loaded latest exclusion SPORE model: spore_excl-{}-{}.nc".format(excl_path_string, latest_spore))
+    else:
+        latest_spore = 0
+
+    cost_op_model = update_run_config(cost_op_model, n_spores, dir_path, excl_path_string)
+
+    if latest_spore == 0:
+        cost_op_model = setup_cost_opt_model(cost_op_model, techs, tech_groups)
+    else:
+        for var in ["group_cost_max", "cost_energy_cap"]:
+            cost_op_model._model_data[var] = latest_results._model_data[var]
+
+    if "spores" not in cost_op_model._model_data.coords:
+        cost_op_model._model_data = cost_op_model._model_data.assign_coords(spores=("spores", [latest_spore]))
+    else:
+        cost_op_model._model_data.coords["spores"] = [latest_spore]
+
+    if "objective_cost_class" in cost_op_model._model_data.data_vars:
+        cost_op_model._model_data = cost_op_model._model_data.drop_vars(["objective_cost_class"])
+
+    cost_op_model._model_data.attrs.pop("objective_function_value", None)
+    cost_op_model._model_data.attrs.pop("termination_condition", None)
+
+    cost_op_model.run(force_rerun=True)
+
+
+def setup_cost_opt_model(cost_op_model, techs, tech_groups):
     cost_op_model._model_data["group_cost_max"].loc[{"costs": "monetary"}] = (
         cost_op_model._model_data.cost.sum().item() *
         (1 + cost_op_model.run_config["spores_options"]["slack"])
     )
-    if "spores" not in cost_op_model._model_data.coords:
-        cost_op_model._model_data = cost_op_model._model_data.assign_coords(spores=("spores", [0]))
-
     if tech_groups is not None and techs is None:
         tech_groups = tech_groups.split(",")
         techs = np.unique(np.concatenate([
@@ -40,13 +66,15 @@ def rerun_model(dir_path, n_spores, techs=None, tech_groups=None):
     valid_loc_techs = cost_op_model._model_data.loc_techs_investment_cost.to_index().intersection(loc_techs)
     cost_op_model._model_data.cost_energy_cap.loc[{"costs": "excl_score", "loc_techs_investment_cost": valid_loc_techs}] = EXCL_SCORE_COST
     print(f"Running with exclusion scores activated for techs {techs} and a total of {len(loc_techs)} loc::techs")
-    if "objective_cost_class" in cost_op_model._model_data.data_vars:
-        cost_op_model._model_data = cost_op_model._model_data.drop_vars(["objective_cost_class"])
+    return cost_op_model
 
-    cost_op_model._model_data.attrs.pop("objective_function_value", None)
-    cost_op_model._model_data.attrs.pop("termination_condition", None)
 
-    cost_op_model.run(force_rerun=True)
+def update_run_config(cost_op_model, n_spores, dir_path, excl_path_string):
+    cost_op_model.run_config["spores_options"]["skip_cost_op"] = True
+    cost_op_model.run_config["spores_options"]["objective_cost_class"] = {"spores_score": 1, "excl_score": 10, "monetary": 0}
+    cost_op_model.run_config["spores_options"]["spores_number"] = n_spores
+    cost_op_model.run_config["spores_options"]["save_per_spore_path"] = dir_path + "spore_excl-{}-{{}}.nc".format(excl_path_string)
+    return cost_op_model
 
 
 if __name__ == "__main__":

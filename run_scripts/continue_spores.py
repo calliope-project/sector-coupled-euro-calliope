@@ -1,4 +1,4 @@
-import sys
+import argparse
 import glob
 import os
 
@@ -7,7 +7,7 @@ import calliope
 
 def rerun_model(dir_path):
     calliope.set_log_verbosity()
-    path_to_most_recent_spore_results = sorted(glob.glob(dir_path + "spore_*.nc"))[-1]
+    path_to_most_recent_spore_results = sorted(glob.glob(dir_path + "spore_*"))[-1]
 
     most_recent_spore_num = int(
         os.path.basename(path_to_most_recent_spore_results)
@@ -32,8 +32,6 @@ def rerun_model(dir_path):
         else:
             cost_op_model._model_data.coords["spores"] = [most_recent_spore_num]
 
-
-    #cost_op_model.run_config["spores_options"]["save_per_spore_path"] = dir_path + "spore_{}.nc"
     if "objective_cost_class" in cost_op_model._model_data.data_vars:
         cost_op_model._model_data = cost_op_model._model_data.drop_vars(["objective_cost_class"])
 
@@ -47,4 +45,7 @@ def rerun_model(dir_path):
 
 
 if __name__ == "__main__":
-    rerun_model(sys.argv[1])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("spore_dir", help="Directory to load cost optimal model and save new spores")
+    args = parser.parse_args()
+    rerun_model(args.spore_dir)
