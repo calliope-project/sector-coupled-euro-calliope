@@ -142,6 +142,9 @@ def get_household_energy_consumption(
         level=['cat_code', 'carrier_code', 'country_code']
     ).sum()
 
+    # clean up renewables info
+    update_renewable_energy_consumption(hh_end_use_df)
+
     hh_end_use_df.index = hh_end_use_df.index.rename(
         ['end_use', 'carrier_name'], level=['cat_code', 'carrier_code']
     )
@@ -204,8 +207,6 @@ def update_renewable_energy_consumption(df):
     df.update(updated_reordered)
     # Ensure everything has been updated as expected
     assert _get_rows_to_update(df)[0].empty
-
-    return df
 
 
 def ch_hh_consumption(ch_end_use):
