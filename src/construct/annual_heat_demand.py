@@ -135,6 +135,9 @@ def get_household_energy_consumption(
         .astype(float)
         .dropna(how='all')
     )
+    # clean up renewables info
+    update_renewable_energy_consumption(hh_end_use_df)
+
     # Add missing renewables data to
     # rename index labels to be more readable
     hh_end_use_df = hh_end_use_df.groupby(
@@ -142,8 +145,6 @@ def get_household_energy_consumption(
         level=['cat_code', 'carrier_code', 'country_code']
     ).sum()
 
-    # clean up renewables info
-    update_renewable_energy_consumption(hh_end_use_df)
 
     hh_end_use_df.index = hh_end_use_df.index.rename(
         ['end_use', 'carrier_name'], level=['cat_code', 'carrier_code']
