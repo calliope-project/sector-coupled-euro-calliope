@@ -1,3 +1,29 @@
+data-sources:
+    biofuel-potentials: data/biofuels/potentials/{feedstock}.csv
+    biofuel-costs: data/biofuels/costs/{feedstock}.csv
+    eez: data/World_EEZ_v10_20180221/eez_v10.shp
+    irena-generation: data/irena/hydro-generation-europe.csv
+    national-phs-storage-capacities: data/pumped-hydro/storage-capacities-gwh.csv
+    capacity-factors: https://zenodo.org/record/3899687/files/{filename}?download=1
+    gadm: https://biogeo.ucdavis.edu/data/gadm3.6/gpkg/gadm36_{country_code}_gpkg.zip
+    hydro-basins: https://www.dropbox.com/sh/hmpwobbz9qixxpe/AADeU9iCgMd3ZO1KgrFmfWu6a/HydroBASINS/standard/eu/hybas_eu_lev07_v1c.zip?dl=1
+    hydro-stations: https://zenodo.org/record/4289229/files/energy-modelling-toolkit/hydro-power-database-v7.zip?download=1
+    load: https://data.open-power-system-data.org/time_series/2019-06-05/time_series_60min_stacked.csv
+    nuts: https://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip
+    potentials: https://zenodo.org/record/3533038/files/possibility-for-electricity-autarky.zip
+    jrc-ppdb: https://zenodo.org/record/3574566/files/JRC-PPDB-OPEN.ver1.0.zip
+quality-control:
+    load:
+        acceptable-load-data-gap-hours: 48
+        outlier-data-thresholds:
+            relative-to-mean-min: 0.25
+            relative-to-mean-max: 2
+            percentage-deviation-post-cleaning-max: 1
+        entsoe-data-priority:
+            - actual_entsoe_transparency
+            - actual_entsoe_power_statistics
+    hydro:
+        scale-phs-according-to-geth-et-al: false
 scaling-factors:
     power: 0.00001 # from MW to 100 GW
     area: 0.0001 # from km to 10000 km2
