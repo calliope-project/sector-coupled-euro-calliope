@@ -6,9 +6,7 @@ import jinja2
 
 import util
 
-sys.path.append('euro-calliope/src/')
-import filters
-
+from eurocalliopelib import filters
 
 # TODO get charge/disharge efficiency
 TEMPLATE = """

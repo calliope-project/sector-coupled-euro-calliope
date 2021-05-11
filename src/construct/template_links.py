@@ -4,9 +4,7 @@ import jinja2
 import numpy as np
 import pandas as pd
 
-sys.path.append('euro-calliope/src/')
-import filters
-
+from eurocalliopelib import filters
 
 TEMPLATE = """
 links:

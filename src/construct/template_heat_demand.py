@@ -3,8 +3,7 @@ import pandas as pd
 
 import util
 
-sys.path.append('euro-calliope/src/')
-import filters
+from eurocalliopelib import filters
 
 TEMPLATE = """
 overrides:

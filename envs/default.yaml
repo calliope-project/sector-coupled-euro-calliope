@@ -12,3 +12,6 @@ dependencies:
     - seaborn=0.10.1
     - xlrd=1.2.0
     - jinja2
+    - pip=19.2.3
+    - pip:
+        - -e ../lib
