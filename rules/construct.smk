@@ -40,6 +40,8 @@ rule copy_resolution_specific_euro_calliope:
     input:
         eurocalliope("build/model/{resolution}/{definition_file}.{suffix}"),
     output: "build/model/{resolution}/{definition_file}.{suffix}"
+    wildcard_constraints:
+        definition_file = "(location|directional-rooftop|capacityfactors).*$"
     shell: "ln {input} {output}"
 
 
@@ -341,7 +343,7 @@ rule scaled_heat_demand_profiles:
         src = "src/construct/scale_hourly_heat_profiles.py",
         annual_demand = "build/{resolution}/annual-demand.csv",
         dwelling_ratio = rules.regional_dwelling_ratio.output[0],
-        profile = "build/{resolution}/{end_use,.*}heat-profile.csv",
+        profile = "build/{resolution}/{end_use}heat-profile.csv",
     params:
         model_year = config["year"],
         key = "{end_use,.*}heat{demand_key,.*}"  # ,.* allows the wildcard to be empty
