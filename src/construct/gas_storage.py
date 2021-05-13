@@ -1,5 +1,3 @@
-import sys
-
 import pandas as pd
 import geopandas as gpd
 import jinja2
@@ -7,6 +5,7 @@ import jinja2
 import util
 
 from eurocalliopelib import filters
+
 
 # TODO get charge/disharge efficiency
 TEMPLATE = """

@@ -1,8 +1,4 @@
-import sys
-
 import jinja2
-import pandas as pd
-import pycountry
 
 import util
 
