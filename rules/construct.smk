@@ -13,9 +13,9 @@ URL_CH_GVA = "https://www.bfs.admin.ch/bfsstatic/dam/assets/10647597/master"
 URL_GAS_STORAGE = "https://www.gie.eu/maps_data/downloads/2018/Storage_DB_Dec2018.xlsx"
 
 subworkflow eurocalliope:
-    workdir: "euro-calliope"
-    snakefile: "euro-calliope/Snakefile"
-    configfile: "config/default.yaml"
+    workdir: "./euro-calliope"
+    snakefile: "./euro-calliope/Snakefile"
+    configfile: "./config/default.yaml"
 
 subworkflow landeligibility:
     workdir: "land-eligibility/"
@@ -490,7 +490,7 @@ rule gas_storage_xlsx:
 rule gas_storage:
     message: "Assign gas storage facilities to {wildcards.resolution} regions"
     input:
-        src = "src/gas_storage.py",
+        src = "src/construct/gas_storage.py",
         gas_storage_data = rules.gas_storage_xlsx.output[0],
         units = landeligibility("build/{resolution}/units.geojson"),
     output:
