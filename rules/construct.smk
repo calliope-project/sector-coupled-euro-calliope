@@ -41,7 +41,13 @@ rule copy_resolution_specific_euro_calliope:
         eurocalliope("build/model/{resolution}/{definition_file}.{suffix}"),
     output: "build/model/{resolution}/{definition_file}.{suffix}"
     wildcard_constraints:
-        definition_file = "(location|directional-rooftop|capacityfactors).*$"
+        definition_file = "((locations)|(directional-rooftop)|{})".format("|".join([
+                "(capacityfactors-open-field-pv)", "(capacityfactors-rooftop-pv-n)",
+                "(capacityfactors-rooftop-pv-e-w)", "(capacityfactors-rooftop-pv-s-flat)",
+                "(capacityfactors-wind-offshore)", "(capacityfactors-wind-onshore)",
+                "(capacityfactors-hydro-ror)", "(capacityfactors-hydro-reservoir-inflow)",
+                "(capacityfactors-rooftop-pv)"
+            ]))
     shell: "ln {input} {output}"
 
 
