@@ -179,7 +179,7 @@ connected-regions: # regions with insufficient potentials can be connected to ne
     NOR-12_1: NOR-1_1 # Oslo: Akershus
     CHE-5_1: CHE-4_1 # Basel-City: Basel-Country
 sea-connections:
-    continental:
+    continental: []
     national:
         - [ITA, GRC]
         - [EST, FIN]
