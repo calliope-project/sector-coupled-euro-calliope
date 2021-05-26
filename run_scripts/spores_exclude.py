@@ -27,10 +27,10 @@ def rerun_model(dir_path, n_spores, techs=None, tech_groups=None):
     cost_op_model = setup_cost_opt_model(cost_op_model, techs, tech_groups)
 
     if latest_spore == 0:
-        new_scores = _get_new_scores(cost_op_model._model_data)
+        new_scores = _get_new_scores(cost_op_model._model_data, cost_op_model)
     if latest_spore > 0:
         cost_op_model._model_data["cost_energy_cap"] = latest_results._model_data["cost_energy_cap"]
-        new_scores = _get_new_scores(latest_results._model_data)
+        new_scores = _get_new_scores(latest_results._model_data, cost_op_model)
 
     if "spores" not in cost_op_model._model_data.coords:
         cost_op_model._model_data = cost_op_model._model_data.assign_coords(spores=("spores", [latest_spore]))
@@ -40,13 +40,28 @@ def rerun_model(dir_path, n_spores, techs=None, tech_groups=None):
     if "objective_cost_class" in cost_op_model._model_data.data_vars:
         cost_op_model._model_data = cost_op_model._model_data.drop_vars(["objective_cost_class"])
 
-    cost_op_model._model_data["cost_energy_cap"].loc[{"costs": "spores_score"}] += new_scores
+    relevant_loc_techs = _get_relevant_loc_techs(cost_op_model)
+    cost_op_model._model_data["cost_energy_cap"].loc[{"costs": "spores_score", "loc_techs_investment_cost": relevant_loc_techs}] += new_scores
+
+    assert len((cost_op_model._model_data["cost_energy_cap"].loc[{"costs": "spores_score"}].dropna("loc_techs_investment_cost"))) == len(relevant_loc_techs)
 
     cost_op_model.run(force_rerun=True)
 
 
-def _get_new_scores(model_data):
-    return xr.where(model_data.energy_cap > 1e-3, 100, 0).loc[model_data.loc_techs_investment_cost].drop_vars("loc_techs")
+def _get_new_scores(model_data, cost_op_model):
+    relevant_loc_techs = _get_relevant_loc_techs(cost_op_model)
+    return xr.where(model_data.energy_cap > 1e-3, 100, 0).loc[relevant_loc_techs].drop_vars("loc_techs")
+
+
+def _get_relevant_loc_techs(cost_op_model):
+    return (
+        cost_op_model
+        ._model_data
+        .cost_energy_cap
+        .loc[{"costs": "spores_score"}]
+        .dropna("loc_techs_investment_cost")
+        .loc_techs_investment_cost
+    )
 
 
 def setup_cost_opt_model(cost_op_model, techs, tech_groups):

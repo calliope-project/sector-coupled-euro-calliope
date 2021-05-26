@@ -19,10 +19,10 @@ def rerun_model(dir_path):
 
     cost_op_model = _prep_cost_op_model(dir_path)
     if most_recent_spore_num == 0:
-        new_scores = _get_new_scores(cost_op_model._model_data)
+        new_scores = _get_new_scores(cost_op_model._model_data, cost_op_model)
     else:
         spore_result = calliope.read_netcdf(path_to_most_recent_spore_results)
-        new_scores = _get_new_scores(spore_result._model_data)
+        new_scores = _get_new_scores(spore_result._model_data, cost_op_model)
         cost_op_model._model_data["cost_energy_cap"] = spore_result._model_data["cost_energy_cap"]
 
     if "spores" not in cost_op_model._model_data.coords:
@@ -33,15 +33,29 @@ def rerun_model(dir_path):
     if "objective_cost_class" in cost_op_model._model_data.data_vars:
         cost_op_model._model_data = cost_op_model._model_data.drop_vars(["objective_cost_class"])
 
-    print(f"SPORES scores starting out summing to {cost_op_model._model_data.cost_energy_cap.loc[{'costs': 'spores_score'}].sum()}")
-    cost_op_model._model_data["cost_energy_cap"].loc[{"costs": "spores_score"}] += new_scores
-    print(f"SPORES scores being sent to optimisation summing to {cost_op_model._model_data.cost_energy_cap.loc[{'costs': 'spores_score'}].sum()}")
+    relevant_loc_techs = _get_relevant_loc_techs(cost_op_model)
+    print(f"SPORES scores starting out summing to {cost_op_model._model_data.cost_energy_cap.loc[{'costs': 'spores_score'}].sum().item()}")
+    cost_op_model._model_data["cost_energy_cap"].loc[{"costs": "spores_score", "loc_techs_investment_cost": relevant_loc_techs}] += new_scores
+    print(f"SPORES scores being sent to optimisation summing to {cost_op_model._model_data.cost_energy_cap.loc[{'costs': 'spores_score'}].sum().item()}")
 
+    assert len((cost_op_model._model_data["cost_energy_cap"].loc[{"costs": "spores_score"}].dropna("loc_techs_investment_cost"))) == len(relevant_loc_techs)
     cost_op_model.run(force_rerun=True)
 
 
-def _get_new_scores(model_data):
-    return xr.where(model_data.energy_cap > 1e-3, 100, 0).loc[model_data.loc_techs_investment_cost].drop_vars("loc_techs")
+def _get_new_scores(model_data, cost_op_model):
+    relevant_loc_techs = _get_relevant_loc_techs(cost_op_model)
+    return xr.where(model_data.energy_cap > 1e-3, 100, 0).loc[relevant_loc_techs].drop_vars("loc_techs")
+
+
+def _get_relevant_loc_techs(cost_op_model):
+    return (
+        cost_op_model
+        ._model_data
+        .cost_energy_cap
+        .loc[{"costs": "spores_score"}]
+        .dropna("loc_techs_investment_cost")
+        .loc_techs_investment_cost
+    )
 
 
 def _prep_cost_op_model(dir_path):
