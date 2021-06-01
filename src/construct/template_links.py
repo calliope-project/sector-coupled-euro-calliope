@@ -170,7 +170,14 @@ def _read_gtcs(path_to_gtc, resolution):
     if resolution == 'national':
         gtcs.index = gtcs.index.map(lambda x: tuple(i.split('_')[0] for i in x))
         # Remove internal links and sum links across the same borders
-        gtcs = gtcs.groupby(level=[0, 1]).sum().drop([i for i in gtcs.index.values if i[0] == i[1]])
+        gtcs = gtcs.groupby(level=[0, 1]).sum(min_count=1).drop([i for i in gtcs.index.values if i[0] == i[1]])
+        gtc_duplicates = gtcs.reorder_levels([1, 0]).rename_axis(index=['from', 'to']).reindex(gtcs.index)
+        gtcs = gtcs.fillna(0).add(gtc_duplicates.fillna()).rename(columns={"one-way": "two-way"}).groupby([0, 1, 2], axis=1).sum()
+        to_drop = []
+        for row_id in gtc_duplicates.index:
+            if (row_id[1], row_id[0]) in gtc_duplicates.loc[:row_id].index:
+                to_drop.append(row_id)
+        gtcs = gtcs.drop(to_drop)
 
     return gtcs
 
