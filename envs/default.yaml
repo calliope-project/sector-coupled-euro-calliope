@@ -14,4 +14,4 @@ dependencies:
     - jinja2
     - pip=19.2.3
     - pip:
-        - -e ../lib
+        - -e ../../lib
