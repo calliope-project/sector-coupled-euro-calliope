@@ -1,3 +1,8 @@
+[submodule "land-eligibility"]
+	path = land-eligibility
+	url = https://github.com/brynpickering/possibility-for-electricity-autarky.git
+	branch = custom-regions
 [submodule "euro-calliope"]
 	path = euro-calliope
-	url = git@github.com:timtroendle/euro-calliope.git
+	url = https://github.com/brynpickering/euro-calliope.git
+	branch = sector-coupled

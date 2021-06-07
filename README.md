@@ -16,4 +16,4 @@ The key rules of the workflow shown graphically are:
 
 <img src="rulegraph.png" alt="Rulegraph of workflow to build a sector-coupled, 98-region European Calliope energy system model" width="800">
 
-This worflow currently relies on updated versions of the [euro-calliope](https://github.com/calliope-project/euro-calliope/tree/sector-coupled) and [solar-and-wind-potential](https://github.com/brynpickering/possibility-for-electricity-autarky/tree/custom-regions) workflows, as well as a bespoke version of [Calliope v0.6.6](https://github.com/calliope-project/calliope/tree/euro-calliope)
+This worflow currently relies on updated versions of the [euro-calliope](https://github.com/brynpickering/euro-calliope/tree/sector-coupled) and [solar-and-wind-potential](https://github.com/brynpickering/possibility-for-electricity-autarky/tree/custom-regions) workflows, as well as a bespoke version of [Calliope v0.6.6](https://github.com/calliope-project/calliope/tree/euro-calliope)
