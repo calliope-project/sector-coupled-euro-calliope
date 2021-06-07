@@ -297,7 +297,7 @@ def get_commercial_energy_consumption(
     """
 
     # 'fuel' is actually just generic non-electric energy, which distribute based on household data
-    ch_con_fuel = ch_non_hh_consumption(ch_end_use, 'Tabelle 25', annual_consumption)
+    ch_con_fuel = ch_non_hh_consumption(ch_end_use, 'Tabelle 25', annual_consumption.drop(2019,axis=1, errors="ignore"))
     ch_con_elec = ch_non_hh_consumption(ch_end_use, 'Tabelle26', 'electricity')
 
     jrc_end_use_df = util.read_tdf(jrc_end_use).xs('consumption', level='energy')
@@ -521,6 +521,7 @@ def get_ch_sheet(path_to_excel, sheet, skipfooter, translation=None):
     )
     _df.index = _df.index.str.strip()
     _df.columns = _df.columns.astype(int)
+    _df = _df.drop(2019, axis=1, errors="ignore")
 
     if translation is not None:
         return _df.groupby(translation).sum()
