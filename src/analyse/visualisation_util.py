@@ -22,7 +22,7 @@ class VisUtil():
     FIRM_SUPPLY_TECHS = [
         "ccgt", "chp_biofuel_extraction",
         "chp_methane_extraction", "chp_wte_back_pressure",
-        "nuclear"
+        "nuclear", "hydro_reservoir", "hydro_run_of_river"
     ]
     ELECTRICITY_SUPPLY_TECHS = [
         "ccgt", "chp_biofuel_extraction",
@@ -44,7 +44,9 @@ class VisUtil():
         "chp_biofuel_extraction": "chp",
         "chp_methane_extraction": "chp",
         "chp_wte_back_pressure": "chp",
-        "nuclear": "nuclear"
+        "nuclear": "nuclear",
+        "hydro_reservoir": "hydro",
+        "hydro_run_of_river": "hydro",
     }
     STORAGE_MAPPING = {
         "hp_heat_storage_small": "heat_small",
@@ -75,6 +77,34 @@ class VisUtil():
         "methane_boiler": "direct",
         "chp_methane_extraction": "district",
     }
+    HEAT_TECH_CARRIER_MAPPING = {
+        "electric_heater": "electric",
+        "hp": "electric",
+        "electric_hob": "electric",
+        "chp_biofuel_extraction": "biofuel",
+        "chp_wte_back_pressure": "waste",
+        "biofuel_boiler": "biofuel",
+        "methane_boiler": "methane",
+        "chp_methane_extraction": "methane",
+        "gas_hob": "methane"
+    }
+    TRANSPORT_MAPPING = {
+        "heavy_transport_ice": "ice",
+        "light_transport_ice": "ice",
+        "heavy_transport_ev": "ev",
+        "light_transport_ev": "ev",
+    }
+    SYNTHETIC_FUEL_MAPPING = {
+        "biofuel_to_liquids": "biofuel",
+        "biofuel_to_diesel": "biofuel",
+        "biofuel_to_gas_and_liquids": "biofuel",
+        "biofuel_to_methanol": "biofuel",
+        "biofuel_to_methane": "biofuel",
+        "hydrogen_to_liquids": "hydrogen",
+        "hydrogen_to_methanol": "hydrogen",
+        "hydrogen_to_methane": "hydrogen",
+    }
+
 
     def __init__(self, scenario_name, model, inputs=None):
         self.scenario = scenario_name
@@ -104,7 +134,7 @@ class VisUtil():
         power_density['open_field_pv'] = power_density.pop('pv-on-flat-areas')
 
         self.power_density = pd.Series({
-            k: v * config["scaling-factors"]["area"] / config["scaling-factors"]["power"]
+            k: v * config["scaling-factors"]["power"] / config["scaling-factors"]["area"]
             for k, v in power_density.items()
         })
 
@@ -133,15 +163,8 @@ class VisUtil():
     def add_tech_level_to_series(series, tech_name):
         return series.to_frame(tech_name).rename_axis(columns="techs").stack()
 
-    @staticmethod
-    def sum_then_groupby(series, techs, keep_locs=False):
-        if keep_locs:
-            levels_to_keep = ["locs", "techs"]
-            _idx = idx[:, list(set(techs.values()))]
-        else:
-            levels_to_keep = "techs"
-            _idx = list(set(techs.values()))
-
+    def sum_then_groupby(self, series, techs, keep_locs=False):
+        levels_to_keep, _idx = self.get_levels_and_idx(keep_locs, techs)
         return (
             series
             .rename(techs, level="techs")
@@ -149,9 +172,50 @@ class VisUtil():
             .loc[_idx]
         )
 
+    def just_sum(self, series, techs, keep_locs=False):
+        levels_to_keep, _idx = self.get_levels_and_idx(keep_locs, techs)
+        return series.sum(level=levels_to_keep).loc[_idx]
+
     @staticmethod
-    def just_sum(series, techs):
-        return series.sum(level="techs").loc[techs]
+    def get_levels_and_idx(keep_locs, techs):
+        try:
+            _techs = list(set(techs.values()))
+        except AttributeError:
+            _techs = techs
+        if keep_locs:
+            levels_to_keep = ["locs", "techs"]
+            _idx = idx[:, _techs]
+        else:
+            levels_to_keep = "techs"
+            _idx = _techs
+        return levels_to_keep, _idx
+
+    def clean_transmission(self):
+        flows = []
+        for flow in ["prod", "con"]:
+            _flow = (
+                split_loc_techs(
+                    self.model_data[f"carrier_{flow}"].sum("timesteps", min_count=1), return_as="Series"
+                )
+                .where(lambda x: ~np.isinf(x))
+                .dropna()
+                .filter(regex="transmission")
+                .xs("electricity")
+                .unstack('locs')
+            )
+            remote_loc = "loc_to" if flow == "con" else "loc_from"
+            loc = "loc_from" if flow == "con" else "loc_to"
+            _flow.index = _flow.index.str.split(":", expand=True).rename(["techs", remote_loc])
+            _flow = _flow.rename_axis(columns=loc).stack().sum(level=["loc_from", "loc_to"])
+            flows.append(_flow.abs())
+        transmission = pd.concat(flows, axis=1).mean(axis=1)
+        transmission = pd.concat(
+            [transmission, transmission.rename_axis(index=["loc_to", "loc_from"]).reorder_levels([1, 0])],
+            axis=1, keys=["import", "export"]
+        )
+        # negative == net export from loc_from to loc_to
+        # positive == net import to loc_from from loc_to
+        return transmission["import"] - transmission["export"]
 
     def set_resource_availability(self):
         energy_cap_max = self.energy_cap_max.loc[idx[:, self.power_density.index]]
@@ -209,12 +273,29 @@ class VisUtil():
         self.metrics["ac_vs_dc_energy"] = self.sum_then_groupby(self.energy_cap.div(2), self.TRANSMISSION_MAPPING)
         self.metrics["ac_vs_dc_prod"] = self.sum_then_groupby(self.carrier_prod, self.TRANSMISSION_MAPPING)
 
+    def set_ac_vs_dc_net_transmission(self):
+        self.metrics["transmission_flows"] = self.clean_transmission()
+
     def set_system_cost(self):
         self.metrics["system_cost"] = self.model_data.cost.loc[{"costs": "monetary"}].sum().item()
 
     def set_direct_vs_district(self):
         self.metrics["direct_vs_district_energy"] = self.sum_then_groupby(self.energy_cap, self.HEAT_TECH_MAPPING)
         self.metrics["direct_vs_district_prod"] = self.sum_then_groupby(self.carrier_prod, self.HEAT_TECH_MAPPING)
+
+    def set_dependence_on_electrolysis(self):
+        self.metrics["electrolysis_energy"] = self.just_sum(self.energy_cap, ["electrolysis"], keep_locs=True)
+        self.metrics["electrolysis_prod"] = self.just_sum(self.carrier_prod, ["electrolysis"], keep_locs=True)
+
+    def set_heat_fuel_source(self):
+        self.metrics["heat_prod"] = self.sum_then_groupby(self.carrier_prod, self.HEAT_TECH_CARRIER_MAPPING)
+
+    def set_transport_fuel_source(self):
+        self.metrics["transport_prod"] = self.sum_then_groupby(self.carrier_prod, self.TRANSPORT_MAPPING)
+
+    def set_synthetic_fuel_source(self):
+        self.metrics["synfuel_prod"] = self.sum_then_groupby(self.carrier_prod, self.SYNTHETIC_FUEL_MAPPING)
+
 
     def set_all_metrics(self):
         self.set_resource_use_share()
@@ -225,6 +306,11 @@ class VisUtil():
         self.set_ac_vs_dc()
         self.set_system_cost()
         self.set_direct_vs_district()
+        self.set_dependence_on_electrolysis()
+        self.set_ac_vs_dc_net_transmission()
+        self.set_heat_fuel_source()
+        self.set_transport_fuel_source()
+        self.set_synthetic_fuel_source()
 
 
 def get_grouped_metrics(scenario_utils, scenario_name):
@@ -243,6 +329,7 @@ def get_grouped_metrics(scenario_utils, scenario_name):
                 axis=1
             )
         grouped_metrics[metric].name = metric
+    return grouped_metrics
 
 
 def df_to_plot(df, name=None):
@@ -303,3 +390,4 @@ def plot_renewables_production_regionalisation(grouped_metrics, spores):
 
         sns.despine(ax=ax)
     return fig, ax
+
