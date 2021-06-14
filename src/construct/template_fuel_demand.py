@@ -58,39 +58,9 @@ overrides:
                 {% endif %}
                 {% endfor %}
         {% endfor %}
-    new_hydrogen_storage:
-        techs:
-            hydrogen_storage: # based on [Danish energy agency, energy storage, 151a Hydrogen Storage - Tanks, 2050]
-                essentials:
-                    name: Hydrogen power storage
-                    parent: storage
-                    carrier: hydrogen
-                constraints:
-                    energy_cap_max: inf
-                    storage_cap_max: inf
-                    energy_cap_per_storage_cap: 0.0048
-                    energy_eff: 0.81  # 0.90 round-trip
-                    lifetime: 30
-                costs:
-                    monetary:
-                        storage_cap: {{ 0.021e6 * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MWh_hydrogen") }}
-                        om_annual: {{ 400 * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MW_hydrogen/year") }}
-    new_biofuel_supply:
-        techs:
-            biofuel_supply:
-                essentials:
-                    name: Biofuel
-                    parent: supply
-                    carrier: biofuel
-                # constraints are applied on a per-location basis
-                costs.monetary:
-                    energy_cap: 0  # negate the costs given in the base euro-calliope definition (anaerobic digestion gas turbine)
-                    om_prod: 0  # negate the costs given in the base euro-calliope definition (anaerobic digection gas turbine)
-                    om_annual: 0  # negate the costs given in the base euro-calliope definition (anaerobic digection gas turbine)
-                    om_con: {{ biofuel_fuel_cost * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR/MWh") }}
 scenarios:
-    industry_fuel_isolated: [annual_fuel_demand_isolated, industry_techs, new_hydrogen_storage, new_biofuel_supply, biofuel_maximum]
-    industry_fuel_shared: [annual_fuel_demand_shared, industry_techs, new_hydrogen_storage, new_biofuel_supply, biofuel_maximum]
+    industry_fuel_isolated: [annual_fuel_demand_isolated, industry_techs, biofuel_maximum]
+    industry_fuel_shared: [annual_fuel_demand_shared, industry_techs, biofuel_maximum]
 """
 
 
