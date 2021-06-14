@@ -145,7 +145,6 @@ rule annual_energy_balances:
     params:
         countries = config["scope"]["countries"]
     conda: "../envs/default.yaml"
-    shadow: "minimal"
     script: "../src/construct/annual_energy_balance.py"
 
 
@@ -307,7 +306,7 @@ rule heat_demand_profiles:
     input:
         src = "src/construct/hourly_heat_profiles.py",
         dep_src = "src/construct/weather.py",
-        weather_pop = "build/{resolution}/weather_pop.csv.gz",
+        weather_pop = rules.weather_and_population.output.weather_pop,
         when2heat = rules.when2heat.output[0],
     conda: "../envs/geodata.yaml"
     output:
@@ -321,7 +320,7 @@ rule regional_dwelling_ratio:
     message: "Get ratio of single family vs multi family homes in each {wildcards.resolution} region"
     input:
         src = "src/construct/dwellings.py",
-        regions = "build/{resolution}/regions.csv",
+        regions = rules.weather_and_population.output.regions,
         dwellings = rules.eurostat_data_tsv.output.dwellings,
         nuts_to_regions = "data/nuts_to_regions.csv",
     conda: "../envs/geodata.yaml"
@@ -333,7 +332,7 @@ rule cooking_heat_demand:
     message: "Clean RAMP-Cooking profiles to match structure of other heat profiles"
     input:
         cooking_profiles = "data/cooking_profiles.csv.gz",
-        regions = "build/{resolution}/regions.csv",
+        regions = rules.weather_and_population.output.regions,
         annual_demand = "build/{resolution}/annual-demand.csv",
     conda: "../envs/default.yaml"
     params:
@@ -363,7 +362,7 @@ rule scaled_public_transport_demand_profiles:
     message: "Scale hourly transport profiles at {wildcards.resolution} resolution according to annual demand."
     input:
         src = "src/construct/scale_hourly_transport_profiles.py",
-        regions = "build/{resolution}/regions.csv",
+        regions = rules.weather_and_population.output.regions,
         annual_demand = "build/{resolution}/annual-demand.csv",
         rail_profiles = "data/transport/rail_daily_profiles_destinee.csv",
     params:
@@ -413,7 +412,7 @@ rule ev_energy_cap:
     message: "Restructing RAMP-mobility EV {wildcards.profile} profiles for use in Calliope"
     input:
         src = "src/construct/hourly_ev_profiles.py",
-        regions = "build/{resolution}/regions.csv",
+        regions = rules.weather_and_population.output.regions,
         ev_profiles = "data/transport/ev_profiles_ramp.csv.gz",
     params:
         dataset_name = "{profile}",
