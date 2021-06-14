@@ -23,7 +23,7 @@ subworkflow landeligibility:
     configfile: "land-eligibility/config/default.yaml"
 
 localrules: copy_euro_calliope, copy_resolution_specific_euro_calliope, model, links, outer_countries, eurostat_data_tsv, ch_data_xlsx, when2heat, copy_from_template
-ruleorder: model > links > outer_countries > copy_from_template > copy_euro_calliope > annual_national_demand > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > calliope_config_overrides > gas_storage > copy_resolution_specific_euro_calliope
+ruleorder: model > links > outer_countries > copy_from_template > copy_euro_calliope > annual_national_demand > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > gas_storage > copy_resolution_specific_euro_calliope
 wildcard_constraints:
     definition_file = "[^\/]*" # must not travers into directories
 
@@ -611,6 +611,11 @@ rule model:
         "build/model/spores.yaml",
         "build/model/fuel_scenarios.yaml",
         "build/model/demand_share.yaml",
+        "build/model/fossil-fuel-supply.yaml",
+        "build/model/overrides-2030/heat-techs.yaml",
+        "build/model/overrides-2030/renewable-techs.yaml",
+        "build/model/overrides-2030/storage-techs.yaml",
+        "build/model/overrides-2030/transformation-techs.yaml",
         definition = "src/template/model.yaml"
     output:
         model = "build/model/{resolution}/model.yaml"
