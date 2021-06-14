@@ -512,6 +512,19 @@ rule copy_from_template:
     script: "../src/construct/template_scenarios.py"
 
 
+rule emissions_scenario_yaml:
+    message: "Generate Calliope {wildcards.resolution} emission target scenario YAML."
+    input:
+        src = "src/construct/template_emissions.py",
+        emissions_targets = config["data-sources"]["emissions-targets"],
+        regions = rules.weather_and_population.output.regions
+    params:
+        scaling_factors = config["scaling-factors"]
+    conda: "../envs/default.yaml"
+    output: "build/model/{resolution}/emissions_scenarios.yaml"
+    script: "../src/construct/template_emissions.py"
+
+
 rule model:
     message: "Build entire model on resolution {wildcards.resolution}."
     input:
@@ -524,6 +537,7 @@ rule model:
         "build/model/transport-techs.yaml",
         "build/model/link-techs.yaml",
         "build/model/legacy-techs.yaml",
+        "build/model/{resolution}/emissions_scenarios.yaml",
         "build/model/{resolution}/locations.yaml",
         "build/model/{resolution}/directional-rooftop.yaml",
         "build/model/{resolution}/gas_storage.yaml",

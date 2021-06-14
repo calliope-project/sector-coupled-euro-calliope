@@ -12,6 +12,7 @@ data-sources:
     nuts: https://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip
     potentials: https://zenodo.org/record/3533038/files/possibility-for-electricity-autarky.zip
     jrc-ppdb: https://zenodo.org/record/3574566/files/JRC-PPDB-OPEN.ver1.0.zip
+    emissions-targets: data/emissions.csv
 quality-control:
     load:
         acceptable-load-data-gap-hours: 48

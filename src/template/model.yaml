@@ -18,6 +18,7 @@ import:
     - './vehicle_group_constraints.yaml'
     - './heat_group_constraints.yaml'
     - './fuel_group_constraints.yaml'
+    - './emissions_scenarios.yaml'
     - './gas_storage.yaml'
     - './config_overrides.yaml'
 model:
