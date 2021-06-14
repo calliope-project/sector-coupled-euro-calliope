@@ -534,6 +534,21 @@ rule copy_fuel_supply_techs:
     script: "../src/construct/template_fuel_supply.py"
 
 
+rule copy_2030_overrides:
+    message: "Copy {wildcards.template} template describing 2030 overrides"
+    input:
+        src = "src/construct/template_2030.py",
+        template = "src/template/2030/{template}"
+    params:
+        scaling_factors = config["scaling-factors"],
+        heat = config["parameters"]["heat-end-use"],
+    wildcard_constraints:
+        template = "((heat-techs.yaml)|(renewable-techs.yaml)|(storage-techs.yaml)|(transformation-techs.yaml))"
+    conda: "../envs/default.yaml"
+    output: "build/model/overrides-2030/{template}"
+    script: "../src/construct/template_2030.py"
+
+
 rule emissions_scenario_yaml:
     message: "Generate Calliope {wildcards.resolution} emission target scenario YAML."
     input:

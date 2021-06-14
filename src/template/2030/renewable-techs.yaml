@@ -1,0 +1,27 @@
+overrides:
+    renewable_techs_2030:
+        tech_groups:
+            pv_on_roof:
+                costs:
+                    monetary:
+                        energy_cap: {{ mean([0.83e6, 0.57e6]) * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MW") }} | Danish energy agency (technology data for el/dh, average of 22 photovoltaics small and medium, 2030)
+                        om_annual: {{ mean([10300, 8400]) * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MW") }} | Danish energy agency (technology data for el/dh, average of 22 photovoltaics small and medium, 2030)
+            wind_onshore:
+                costs:
+                    monetary:
+                        energy_cap: {{ 1.04e6 * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MW") }} | Danish energy agency (technology data for el/dh, 20 onshore turbines, 2030)
+                        om_annual: {{ 12600 * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MW") }} | Danish energy agency (technology data for el/dh, 20 onshore turbines, 2030)
+                        om_prod: {{ 1.35 * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MWh") }} | Danish energy agency (technology data for el/dh, 20 onshore turbines, 2030)
+
+        techs:
+            open_field_pv:
+                costs:
+                    monetary:
+                        energy_cap: {{ 0.30e6 * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MW") }} | Danish energy agency (technology data for el/dh, average of 22 photovoltaics large, 2030)
+                        om_annual: {{ 5800 * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MW") }} | Danish energy agency (technology data for el/dh, average of 22 photovoltaics large, 2030)
+            wind_offshore:
+                costs:
+                    monetary:
+                        energy_cap: {{ mean([1.93e6, 1.66e6]) * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MW") }} | Danish energy agency (technology data for el/dh, average of 21 offshore and nearshore turbines, 2030)
+                        om_annual: {{ mean([36053, 34250]) * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MW") }} | Danish energy agency (technology data for el/dh, average of 21 offshore and nearshore turbines, 2030)
+                        om_prod: {{ mean([2.7, 3]) * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR2013/MW") }} | Danish energy agency (technology data for el/dh, average of 21 offshore and nearshore turbines, 2030)
