@@ -12,6 +12,7 @@ data-sources:
     nuts: https://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip
     potentials: https://zenodo.org/record/3533038/files/possibility-for-electricity-autarky.zip
     jrc-ppdb: https://zenodo.org/record/3574566/files/JRC-PPDB-OPEN.ver1.0.zip
+    fuel-costs: https://heatroadmap.eu/wp-content/uploads/2020/01/HRE_D6.1_Appendix_1.xlsx
     emissions-targets: data/emissions.csv
 quality-control:
     load:
@@ -52,6 +53,9 @@ parameters:
         potential-year: "2020"
         cost-year: "2030"
     biofuel-efficiency: 0.45
+    fossil-fuel-cost:
+        source: "JRC ref"
+        year: 2050
     roof-share: # from (Trondle:2019)
         E: 0.1660
         N: 0.1817

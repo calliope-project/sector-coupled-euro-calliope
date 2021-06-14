@@ -1,0 +1,41 @@
+techs:  # emissions from https://www.volker-quaschning.de/datserv/CO2-spez/index_e.php
+    methane_supply:
+        essentials:
+            name: Natural gas
+            carrier: methane
+            parent: supply
+        costs:
+            monetary:
+                om_prod: {{ fuel_cost.Gas * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MWh") }}
+            co2:
+                om_prod: {{ 0.2 * scaling_factors.co2 / scaling_factors.power }}   # {{ (1 / scaling_factors.specific_costs) | unit("tCO2/MWh") }}
+    diesel_supply:
+        essentials:
+            name: Diesel
+            carrier: diesel
+            parent: supply
+        costs:
+            monetary:
+                om_prod: {{ fuel_cost.Oil * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MWh") }}
+            co2:
+                om_prod: {{ 0.26 * scaling_factors.co2 / scaling_factors.power }}   # {{ (1 / scaling_factors.specific_costs) | unit("tCO2/MWh") }}
+    kerosene_supply:
+        essentials:
+            name: Kerosene
+            carrier: kerosene
+            parent: supply
+        costs:
+            monetary:
+                om_prod: {{ fuel_cost.Oil * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MWh") }}
+            co2:
+                om_prod: {{ 0.27 * scaling_factors.co2 / scaling_factors.power }}   # {{ (1 / scaling_factors.specific_costs) | unit("tCO2/MWh") }}
+    methanol_supply:
+        essentials:
+            name: Methanol
+            carrier: methanol
+            parent: supply
+        costs:
+            monetary:
+                om_prod: {{ fuel_cost.Oil * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MWh") }}
+            co2:
+                om_prod: {{ 0.26 * scaling_factors.co2 / scaling_factors.power }}   # {{ (1 / scaling_factors.specific_costs) | unit("tCO2/MWh") }} | ASSUME: same as emissions for crude oil

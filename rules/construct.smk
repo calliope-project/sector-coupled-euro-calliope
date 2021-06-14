@@ -512,6 +512,28 @@ rule copy_from_template:
     script: "../src/construct/template_scenarios.py"
 
 
+rule fuel_cost_xlsx:
+    message: "Download Heatroadmap fuel cost dataset"
+    params: url = config["data-sources"]["fuel-costs"]
+    output: "data/automatic/fuel_costs.xlsx"
+    shell: "curl -sLo {output} {params.url}"
+
+
+rule copy_fuel_supply_techs:
+    message: "copy fuel supply template"
+    input:
+        src = "src/construct/template_fuel_supply.py",
+        template = "src/template/fossil-fuel-supply.yaml",
+        fuel_costs = rules.fuel_cost_xlsx.output[0]
+    output: "build/model/fossil-fuel-supply.yaml"
+    params:
+        scaling_factors = config["scaling-factors"],
+        fuel_cost_source = config["parameters"]["fossil-fuel-cost"]["source"],
+        fuel_cost_year = config["parameters"]["fossil-fuel-cost"]["year"]
+    conda: "../envs/default.yaml"
+    script: "../src/construct/template_fuel_supply.py"
+
+
 rule emissions_scenario_yaml:
     message: "Generate Calliope {wildcards.resolution} emission target scenario YAML."
     input:
