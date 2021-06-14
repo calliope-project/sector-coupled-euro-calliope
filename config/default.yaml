@@ -150,27 +150,7 @@ parameters:
 
 
 calliope-parameters: # arbitrary many calliope parameters applied as override
-    model.subset_time: ['2016-01-01', '2016-12-31']
-    techs:
-        chp_biofuel.exists: false  # not using for overall simplification (less prominent CHP techs)
-        chp_methane_back_pressure_simple.exists: false  # not using for overall simplification (less prominent CHP techs)
-        chp_methane_back_pressure_combined.exists: false  # not using for overall simplification (less prominent CHP techs)
-        solar_thermal_collector.exists: false  # TODO: create ST timeseries to allow these techs to exist
-        solar_thermal_energy.exists: false  # TODO: create ST timeseries to allow these techs to exist
-        ashp.exists: false
-        gshp.exists: false
-        demand_space_heat.exists: false
-        demand_water_heat.exists: false
-        ashp_heat_storage_small.exists: false
-        ashp_tech_heat_to_demand.exists: false
-        gshp_heat_storage_small.exists: false
-        gshp_tech_heat_to_demand.exists: false
-        chp_biofuel_heat_storage_big.exists: false
-        chp_biofuel_tech_heat_to_demand.exists: false
-        chp_methane_back_pressure_simple_heat_storage_big.exists: false
-        chp_methane_back_pressure_simple_tech_heat_to_demand.exists: false
-        chp_methane_back_pressure_combined_heat_storage_big.exists: false
-        chp_methane_back_pressure_combined_tech_heat_to_demand.exists: false
+    model.subset_time: ['{year}-01-01', '{year}-12-31']
 year: 2016
 connected-regions: # regions with insufficient potentials can be connected to neighbours
     AUT-9_1: AUT-3_1 # Vienna: Lower Austria

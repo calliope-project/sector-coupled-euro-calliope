@@ -476,17 +476,6 @@ rule annual_heat_constraints:
     script: "../src/construct/template_heat_demand.py"
 
 
-rule calliope_config_overrides:
-    message: "create overrides file based on config options under `calliope-parameters`"
-    params:
-        overrides = config["calliope-parameters"]
-    output: "build/model/{resolution}/config_overrides.yaml"
-    run:
-        import yaml
-        with open(output[0], "w") as out:
-            yaml.dump({'overrides': {'config_overrides': params.overrides}}, out)
-
-
 rule gas_storage_xlsx:
     message: "Get latest data on underground gas storage available in each country"
     output: "data/automatic/gas_storage.xlsx"
@@ -515,9 +504,10 @@ rule copy_from_template:
         template = "src/template/{template}"
     output: "build/model/{template}"
     params:
-        shares = [i / 10 for i in range(11)]
+        shares = [i / 10 for i in range(11)],
+        subset_time = [i.format(year=config["year"]) for i in  config["calliope-parameters"]["model.subset_time"]]
     wildcard_constraints:
-        template = "((spores.yaml)|(fuel_scenarios.yaml)|(demand_share.yaml))"
+        template = "((spores.yaml)|(fuel_scenarios.yaml)|(demand_share.yaml)|(config_overrides.yaml))"
     conda: "../envs/default.yaml"
     script: "../src/construct/template_scenarios.py"
 
@@ -542,7 +532,6 @@ rule model:
         rules.annual_heat_constraints.output,
         rules.links.output,
         #rules.outer_countries.output,
-        rules.calliope_config_overrides.output,
         "build/model/{resolution}/demand-equals-light-ev.csv",
         "build/model/{resolution}/demand-min-light-ev.csv",
         "build/model/{resolution}/demand-max-light-ev.csv",
@@ -567,6 +556,7 @@ rule model:
                 "hydro-ror", "hydro-reservoir-inflow", "rooftop-pv"
             ],
         ),
+        "build/model/config_overrides.yaml",
         "build/model/spores.yaml",
         "build/model/fuel_scenarios.yaml",
         "build/model/demand_share.yaml",
