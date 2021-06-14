@@ -42,6 +42,12 @@ capacity-factors:
         onshore: 0.3021 # median of average 2016 factors for ~2700 points in Europe
         offshore: 0.4223 # median of average 2016 factors for ~2800 points in Europe
         ror: 0.536781 # median of average 2016 factors for 1889 hydro stations in Europe
+cluster-sync:
+    url: euler
+    send-ignore: .syncignore-send
+    receive-ignore: .syncignore-receive
+    cluster-base-dir: ~/Develop/euro-spores/
+    local-results-dir: build/cluster
 parameters:
     maximum-installable-power-density: # this is not the yield, but the density of installed power
         pv-on-tilted-roofs: 160 # [MW/km^2] from (Gagnon:2016, Klauser:2016), i.e. 16% efficiency
@@ -50,9 +56,10 @@ parameters:
         offshore-wind: 15 # [MW/km^2] from (EuropeanEnvironmentAgency:2009)
     jrc-biofuel:
         scenario: "medium"
-        potential-year: "2020"
-        cost-year: "2030"
+        potential-year: "2050"
+        cost-year: "2050"
     biofuel-efficiency: 0.45
+    nuclear-capacity-year: "2050"
     fossil-fuel-cost:
         source: "JRC ref"
         year: 2050
