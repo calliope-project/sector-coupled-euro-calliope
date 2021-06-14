@@ -5,6 +5,7 @@ PYTHON_SCRIPT_WITH_CONFIG = PYTHON_SCRIPT + " {CONFIG_FILE}"
 configfile: "config/default.yaml"
 include: "rules/construct.smk"
 include: "rules/analyse.smk"
+include: "rules/sync.smk"
 
 localrules: all, clean, make_runs
 onstart:

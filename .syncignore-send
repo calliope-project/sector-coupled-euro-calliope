@@ -1,0 +1,14 @@
+.snakemake
+.git
+.pytest_cache
+__pycache__
+*.pyc
+*.pyo
+*.pdf
+.vscode
+.DS_Store
+build
+data/automatic
+notebooks
+euro-calliope/data
+land-eligibility/data

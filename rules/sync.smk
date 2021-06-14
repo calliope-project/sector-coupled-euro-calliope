@@ -1,27 +1,38 @@
-# Rules to sync to and from Euler
-
-EULER_URL = "euler.ethz.ch"
-EULER_BASE_DIR = "~/Develop/money-land/"
-EULER_BUILD_DIR = EULER_BASE_DIR + "build/"
-LOCAL_EULER_RESULTS = "./build/euler"
-SYNCIGNORE = ".syncignore"
+# Rules to sync to and from cluster
 
 
 rule send:
-    message: "Send changes to Euler"
+    message: "Send changes to cluster"
+    params:
+        send_ignore = config["cluster-sync"]["send-ignore"],
+        url = config["cluster-sync"]["url"],
+        cluster_base_dir = config["cluster-sync"]["cluster-base-dir"]
     shell:
-        "rsync -avzh --progress --delete -r . --exclude-from={SYNCIGNORE} {EULER_URL}:{EULER_BASE_DIR}"
+        """
+        rsync -avzh --progress --delete -r . --exclude-from={params.send_ignore} \
+        {params.url}:{params.cluster_base_dir}
+        """
 
 
 rule receive:
-    message: "Receive build changes from Euler"
-    shell:
-        "rsync -avzh --progress --delete -r --exclude-from=.syncignore-build {EULER_URL}:{EULER_BUILD_DIR} {LOCAL_EULER_RESULTS}"
-
-
-rule clean_euler:
-    message: "Clean results downloaded from Euler"
+    message: "Receive build changes from cluster"
+    params:
+        send_ignore = config["cluster-sync"]["send-ignore"],
+        receive_ignore = config["cluster-sync"]["receive-ignore"],
+        url = config["cluster-sync"]["url"],
+        cluster_base_dir = config["cluster-sync"]["cluster-base-dir"],
+        cluster_build_dir = config["cluster-sync"]["cluster-base-dir"] + "/build/",
+        local_results_dir = config["cluster-sync"]["local-results-dir"]
     shell:
         """
-        rm -r {LOCAL_EULER_RESULTS}/*
+        rsync -avzh --progress --delete -r --exclude-from={params.receive_ignore} \
+        {params.url}:{params.cluster_build_dir} {params.local_results_dir}
         """
+
+
+rule clean_cluster_results:
+    message: "Clean results downloaded from cluster"
+    params:
+        local_results_dir = config["cluster-sync"]["local-results-dir"]
+    shell:
+        "rm -r {params.local_results_dir}"
