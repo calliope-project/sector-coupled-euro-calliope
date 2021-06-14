@@ -16,6 +16,7 @@ import:
     - '../overrides-2030/heat-techs.yaml'
     - '../overrides-2030/transformation-techs.yaml'
     - '../fossil-fuel-supply.yaml'
+    - '../config_overrides.yaml'
     - './locations.yaml'
     - './links.yaml'
     - './directional-rooftop.yaml'
@@ -25,12 +26,10 @@ import:
     - './fuel_group_constraints.yaml'
     - './emissions_scenarios.yaml'
     - './gas_storage.yaml'
-    - './config_overrides.yaml'
 model:
-    name: 'EuroSPORES'
+    name: 'Euro-Calliope'
     calliope_version: 0.6.6
     timeseries_data_path: './'
-    subset_time: ['2016-01-01', '2016-12-31']
 run:
     objective_options: {
         'cost_class': {'monetary': 1},
