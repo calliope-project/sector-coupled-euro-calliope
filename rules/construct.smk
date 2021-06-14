@@ -10,7 +10,7 @@ URL_FREIGHT = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDown
 URL_EMPLOYEES = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?file=data/sbs_r_nuts06_r2.tsv.gz"
 URL_GVA = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?file=data/nama_10r_3gva.tsv.gz"
 URL_CH_GVA = "https://www.bfs.admin.ch/bfsstatic/dam/assets/10647597/master"
-URL_GAS_STORAGE = "https://www.gie.eu/maps_data/downloads/2018/Storage_DB_Dec2018.xlsx"
+URL_GAS_STORAGE = "https://www.gie.eu/wp-content/uploads/filr/1410/Storage_DB_Dec2018.xlsx"
 
 subworkflow eurocalliope:
     workdir: "./euro-calliope"
