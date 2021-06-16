@@ -213,8 +213,7 @@ rule annual_waste_supply:
         population = landeligibility("build/{resolution}/population.csv"),
         units = landeligibility("build/{resolution}/units.geojson"),
     conda: "../envs/geodata.yaml"
-    output:
-        "build/{resolution}/annual_waste_supply.csv"
+    output: "build/{resolution}/annual_waste_supply.csv"
     script: "../src/construct/annual_waste_supply.py"
 
 
@@ -276,6 +275,16 @@ rule annual_subnational_demand:
     script: "../src/construct/annual_subnational_demand.py"
 
 
+rule regions:
+    message: "Get country codes corresponding to each {wildcards.resolution} region"
+    input:
+        src = "src/construct/regions.py",
+        units = landeligibility("build/{resolution}/units.geojson")
+    conda: "../envs/geodata.yaml"
+    output: "build/{resolution}/regions.csv"
+    script: "../src/construct/regions.py"
+
+
 rule weather_and_population:
     message: "Determine weather conditions and population within each {wildcards.resolution} region, at a MERRA-2 gridcell resolution"
     input:
@@ -290,7 +299,6 @@ rule weather_and_population:
         model_year = config["year"]
     output:
         weather_pop = "build/{resolution}/weather_pop.csv.gz",
-        regions = "build/{resolution}/regions.csv"
     script: "../src/construct/weather.py"
 
 
@@ -320,7 +328,7 @@ rule regional_dwelling_ratio:
     message: "Get ratio of single family vs multi family homes in each {wildcards.resolution} region"
     input:
         src = "src/construct/dwellings.py",
-        regions = rules.weather_and_population.output.regions,
+        regions = rules.regions.output[0],
         dwellings = rules.eurostat_data_tsv.output.dwellings,
         nuts_to_regions = "data/nuts_to_regions.csv",
     conda: "../envs/geodata.yaml"
@@ -329,10 +337,10 @@ rule regional_dwelling_ratio:
 
 
 rule cooking_heat_demand:
-    message: "Clean RAMP-Cooking profiles to match structure of other heat profiles"
+    message: "Clean RAMP-Cooking cooking{wildcards.demand_key}-demand {wildcards.resolution} profiles to match structure of other heat profiles"
     input:
         cooking_profiles = "data/cooking_profiles.csv.gz",
-        regions = rules.weather_and_population.output.regions,
+        regions = rules.regions.output[0],
         annual_demand = "build/{resolution}/annual-demand.csv",
     conda: "../envs/default.yaml"
     params:
@@ -362,7 +370,7 @@ rule scaled_public_transport_demand_profiles:
     message: "Scale hourly transport profiles at {wildcards.resolution} resolution according to annual demand."
     input:
         src = "src/construct/scale_hourly_transport_profiles.py",
-        regions = rules.weather_and_population.output.regions,
+        regions = rules.regions.output[0],
         annual_demand = "build/{resolution}/annual-demand.csv",
         rail_profiles = "data/transport/rail_daily_profiles_destinee.csv",
     params:
@@ -394,7 +402,7 @@ rule heat_pump_characteristics:
     input:
         src = "src/construct/heat_pump_characteristics.py",
         dep_src = "src/construct/hourly_heat_profiles.py",
-        weather_pop = "build/{resolution}/weather_pop.csv.gz",
+        weather_pop = rules.weather_and_population.output.weather_pop,
         hp_characteristics = "data/heat_pump_characteristics.csv",
         annual_demand = "build/{resolution}/annual-demand.csv"
     params:
@@ -409,10 +417,10 @@ rule heat_pump_characteristics:
 
 
 rule ev_energy_cap:
-    message: "Restructing RAMP-mobility EV {wildcards.profile} profiles for use in Calliope"
+    message: "Restructing RAMP-mobility EV {wildcards.profile} profiles for use in {wildcards.resolution} Calliope model"
     input:
         src = "src/construct/hourly_ev_profiles.py",
-        regions = rules.weather_and_population.output.regions,
+        regions = rules.regions.output[0],
         ev_profiles = "data/transport/ev_profiles_ramp.csv.gz",
     params:
         dataset_name = "{profile}",
@@ -504,7 +512,7 @@ rule copy_from_template:
     output: "build/model/{template}"
     params:
         shares = [i / 10 for i in range(11)],
-        subset_time = [i.format(year=config["year"]) for i in  config["calliope-parameters"]["model.subset_time"]]
+        subset_time = config["calliope-parameters"]["model.subset_time"]
     wildcard_constraints:
         template = "((spores.yaml)|(fuel_scenarios.yaml)|(demand_share.yaml)|(config_overrides.yaml))"
     conda: "../envs/default.yaml"
@@ -553,7 +561,7 @@ rule emissions_scenario_yaml:
     input:
         src = "src/construct/template_emissions.py",
         emissions_targets = config["data-sources"]["emissions-targets"],
-        regions = rules.weather_and_population.output.regions
+        regions = rules.regions.output[0]
     params:
         scaling_factors = config["scaling-factors"]
     conda: "../envs/default.yaml"

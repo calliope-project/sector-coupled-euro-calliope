@@ -162,7 +162,7 @@ parameters:
 
 
 calliope-parameters: # arbitrary many calliope parameters applied as override
-    model.subset_time: ['{year}-01-01', '{year}-12-31']
+    model.subset_time: ['2016-01-01', '2016-12-31']
 year: 2016
 connected-regions: # regions with insufficient potentials can be connected to neighbours
     AUT-9_1: AUT-3_1 # Vienna: Lower Austria
