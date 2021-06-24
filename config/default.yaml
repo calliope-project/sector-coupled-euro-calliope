@@ -29,11 +29,12 @@ quality-control:
 scaling-factors:
     power: 0.00001 # from MW to 100 GW
     area: 0.0001 # from km to 10000 km2
-    monetary: 0.000000001 # from EUR to 1000 Mio EUR
+    monetary: 0.000000001  # from EUR to 1000 Mio EUR
     distance: 1
     energy: 10 # from TW(h) to 100 GW(h)
     transport: 0.01  # from Mio km to 100 Mio km
     co2: 0.0001  # from t to 10 kt
+    co2_cost:  0.000001  # from t to Mt
 capacity-factors:
     min: 0.001 # consider smaller values to be 0; this helps numerics in the LP
     max: 10 # for hydro reservoirs, leading to a numerical range of 1e5 (hourly resolution)
@@ -164,6 +165,7 @@ parameters:
 calliope-parameters: # arbitrary many calliope parameters applied as override
     model.subset_time: ['2016-01-01', '2016-12-31']
 year: 2016
+projection-year: "2050"
 connected-regions: # regions with insufficient potentials can be connected to neighbours
     AUT-9_1: AUT-3_1 # Vienna: Lower Austria
     BEL-1_1: BEL-2_1 # Bruxelles: Flanders

@@ -561,9 +561,12 @@ rule emissions_scenario_yaml:
     input:
         src = "src/construct/template_emissions.py",
         emissions_targets = config["data-sources"]["emissions-targets"],
+        annual_demand = "build/{resolution}/annual-demand.csv",
         regions = rules.regions.output[0]
     params:
-        scaling_factors = config["scaling-factors"]
+        scaling_factors = config["scaling-factors"],
+        projection_year = config["projection-year"],
+        year = config["year"],
     conda: "../envs/default.yaml"
     output: "build/model/{resolution}/emissions_scenarios.yaml"
     script: "../src/construct/template_emissions.py"
@@ -585,6 +588,7 @@ rule model:
         "build/model/{resolution}/locations.yaml",
         "build/model/{resolution}/directional-rooftop.yaml",
         "build/model/{resolution}/gas_storage.yaml",
+        rules.emissions_scenario_yaml.output,
         rules.annual_fuel_demand_constraints.output,
         rules.annual_vehicle_constraints.output,
         rules.annual_heat_constraints.output,
