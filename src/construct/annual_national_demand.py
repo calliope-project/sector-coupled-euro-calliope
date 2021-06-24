@@ -234,8 +234,15 @@ def electrify_industry_demand(df, industry_config, level_order=LEVEL_ORDER):
     to_electrify = [
         i
         for i in industry_config["electrification_efficiency"].keys()
-        if i not in industry_config["carriers"]
+        if i not in industry_config["carriers"] and i in df.index.get_level_values("end_use")
     ]
+
+    if not to_electrify:
+        print("Not electrifying any industry carriers")
+        return df
+    else:
+        print(f"Electrifying the following industry carriers: {to_electrify}")
+
     df_to_electrify = df.unstack('end_use').loc[:, to_electrify]
     idx_to_drop = df_to_electrify.stack().index.remove_unused_levels()
     electrification = {

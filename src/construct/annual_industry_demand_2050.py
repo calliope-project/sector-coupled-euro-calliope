@@ -11,6 +11,8 @@ MWH_PER_T_TO_KTOE_PER_KT = 0.08598  # 1 MWh/t -> 1 GWh/kt -> 0.08598 ktoe/kt
 METHANOL_LHV_KTOE = 0.476  # 19.915 MJ/kg LHV -> 19915000MJ/kt -> 0.476ktoe/kt
 
 YEAR_RANGE = slice(2000, 2018)
+
+
 def get_industry_demand(
     path_to_energy_balances, path_to_cat_names, path_to_carrier_names,
     path_to_jrc_industry_end_use, path_to_jrc_industry_production,

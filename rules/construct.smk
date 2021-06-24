@@ -151,7 +151,7 @@ rule annual_energy_balances:
 rule annual_industry_demand:
     message: "Calculate future industry energy demand, following electrification and replacement of fossil feedstocks"
     input:
-        src = "src/construct/annual_industry_demand.py",
+        src = "src/construct/annual_industry_demand_{}.py".format(config["projection-year"]),
         energy_balances = rules.annual_energy_balances.output[0],
         cat_names = "data/energy_balance_category_names.csv",
         carrier_names = "data/energy_balance_carrier_names.csv",
@@ -161,7 +161,7 @@ rule annual_industry_demand:
     output:
         new_demand=temp("build/annual_industry_energy_demand.csv"),
         bau_electricity=temp("build/annual_industry_bau_electricity.csv")
-    script: "../src/construct/annual_industry_demand.py"
+    script: "../src/construct/annual_industry_demand_{}.py".format(config["projection-year"])
 
 
 rule annual_transport_demand:
