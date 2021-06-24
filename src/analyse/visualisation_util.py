@@ -1,3 +1,5 @@
+import yaml
+
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -7,8 +9,8 @@ import calliope
 from calliope.core.util.dataset import split_loc_techs
 idx = pd.IndexSlice
 
-CONFIG = calliope.AttrDict.from_yaml("../config/default.yaml")
-
+with open("../config/default.yaml") as f:
+    CONFIG = yaml.safe_load(f)
 
 class VisUtil():
 
@@ -295,7 +297,6 @@ class VisUtil():
 
     def set_synthetic_fuel_source(self):
         self.metrics["synfuel_prod"] = self.sum_then_groupby(self.carrier_prod, self.SYNTHETIC_FUEL_MAPPING)
-
 
     def set_all_metrics(self):
         self.set_resource_use_share()
