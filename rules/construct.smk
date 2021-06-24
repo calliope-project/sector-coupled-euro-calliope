@@ -527,17 +527,20 @@ rule fuel_cost_xlsx:
 
 
 rule copy_fuel_supply_techs:
-    message: "copy fuel supply template"
+    message: "Build {wildcards.resolution} fuel supply YAML"
     input:
-        src = "src/construct/template_fuel_supply.py",
-        template = "src/template/fossil-fuel-supply.yaml",
+        src = "src/construct/template_fossil_fuel_supply.py",
+        regions = rules.regions.output[0],
         fuel_costs = rules.fuel_cost_xlsx.output[0]
-    output: "build/model/fossil-fuel-supply.yaml"
+    output: "build/model/{resolution}/fossil-fuel-supply.yaml"
     params:
         scaling_factors = config["scaling-factors"],
         fuel_cost_source = config["parameters"]["fossil-fuel-cost"]["source"],
         fuel_cost_year = config["parameters"]["fossil-fuel-cost"]["year"]
     conda: "../envs/default.yaml"
+    script: "../src/construct/template_fossil_fuel_supply.py"
+
+
 rule copy_biofuel_techs:
     message: "Build {wildcards.resolution} biofuel supply YAML"
     input:
@@ -606,6 +609,7 @@ rule model:
         "build/model/{resolution}/locations.yaml",
         "build/model/{resolution}/directional-rooftop.yaml",
         "build/model/{resolution}/gas_storage.yaml",
+        rules.copy_fuel_supply_techs.output,
         rules.copy_biofuel_techs.output,
         rules.emissions_scenario_yaml.output,
         rules.annual_fuel_demand_constraints.output,
@@ -641,7 +645,6 @@ rule model:
         "build/model/spores.yaml",
         "build/model/fuel_scenarios.yaml",
         "build/model/demand_share.yaml",
-        "build/model/fossil-fuel-supply.yaml",
         "build/model/overrides-2030/heat-techs.yaml",
         "build/model/overrides-2030/renewable-techs.yaml",
         "build/model/overrides-2030/storage-techs.yaml",

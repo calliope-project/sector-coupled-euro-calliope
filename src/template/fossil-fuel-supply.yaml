@@ -1,4 +1,4 @@
-techs:  # emissions from https://www.volker-quaschning.de/datserv/CO2-spez/index_e.php
+techs:  # emissions from [IPCC2006] https://www.ipcc-nggip.iges.or.jp/public/2006gl/pdf/2_Volume2/V2_2_Ch2_Stationary_Combustion.pdf
     methane_supply:
         essentials:
             name: Natural gas
@@ -8,7 +8,7 @@ techs:  # emissions from https://www.volker-quaschning.de/datserv/CO2-spez/index
             monetary:
                 om_prod: {{ fuel_cost.Gas * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MWh") }}
             co2:
-                om_prod: {{ 0.2 * scaling_factors.co2 / scaling_factors.power }}   # {{ (1 / scaling_factors.specific_costs) | unit("tCO2/MWh") }}
+                om_prod: {{ 0.2 * scaling_factors.co2_cost / scaling_factors.power }}   # {{ (scaling_factors.power / scaling_factors.co2_cost) | unit("tCO2/MWh") }}
     diesel_supply:
         essentials:
             name: Diesel
@@ -18,7 +18,7 @@ techs:  # emissions from https://www.volker-quaschning.de/datserv/CO2-spez/index
             monetary:
                 om_prod: {{ fuel_cost.Oil * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MWh") }}
             co2:
-                om_prod: {{ 0.26 * scaling_factors.co2 / scaling_factors.power }}   # {{ (1 / scaling_factors.specific_costs) | unit("tCO2/MWh") }}
+                om_prod: {{ 0.26 * scaling_factors.co2_cost / scaling_factors.power }}   # {{ (scaling_factors.power / scaling_factors.co2_cost) | unit("tCO2/MWh") }}
     kerosene_supply:
         essentials:
             name: Kerosene
@@ -28,7 +28,7 @@ techs:  # emissions from https://www.volker-quaschning.de/datserv/CO2-spez/index
             monetary:
                 om_prod: {{ fuel_cost.Oil * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MWh") }}
             co2:
-                om_prod: {{ 0.27 * scaling_factors.co2 / scaling_factors.power }}   # {{ (1 / scaling_factors.specific_costs) | unit("tCO2/MWh") }}
+                om_prod: {{ 0.27 * scaling_factors.co2_cost / scaling_factors.power }}   # {{ (scaling_factors.power / scaling_factors.co2_cost) | unit("tCO2/MWh") }}
     methanol_supply:
         essentials:
             name: Methanol
@@ -38,4 +38,4 @@ techs:  # emissions from https://www.volker-quaschning.de/datserv/CO2-spez/index
             monetary:
                 om_prod: {{ fuel_cost.Oil * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MWh") }}
             co2:
-                om_prod: {{ 0.26 * scaling_factors.co2 / scaling_factors.power }}   # {{ (1 / scaling_factors.specific_costs) | unit("tCO2/MWh") }} | ASSUME: same as emissions for crude oil
+                om_prod: {{ 0.26 * scaling_factors.co2_cost / scaling_factors.power }}   # {{ (scaling_factors.power / scaling_factors.co2_cost) | unit("tCO2/MWh") }} | ASSUME: same as emissions for crude oil

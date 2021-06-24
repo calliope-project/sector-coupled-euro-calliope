@@ -15,7 +15,6 @@ import:
     - '../overrides-2030/storage-techs.yaml'
     - '../overrides-2030/heat-techs.yaml'
     - '../overrides-2030/transformation-techs.yaml'
-    - '../fossil-fuel-supply.yaml'
     - '../config_overrides.yaml'
     - './locations.yaml'
     - './links.yaml'
@@ -26,6 +25,7 @@ import:
     - './fuel_group_constraints.yaml'
     - './emissions_scenarios.yaml'
     - './gas_storage.yaml'
+    - './fossil-fuel-supply.yaml'
     - './biofuel-supply.yaml'
 model:
     name: 'Euro-Calliope'
