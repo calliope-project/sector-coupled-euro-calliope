@@ -25,6 +25,7 @@ import:
     - './fuel_group_constraints.yaml'
     - './emissions_scenarios.yaml'
     - './gas_storage.yaml'
+    - './coal_supply.yaml'
     - './fossil-fuel-supply.yaml'
     - './biofuel-supply.yaml'
 model:

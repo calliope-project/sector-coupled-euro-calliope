@@ -23,7 +23,7 @@ subworkflow landeligibility:
     configfile: "land-eligibility/config/default.yaml"
 
 localrules: copy_euro_calliope, copy_resolution_specific_euro_calliope, model, links, outer_countries, eurostat_data_tsv, ch_data_xlsx, when2heat, copy_from_template
-ruleorder: model > links > outer_countries > copy_from_template > copy_euro_calliope > annual_national_demand > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > gas_storage > copy_resolution_specific_euro_calliope
+ruleorder: model > links > outer_countries > copy_from_template > copy_euro_calliope > annual_national_demand > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > gas_storage > copy_fuel_supply_techs > copy_biofuel_techs > copy_resolution_specific_euro_calliope
 wildcard_constraints:
     definition_file = "[^\/]*" # must not travers into directories
 
@@ -593,6 +593,22 @@ rule emissions_scenario_yaml:
     script: "../src/construct/template_emissions.py"
 
 
+rule coal_supply_yaml:
+    message: "Generate Calliope {wildcards.resolution} coal supply technology, with limit to today's capacities."
+    input:
+        src = "src/construct/template_coal_supply.py",
+        power_plants = eurocalliope("data/automatic/JRC_OPEN_UNITS.csv"),
+        units = landeligibility("build/{resolution}/units.geojson"),
+        fuel_costs = rules.fuel_cost_xlsx.output[0]
+    params:
+        scaling_factors = config["scaling-factors"],
+        fuel_cost_source = config["parameters"]["fossil-fuel-cost"]["source"],
+        fuel_cost_year = config["parameters"]["fossil-fuel-cost"]["year"]
+    conda: "../envs/geodata.yaml"
+    output: "build/model/{resolution}/coal_supply.yaml"
+    script: "../src/construct/template_coal_supply.py"
+
+
 rule model:
     message: "Build entire model on resolution {wildcards.resolution}."
     input:
@@ -612,6 +628,7 @@ rule model:
         rules.copy_fuel_supply_techs.output,
         rules.copy_biofuel_techs.output,
         rules.emissions_scenario_yaml.output,
+        rules.coal_supply_yaml.output,
         rules.annual_fuel_demand_constraints.output,
         rules.annual_vehicle_constraints.output,
         rules.annual_heat_constraints.output,
