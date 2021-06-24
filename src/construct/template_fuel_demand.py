@@ -59,8 +59,8 @@ overrides:
                 {% endfor %}
         {% endfor %}
 scenarios:
-    industry_fuel_isolated: [annual_fuel_demand_isolated, industry_techs, biofuel_maximum]
-    industry_fuel_shared: [annual_fuel_demand_shared, industry_techs, biofuel_maximum]
+    industry_fuel_isolated: [annual_fuel_demand_isolated, industry_techs]
+    industry_fuel_shared: [annual_fuel_demand_shared, industry_techs]
 """
 
 

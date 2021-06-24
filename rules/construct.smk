@@ -538,7 +538,25 @@ rule copy_fuel_supply_techs:
         fuel_cost_source = config["parameters"]["fossil-fuel-cost"]["source"],
         fuel_cost_year = config["parameters"]["fossil-fuel-cost"]["year"]
     conda: "../envs/default.yaml"
-    script: "../src/construct/template_fuel_supply.py"
+rule copy_biofuel_techs:
+    message: "Build {wildcards.resolution} biofuel supply YAML"
+    input:
+        src = "src/construct/template_biofuel_supply.py",
+        annual_demand = "build/{resolution}/annual-demand.csv",
+        biofuel_potential = eurocalliope(
+            "build/data/{{resolution}}/biofuel/{scenario}/potential-mwh-per-year.csv"
+            .format(scenario=config["parameters"]["jrc-biofuel"]["scenario"])
+        ),
+        biofuel_costs = eurocalliope(
+            "build/data/{{resolution}}/biofuel/{scenario}/costs-eur-per-mwh.csv"
+            .format(scenario=config["parameters"]["jrc-biofuel"]["scenario"])
+        )
+    output: "build/model/{resolution}/biofuel-supply.yaml"
+    params:
+        scaling_factors = config["scaling-factors"],
+        year = config["year"],
+    conda: "../envs/default.yaml"
+    script: "../src/construct/template_biofuel_supply.py"
 
 
 rule copy_2030_overrides:
@@ -588,6 +606,7 @@ rule model:
         "build/model/{resolution}/locations.yaml",
         "build/model/{resolution}/directional-rooftop.yaml",
         "build/model/{resolution}/gas_storage.yaml",
+        rules.copy_biofuel_techs.output,
         rules.emissions_scenario_yaml.output,
         rules.annual_fuel_demand_constraints.output,
         rules.annual_vehicle_constraints.output,

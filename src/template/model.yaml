@@ -26,6 +26,7 @@ import:
     - './fuel_group_constraints.yaml'
     - './emissions_scenarios.yaml'
     - './gas_storage.yaml'
+    - './biofuel-supply.yaml'
 model:
     name: 'Euro-Calliope'
     calliope_version: 0.6.6
