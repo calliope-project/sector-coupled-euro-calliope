@@ -13,7 +13,7 @@ overrides:
             {% for row_id, row in emissions_targets.iterrows() %}
             systemwide_co2_max_{{ row_id }}:
                 locs: {{ per_target_regions[row_id] }}
-                cost_max.co2: {{ (row[starting_point] - less_coal[row_id]) * (1 - row[scenario]) * 1e6 * scaling_factors.co2 }}  # {{ (1 / scaling_factors.co2) | unit("tCO2") }}
+                cost_max.co2: {{ (row[starting_point] - less_coal[row_id]) * (1 - row[scenario]) * 1e6 * scaling_factors.co2_cost }}  # {{ (1 / scaling_factors.co2_cost) | unit("tCO2") }}
             {% endfor %}
     {% endfor %}
 """
