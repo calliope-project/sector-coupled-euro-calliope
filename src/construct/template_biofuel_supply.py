@@ -17,9 +17,10 @@ overrides:
                     name: Biofuel
                     parent: supply
                     carrier: biofuel
-                # constraints are applied on a per-location basis
+                constraints:
+                    lifetime: 20  # arbritrarily chosen to avoid Calliope errors
                 costs.monetary:
-                    om_con: {{ cost * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR/MWh") }}
+                    om_prod: {{ cost * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR/MWh") }}
 
         locations:
             {% for id in potentials.index %}
