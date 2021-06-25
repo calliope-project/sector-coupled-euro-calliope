@@ -48,7 +48,10 @@ def parameterise_template(
     """Applies config parameters to template files."""
 
     annual_demand = util.read_tdf(path_to_annual_demand)
-    potentials = pd.read_csv(path_to_biofuel_potential_mwh, index_col=0, squeeze=True)
+    potentials = (
+        pd.read_csv(path_to_biofuel_potential_mwh, index_col=0, squeeze=True)
+        .fillna(0)
+    )
     cost = float(pd.read_csv(path_to_biofuel_costs).columns[0])
     try:
         annual_biofuel_demand = (

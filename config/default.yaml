@@ -80,6 +80,7 @@ parameters:
         efficiency:  # MWh / mio km 25th percentile efficiency of all countries in 2015 [JRC_IDEES]
             hdv:
                 diesel: 5140
+                electricity: 3248  # based on buses
             ldv:
                 diesel: 855
                 electricity: 480
