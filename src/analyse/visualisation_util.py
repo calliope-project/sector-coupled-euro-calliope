@@ -367,7 +367,7 @@ def get_grouped_metrics(scenario_utils, scenario_name):
             grouped_metrics[metric] = pd.concat(
                 [i.metrics[metric] for i in scenario_utils],
                 keys=[i.scenario for i in scenario_utils],
-                names=scenario_name
+                names=scenario_name if isinstance(scenario_name, list) else [scenario_name]
             )
         grouped_metrics[metric].name = metric
     return grouped_metrics

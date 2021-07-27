@@ -31,7 +31,10 @@ def consolidate_spores(
     spore_num = 0
     for file in model_files:
         scenario_utils.append(
-            util.VisUtil(spore_num, calliope.read_netcdf(file), config, potential_area, inputs=cost_opt_model.inputs)
+            util.VisUtil(
+                spore_num, calliope.read_netcdf(file), config, potential_area,
+                inputs=cost_opt_model.inputs
+            )
         )
         processed_spores[spore_num] = file
         spore_num += 1
