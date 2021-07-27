@@ -1,0 +1,15 @@
+name: plots
+channels:
+    - conda-forge
+dependencies:
+    - python=3.7
+    - numpy
+    - pandas=1.2
+    - xarray=0.17
+    - cartopy
+    - geopandas
+    - matplotlib
+    - seaborn
+    - pip:
+        - git+https://github.com/calliope-project/calliope.git@v0.6.7-dev
+        - git+https://github.com/brynpickering/friendly-calliope.git@79fb54f57fd46dbf055875b5b8dc72182df0a244

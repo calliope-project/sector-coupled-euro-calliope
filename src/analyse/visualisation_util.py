@@ -1,16 +1,11 @@
-import yaml
-
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-import calliope
 from calliope.core.util.dataset import split_loc_techs
 idx = pd.IndexSlice
 
-with open("../config/default.yaml") as f:
-    CONFIG = yaml.safe_load(f)
 
 class VisUtil():
 
@@ -106,16 +101,22 @@ class VisUtil():
         "hydrogen_to_methanol": "hydrogen",
         "hydrogen_to_methane": "hydrogen",
     }
+    TECHNICAL_POTENTIAL_MAPPING = {
+        "wind_onshore_competing": "eligibility_onshore_wind_and_pv_km2",
+        "open_field_pv": "eligibility_onshore_wind_and_pv_km2",
+        "wind_onshore_monopoly": "eligibility_onshore_wind_km2",
+        "wind_offshore": "eligibility_offshore_wind_km2"
+    }
 
-
-    def __init__(self, scenario_name, model, inputs=None):
+    def __init__(self, scenario_name, model, config, potential_area, inputs=None):
         self.scenario = scenario_name
         self.model_data = model._model_data
+        self.config = config
         if inputs is None:
             self.inputs = self.model_data.filter_by_attrs(is_result=0)
         else:
             self.inputs = inputs
-        self.set_power_density(CONFIG)
+        self.set_power_density()
 
         self.carrier_prod = self.clean_series(self.model_data.carrier_prod.sum("timesteps", min_count=1))
         self.energy_cap = self.clean_series(self.model_data.energy_cap)
@@ -125,18 +126,19 @@ class VisUtil():
         self.available_area = self.inputs.available_area.to_series()
 
         self.metrics = {}
-        self.set_all_metrics()
+        self.set_all_metrics(potential_area)
 
-    def set_power_density(self, config):
-        power_density = config["parameters"]['maximum-installable-power-density'].copy()  # MW/km^2
-        power_density['wind_onshore_monopoly'] = power_density['onshore-wind']
-        power_density['wind_onshore_competing'] = power_density.pop('onshore-wind')
-        power_density['wind_offshore'] = power_density.pop('offshore-wind')
-        power_density['roof_mounted_pv'] = power_density.pop('pv-on-tilted-roofs')
-        power_density['open_field_pv'] = power_density.pop('pv-on-flat-areas')
-
+    def set_power_density(self):
+        power_density_config = self.config["parameters"]['maximum-installable-power-density']  # MW/km^2
+        power_density = {
+            "wind_onshore_monopoly": power_density_config['onshore-wind'],
+            "wind_onshore_competing": power_density_config['onshore-wind'],
+            "wind_offshore": power_density_config['offshore-wind'],
+            "roof_mounted_pv": power_density_config['pv-on-tilted-roofs'],
+            "open_field_pv": power_density_config['pv-on-flat-areas'],
+        }
         self.power_density = pd.Series({
-            k: v * config["scaling-factors"]["power"] / config["scaling-factors"]["area"]
+            k: v * self.config["scaling-factors"]["power"] / self.config["scaling-factors"]["area"]  # GW/100km^2
             for k, v in power_density.items()
         })
 
@@ -254,6 +256,32 @@ class VisUtil():
         self.metrics["resource_use_share"] = resource_use_grouped.div(availability_grouped)
         self.metrics["resource_use_share_total"] = resource_use_grouped.sum(level="techs").div(availability_grouped.sum(level="techs"))
 
+    def set_resource_area_share(self, potential_area):
+        if "resource_use" not in self.metrics.keys():
+            self.set_resource_use()
+
+        resource_use_area = self.metrics["resource_use"].div(self.power_density, level="techs").dropna()
+        resource_use_grouped = self.sum_then_groupby(resource_use_area, self.TECHNICAL_POTENTIAL_MAPPING, keep_locs=True)
+        potentials = {
+            potential_scenario:
+            potential
+            .mul(self.config["scaling-factors"]["area"])
+            .rename_axis(index="locs", columns="techs")
+            .stack()
+            for potential_scenario, potential in potential_area.items()
+        }
+        use_of_protected_area = resource_use_grouped.sub(potentials["technical-potential"])
+        self.metrics["protected_area_use"] = (
+            use_of_protected_area.clip(lower=0)
+            .div(potentials["technical-potential-protected"])
+            .rename(lambda x: x.replace("eligibility_", "").replace("_km2", ""), level="techs")
+        )
+        self.metrics["non_protected_area_use"] = (
+            resource_use_grouped.sub(use_of_protected_area)
+            .div(potentials["technical-potential"])
+            .rename(lambda x: x.replace("eligibility_", "").replace("_km2", ""), level="techs")
+        )
+
     def set_pv_vs_wind(self):
         self.metrics["pv_vs_wind_cap"] = self.sum_then_groupby(self.energy_cap, self.RENEWABLES_MAPPING, keep_locs=True)
         self.metrics["pv_vs_wind_prod"] = self.sum_then_groupby(self.carrier_prod, self.RENEWABLES_MAPPING, keep_locs=True)
@@ -298,7 +326,18 @@ class VisUtil():
     def set_synthetic_fuel_source(self):
         self.metrics["synfuel_prod"] = self.sum_then_groupby(self.carrier_prod, self.SYNTHETIC_FUEL_MAPPING)
 
-    def set_all_metrics(self):
+    def set_curtailment(self):
+        mean_cf = self.clean_series(self.inputs.resource.mean("timesteps"))
+        technical_maximum = mean_cf.mul(len(self.inputs.timesteps)).mul(self.energy_cap)
+        technical_maximum_grouped = self.sum_then_groupby(technical_maximum, self.RENEWABLES_MAPPING, keep_locs=True)
+        self.metrics["curtailment"] = (
+            technical_maximum_grouped
+            .sub(self.metrics["pv_vs_wind_prod"])
+            .div(technical_maximum_grouped)
+            .dropna()
+        )
+
+    def set_all_metrics(self, potential_area):
         self.set_resource_use_share()
         self.set_electricity_total()
         self.set_pv_vs_wind()
@@ -312,6 +351,8 @@ class VisUtil():
         self.set_heat_fuel_source()
         self.set_transport_fuel_source()
         self.set_synthetic_fuel_source()
+        self.set_resource_area_share(potential_area)
+        self.set_curtailment()
 
 
 def get_grouped_metrics(scenario_utils, scenario_name):
@@ -326,8 +367,7 @@ def get_grouped_metrics(scenario_utils, scenario_name):
             grouped_metrics[metric] = pd.concat(
                 [i.metrics[metric] for i in scenario_utils],
                 keys=[i.scenario for i in scenario_utils],
-                names=scenario_name,
-                axis=1
+                names=scenario_name
             )
         grouped_metrics[metric].name = metric
     return grouped_metrics
@@ -351,7 +391,7 @@ def plot_renewables_contribution_to_annual_electricity_prod(grouped_metrics, spo
             data=df[df.spores.isin(spores)],
             x='techs', y=ylabel, hue="spores",
             marker="o", lw="1", zorder=10, markeredgecolor=None,
-            palette=["#03a9fc80" if i is not 0 else "#fc032480" for i in spores],
+            palette=["#03a9fc80" if i != 0 else "#fc032480" for i in spores],
             legend=False, ax=ax
         )
         sns.violinplot(
@@ -378,7 +418,7 @@ def plot_renewables_production_regionalisation(grouped_metrics, spores):
             data=df[df.spores.isin(spores)],
             x='techs', y=ylabel, hue="spores",
             marker="o", lw="1", zorder=10, markeredgecolor=None,
-            palette=["#03a9fc80" if i is not 0 else "#fc032480" for i in spores],
+            palette=["#03a9fc80" if i != 0 else "#fc032480" for i in spores],
             legend=False, ax=ax
         )
         sns.violinplot(

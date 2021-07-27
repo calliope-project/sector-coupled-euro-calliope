@@ -20,7 +20,7 @@ rule maps:
     params:
         bounds = config["scope"]["bounds"]
     output: "build/figures/{resolution}/map.pdf"
-    conda: "../envs/plots.yaml"
+    conda: "../envs/analyse.yaml"
     script: "../src/analyse/maps.py"
 
 
@@ -78,7 +78,20 @@ rule figure_1:
     params:
         energy_scaling_factor = config["scaling-factors"]["energy"],
         model_year = config["year"]
-    conda: "../envs/plots.yaml"
+    conda: "../envs/analyse.yaml"
     output:
         out_path="build/figures/{resolution}/fig_1.pdf"
     script: "../src/analyse/paper_figs.py"
+
+
+rule spores_result_metrics:
+    message: "Consolidate {wildcards.scenario} scenario {wildcards.resolution} SPORES into high-level metrics"
+    input:
+        src = "src/analyse/consolidate_spores.py",
+        spores_dir = "outputs/spores_2h",
+        technical_potential_area=landeligibility("build/{resolution}/technical-potential/areas.csv"),
+        technical_potential_protected_area=landeligibility("build/{resolution}/technical-potential-protected/areas.csv")
+    params: config = config
+    conda: "../envs/analyse.yaml"
+    output: directory("build/{resolution}/{scenario}_spores")
+    script: "../src/analyse/consolidate_spores.py"
