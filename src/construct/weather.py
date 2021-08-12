@@ -12,8 +12,7 @@ idx = pd.IndexSlice
 
 
 def gridded_weather_population(
-    population, units, air_temp, wind_10m, soil_temp, model_year,
-    weather_out_path, regions_out_path
+    population, units, air_temp, wind_10m, soil_temp, model_year, weather_out_path
 ):
     units_gdf = gpd.read_file(units)
     air_temp_ds = xr.open_dataset(air_temp)
@@ -45,7 +44,6 @@ def gridded_weather_population(
         names=['dataset'], axis=1
     )
 
-    units_gdf.set_index("id").country_code.to_csv(regions_out_path)
     weather.to_csv(weather_out_path)
 
 
@@ -108,5 +106,4 @@ if __name__ == "__main__":
         soil_temp=snakemake.input.soil_temp,
         model_year=snakemake.params.model_year,
         weather_out_path=snakemake.output.weather_pop,
-        regions_out_path=snakemake.output.regions,
     )
