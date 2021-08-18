@@ -66,7 +66,7 @@ scenarios:
 
 def fill_constraint_template(
     path_to_annual_demand, path_to_result, model_year, scaling_factors,
-    path_to_biofuel_costs, model_time, industry_carriers
+    model_time, industry_carriers
 ):
     """Generate a file that represents links in Calliope."""
     annual_demand = util.read_tdf(path_to_annual_demand)
@@ -82,16 +82,12 @@ def fill_constraint_template(
     scaling_factors["specific_costs"] = scaling_factors["monetary"] / scaling_factors["power"]
     model_timedelta = util.get_timedelta(model_time, model_year)
 
-    with open(path_to_biofuel_costs, "r") as f_biofuel_costs:
-        biofuel_fuel_cost = float(f_biofuel_costs.readline())
-
     env = jinja2.Environment(lstrip_blocks=True, trim_blocks=True)
     env.filters["unit"] = filters.unit
 
     fuel = env.from_string(TEMPLATE).render(
         annual_demand=annual_demand,
         scaling_factors=scaling_factors,
-        biofuel_fuel_cost=biofuel_fuel_cost,
         timedelta=model_timedelta,
         carriers=industry_carriers
     )
@@ -106,6 +102,5 @@ if __name__ == "__main__":
         model_year=snakemake.params.model_year,
         scaling_factors=snakemake.params.scaling_factors,
         industry_carriers=snakemake.params.industry_carriers,
-        model_time=snakemake.params.model_time,
-        path_to_biofuel_costs=snakemake.input.biofuel_cost
+        model_time=snakemake.params.model_time
     )

@@ -435,12 +435,7 @@ rule annual_fuel_demand_constraints:
     message: "create all {wildcards.resolution} group constraints associated with annual fuel demand"
     input:
         src = "src/construct/template_fuel_demand.py",
-        annual_demand="build/{resolution}/annual-demand.csv",
-        biofuel_cost = eurocalliope(
-            "build/data/regional/biofuel/{scenario}/costs-eur-per-mwh.csv".format(
-            scenario=config["parameters"]["jrc-biofuel"]["scenario"]
-            )
-        )
+        annual_demand="build/{resolution}/annual-demand.csv"
     params:
         model_year = config["year"],
         scaling_factors = config["scaling-factors"],
