@@ -60,7 +60,7 @@ def get_heat_demand(
     # get commercial energy consumption by end use
     annual_consumption = get_commercial_energy_consumption(
         energy_balance_dfs['com'].add(energy_balance_dfs['oth'], fill_value=0),
-        path_to_ch_end_use, path_to_commercial_demand, country_codes, annual_consumption
+        path_to_ch_end_use, path_to_commercial_demand, annual_consumption
     )
 
     # Fix data gaps for some countries
@@ -130,7 +130,8 @@ def get_household_energy_consumption(
 
     # Just keep relevant data
     hh_end_use_df = (
-        hh_end_use_df.xs('TJ', level='unit')
+        hh_end_use_df
+        .xs('TJ', level='unit')
         .apply(util.tj_to_twh)  # TJ -> TWh
         .astype(float)
         .dropna(how='all')
@@ -144,7 +145,6 @@ def get_household_energy_consumption(
         [END_USE_CAT_NAMES, carrier_names_df['hh_carrier_name'].dropna().to_dict(), country_codes],
         level=['cat_code', 'carrier_code', 'country_code']
     ).sum()
-
 
     hh_end_use_df.index = hh_end_use_df.index.rename(
         ['end_use', 'carrier_name'], level=['cat_code', 'carrier_code']
@@ -160,6 +160,7 @@ def get_household_energy_consumption(
         .sort_index()
         .where(hh_end_use_df > 0)
         .dropna(how='all')
+        .loc[:, :2018]  # limit year of data to 2018 as the most recent
         .assign(cat_name='household')
         .set_index('cat_name', append=True)
     )
@@ -287,8 +288,7 @@ def map_jrc_to_eurostat(energy_balance, jrc_end_use_df):
 
 
 def get_commercial_energy_consumption(
-    energy_balance, ch_end_use, jrc_end_use,
-    country_codes, annual_consumption
+    energy_balance, ch_end_use, jrc_end_use, annual_consumption
 ):
     """
     Use JRC IDEES service sector consumption to estimate consumption for
@@ -297,7 +297,7 @@ def get_commercial_energy_consumption(
     """
 
     # 'fuel' is actually just generic non-electric energy, which distribute based on household data
-    ch_con_fuel = ch_non_hh_consumption(ch_end_use, 'Tabelle 25', annual_consumption.drop(2019,axis=1, errors="ignore"))
+    ch_con_fuel = ch_non_hh_consumption(ch_end_use, 'Tabelle 25', annual_consumption)
     ch_con_elec = ch_non_hh_consumption(ch_end_use, 'Tabelle26', 'electricity')
 
     jrc_end_use_df = util.read_tdf(jrc_end_use).xs('consumption', level='energy')
