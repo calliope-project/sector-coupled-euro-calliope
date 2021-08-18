@@ -6,6 +6,8 @@ import util
 
 idx = pd.IndexSlice
 
+YEARS = range(2000, 2019)
+
 
 def generate_annual_energy_balance_nc(
     path_to_input, path_to_cat_names, path_to_carrier_names, path_to_ch_excel,
@@ -43,6 +45,9 @@ def generate_annual_energy_balance_nc(
         path_to_ch_excel, path_to_ch_industry_excel, index_levels=tdf.index.names
     )
     tdf = pd.concat([tdf, ch_energy_use_tdf]).sort_index(axis=0)
+
+    # ASSUME: for the two countries with missing data in the period YEARS (ME and BA), backfill the data.
+    tdf = tdf.unstack("year")[YEARS].bfill()
 
     tdf.to_csv(path_to_result)
 
