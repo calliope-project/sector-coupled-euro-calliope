@@ -47,7 +47,7 @@ def generate_annual_energy_balance_nc(
     tdf = pd.concat([tdf, ch_energy_use_tdf]).sort_index(axis=0)
 
     # ASSUME: for the two countries with missing data in the period YEARS (ME and BA), backfill the data.
-    tdf = tdf.unstack("year")[YEARS].bfill()
+    tdf = tdf.unstack("year").loc[:, YEARS].bfill(axis=1).stack()
 
     tdf.to_csv(path_to_result)
 
@@ -72,6 +72,7 @@ def add_ch_energy_balance(path_to_ch_excel, path_to_ch_industry_excel, index_lev
         .reset_index('year')
         .assign(country='CH', unit='TJ')
         .set_index(['year', 'country', 'unit'], append=True)
+        .squeeze()
         .reorder_levels(index_levels)
         for i in [
             ch_hh_energy_use, ch_ind_energy_use, ch_ser_energy_use, ch_waste_energy_use,
