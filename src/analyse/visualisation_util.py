@@ -15,6 +15,7 @@ class VisUtil():
         'wind_offshore',
         'wind_onshore_competing',
         'wind_onshore_monopoly',
+        "hydro_run_of_river"
     ]
     FIRM_SUPPLY_TECHS = [
         "ccgt", "chp_biofuel_extraction",
@@ -53,10 +54,10 @@ class VisUtil():
         "chp_wte_back_pressure_heat_storage_big": "heat_big",
         "chp_biofuel_extraction_heat_storage_big": "heat_big",
         "chp_methane_extraction_heat_storage_big": "heat_big",
-        "methane_storage": "gas_storage" ,
-        "hydrogen_storage": "gas_storage" ,
-        "pumped_hydro": "electricity_storage",
-        "battery": "electricity_storage",
+        "methane_storage": "methane_storage",
+        "hydrogen_storage": "hydrogen_storage",
+        "pumped_hydro": "hydro_storage",
+        "battery": "battery_storage",
     }
     TRANSMISSION_MAPPING = {
         'ac_ohl_mountain_transmission': 'ac_transmission',
@@ -101,6 +102,12 @@ class VisUtil():
         "hydrogen_to_methanol": "hydrogen",
         "hydrogen_to_methane": "hydrogen",
     }
+    FUEL_DEMAND = [
+        "demand_industry_diesel",
+        "demand_industry_kerosene",
+        "demand_industry_methane",
+        "demand_industry_methanol",
+    ]
     TECHNICAL_POTENTIAL_MAPPING = {
         "wind_onshore_competing": "eligibility_onshore_wind_and_pv_km2",
         "open_field_pv": "eligibility_onshore_wind_and_pv_km2",
@@ -119,6 +126,8 @@ class VisUtil():
         self.set_power_density()
 
         self.carrier_prod = self.clean_series(self.model_data.carrier_prod.sum("timesteps", min_count=1))
+        self.carrier_con = self.clean_series(self.model_data.carrier_con.sum("timesteps", min_count=1)).abs()
+        self.storage = self.clean_series(self.model_data.storage)
         self.energy_cap = self.clean_series(self.model_data.energy_cap)
         self.storage_cap = self.clean_series(self.model_data.storage_cap)
         self.energy_cap_max = self.clean_series(self.inputs.energy_cap_max)
@@ -263,11 +272,12 @@ class VisUtil():
         resource_use_area = self.metrics["resource_use"].div(self.power_density, level="techs").dropna()
         resource_use_grouped = self.sum_then_groupby(resource_use_area, self.TECHNICAL_POTENTIAL_MAPPING, keep_locs=True)
         potentials = {
-            potential_scenario:
-            potential
-            .mul(self.config["scaling-factors"]["area"])
-            .rename_axis(index="locs", columns="techs")
-            .stack()
+            potential_scenario: (
+                potential
+                .mul(self.config["scaling-factors"]["area"])
+                .rename_axis(index="locs", columns="techs")
+                .stack()
+            )
             for potential_scenario, potential in potential_area.items()
         }
         use_of_protected_area = resource_use_grouped.sub(potentials["technical-potential"])
@@ -298,6 +308,14 @@ class VisUtil():
         self.metrics["storage_energy_cap"] = self.sum_then_groupby(self.energy_cap, self.STORAGE_MAPPING)
         self.metrics["storage_storage_cap"] = self.sum_then_groupby(self.storage_cap, self.STORAGE_MAPPING)
         self.metrics["storage_prod"] = self.sum_then_groupby(self.carrier_prod, self.STORAGE_MAPPING)
+        storage_levels = (
+            self.storage
+            .unstack("timesteps")
+            .groupby(self.STORAGE_MAPPING, level="techs").sum()
+        )
+        self.metrics["storage_min_max"] = (
+            storage_levels.max(axis=1) - storage_levels.min(axis=1)
+        )
 
     def set_ac_vs_dc(self):
         self.metrics["ac_vs_dc_energy"] = self.sum_then_groupby(self.energy_cap.div(2), self.TRANSMISSION_MAPPING)
@@ -326,6 +344,40 @@ class VisUtil():
     def set_synthetic_fuel_source(self):
         self.metrics["synfuel_prod"] = self.sum_then_groupby(self.carrier_prod, self.SYNTHETIC_FUEL_MAPPING)
 
+    def set_synthetic_fuel_consumption(self):
+        self.metrics["synfuel_con"] = self.just_sum(self.carrier_con, self.FUEL_DEMAND, keep_locs=True)
+
+    def set_ev_charge_correlation(self):
+        ev_consumption = (
+            self.model_data.carrier_con
+            .where(
+                self.model_data.loc_tech_carriers_con
+                .str.endswith("transport_ev::electricity")
+            )
+            .sum("loc_tech_carriers_con", min_count=1)
+            .to_series()
+            .abs()
+        )
+
+        renewables_production = (
+            self.model_data.carrier_prod
+            .where(
+                self.model_data.loc_tech_carriers_prod
+                .str.contains("|".join(self.VARIABLE_RENEWABLE_TECHS))
+            )
+            .sum("loc_tech_carriers_prod", min_count=1)
+            .to_series()
+            .abs()
+        )
+        to_correlate = pd.concat(
+            [ev_consumption, renewables_production], axis=1, keys=["ev", "renewables"]
+        )
+        self.metrics["ev_charge_corr"] = pd.Series(
+            {metric: to_correlate.corr(metric).loc["ev", "renewables"]
+             for metric in ["spearman", "pearson"]},
+            name="correlation_metric"
+        )
+
     def set_curtailment(self):
         mean_cf = self.clean_series(self.inputs.resource.mean("timesteps"))
         technical_maximum = mean_cf.mul(len(self.inputs.timesteps)).mul(self.energy_cap)
@@ -351,7 +403,9 @@ class VisUtil():
         self.set_heat_fuel_source()
         self.set_transport_fuel_source()
         self.set_synthetic_fuel_source()
+        self.set_synthetic_fuel_consumption()
         self.set_resource_area_share(potential_area)
+        self.set_ev_charge_correlation()
         self.set_curtailment()
 
 
@@ -431,4 +485,3 @@ def plot_renewables_production_regionalisation(grouped_metrics, spores):
 
         sns.despine(ax=ax)
     return fig, ax
-

@@ -1,3 +1,4 @@
 # build files to ignore when receiving from cluster
 build/data/*.nc
-build/**/spores_*/*.nc
+spores_*/**/*.nc
+spores_2h_metrics/

@@ -1,97 +1,71 @@
-import glob
+from pathlib import Path
 import os
 
 import pandas as pd
 
-import calliope
 from friendly_calliope.io import write_dpkg
-
-import visualisation_util as util
 
 
 def consolidate_spores(
-    spores_dir, technical_potential_area, technical_potential_protected_area,
-    output_dir, scenario, config
+    path_to_cost_optimal_metrics, paths_to_spores_metrics, output_dir
 ):
-    scenario_utils = []
-    cost_opt_models = glob.glob(os.path.join(spores_dir, "**", "spore_0.nc"))
-    cost_opt_model = calliope.read_netcdf(cost_opt_models[0])
-    print("loaded cost optimal model")
-    potential_area = {
-        "technical-potential": pd.read_csv(technical_potential_area, index_col=0, header=0),
-        "technical-potential-protected": pd.read_csv(technical_potential_protected_area, index_col=0, header=0)
-    }
-    cost_opt_utils = util.VisUtil('cost_opt', cost_opt_model, config, potential_area)
-    model_files = [
-        i for i in
-        glob.glob(os.path.join(spores_dir, f"*{scenario}*", "spore_*.nc"))
-        if "spore_0.nc" not in i
-    ]
-    processed_spores = {}
-    spore_num = 0
-    for file in model_files:
-        scenario_utils.append(
-            util.VisUtil(
-                spore_num, calliope.read_netcdf(file), config, potential_area,
-                inputs=cost_opt_model.inputs
-            )
-        )
-        processed_spores[spore_num] = file
-        spore_num += 1
-        if spore_num % 20 == 0:
-            print(f"{spore_num / len(model_files) * 100:.2f}% through consolidating spores")
-
-    grouped_metrics = util.get_grouped_metrics(scenario_utils, "scenario")
-    print("loaded all spores metrics")
-
-    meta_spores = {
-        "name": "euro-calliope-spores-results",
-        "description": "Calliope Euro-SPORES output dataset",
-        "keywords": ["calliope", "SPORES", "2h_resolution"],
-        "license": "CC-BY-4.0"
-    }
+    print(paths_to_spores_metrics)
+    cost_opt_metrics = get_metrics(path_to_cost_optimal_metrics)
     spores_metrics = {
-        k: v if isinstance(v, pd.Series) else v.stack()
-        for k, v in grouped_metrics.items()
-        if (isinstance(v, pd.DataFrame) or isinstance(v, pd.Series))
+        Path(spore): get_metrics(spore) for spore in paths_to_spores_metrics
     }
-    write_dpkg(
-        spores_metrics, os.path.join(output_dir, "spores"), meta_spores
-    )
-    print("saved spores metrics")
+    processed_spores = pd.Series(list(spores_metrics.keys()))
 
-    meta_cost_opt = {
-        "name": "euro-calliope-cost-opt-data",
-        "description": "Calliope SPORES cost optimal baseline output dataset",
-        "keywords": ["calliope", "SPORES", "2h_resolution", "cost-optimal"],
+    spores_metrics_grouped = {
+        metric: pd.concat(
+            [spore[metric] for spore in spores_metrics.values()],
+            keys=processed_spores.index, names=["scenario"]
+        )
+        for metric in cost_opt_metrics.keys()
+    }
+    _metrics_to_dpkg(spores_metrics_grouped, output_dir, "spores")
+    _metrics_to_dpkg(cost_opt_metrics, output_dir, "cost_opt")
+
+    processed_spores.to_csv(os.path.join(output_dir, "processed_spores.csv"))
+
+
+def get_metrics(path_to_metrics):
+    metrics = {}
+    for metric_path in Path(path_to_metrics).glob("*.csv"):
+        metric_df = pd.read_csv(metric_path, index_col=False)
+        metric_series = metric_df.set_index(list(metric_df.columns[:-1])).squeeze()
+        assert isinstance(metric_series, pd.Series)
+        metrics[metric_series.name] = metric_series
+    return metrics
+
+
+def _metrics_to_dpkg(metrics, output_dir, spore_or_cost_opt):
+    if spore_or_cost_opt == "spores":
+        meta_name = "euro-calliope-spores-results"
+        meta_description = "Calliope Euro-SPORES output dataset"
+        extra_keywords = []
+    elif spore_or_cost_opt == "cost_opt":
+        meta_name = "euro-calliope-cost-opt-data"
+        meta_description = "Calliope SPORES cost optimal baseline output dataset"
+        extra_keywords = ["cost-optimal"]
+
+    # FIXME: remove when friendly_data can handle this.
+    for metric_name, metric_series in metrics.items():
+        if not set(metric_series.index.names).intersection(["locs", "techs", "scenario"]):
+            metrics[metric_name] = metrics[metric_name].to_frame("foo").rename_axis(columns="scenario").stack()
+
+    meta = {
+        "name": meta_name,
+        "description": meta_description,
+        "keywords": ["calliope", "SPORES", "2h_resolution"] + extra_keywords,
         "license": "CC-BY-4.0"
     }
-    cost_opt_metrics = {
-        k: v if isinstance(v, pd.Series) else v.stack()
-        for k, v in cost_opt_utils.metrics.items()
-        if (isinstance(v, pd.DataFrame) or isinstance(v, pd.Series))
-    }
-    # Hack to add an additional dimension here so it keeps `friendly_data` happy
-    cost_opt_metrics["transmission_flows"] = (
-        cost_opt_metrics["transmission_flows"]
-        .to_frame("cost_opt")
-        .rename_axis(columns="scenario")
-        .stack()
-    )
-    write_dpkg(
-        cost_opt_metrics, os.path.join(output_dir, "cost_opt"), meta_cost_opt
-    )
-    print("saved cost optimal metrics")
-
-    pd.Series(processed_spores).to_csv(os.path.join(output_dir, "processed_spores.csv"))
+    write_dpkg(metrics, os.path.join(output_dir, spore_or_cost_opt), meta)
 
 
 if __name__ == '__main__':
     consolidate_spores(
-        spores_dir=snakemake.input.spores_dir,
-        technical_potential_area=snakemake.input.technical_potential_area,
-        technical_potential_protected_area=snakemake.input.technical_potential_protected_area,
-        output_dir=snakemake.output[0],
-        config=snakemake.params.config,
-        scenario=snakemake.wildcards.scenario
+        path_to_cost_optimal_metrics=snakemake.input.cost_optimal_model,
+        paths_to_spores_metrics=snakemake.input.spores,
+        output_dir=snakemake.output[0]
     )

@@ -23,6 +23,3 @@ input_netcdf:
     runtime: 240
     memory: 40000
     cores: 4
-spores_result_metrics:
-    runtime: 120
-    memory: 250000

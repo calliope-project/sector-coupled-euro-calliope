@@ -1,4 +1,4 @@
-name: plots
+name: analyse
 channels:
     - conda-forge
 dependencies:
@@ -7,10 +7,9 @@ dependencies:
     - pandas=1.2
     - xarray=0.17
     - cartopy
+    - calliope=0.6.7
     - geopandas
     - matplotlib
     - seaborn
-    - pyutilib=6.0.0
     - pip:
-        - git+https://github.com/calliope-project/calliope.git@v0.6.7-dev
-        - git+https://github.com/brynpickering/friendly-calliope.git@79fb54f57fd46dbf055875b5b8dc72182df0a244
+        - git+https://github.com/brynpickering/friendly-calliope.git@5504b857377d2b91fc6686beed272bf8cfec4393
