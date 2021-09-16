@@ -7,9 +7,10 @@ import xarray as xr
 import calliope
 
 
-def rerun_model(dir_path):
+def rerun_model(dir_path, slack):
     calliope.set_log_verbosity()
-    path_to_most_recent_spore_results = sorted(glob.glob(dir_path + "spore_*"))[-1]
+    all_spores_results = glob.glob(dir_path + "spore_*")
+    path_to_most_recent_spore_results = sorted([i for i in all_spores_results if "spore_excl-" not in i])[-1]
 
     most_recent_spore_num = int(
         os.path.basename(path_to_most_recent_spore_results)
@@ -17,7 +18,7 @@ def rerun_model(dir_path):
     )
     print(f"Continuing with results from SPORE {most_recent_spore_num}")
 
-    cost_op_model = _prep_cost_op_model(dir_path)
+    cost_op_model = _prep_cost_op_model(dir_path, slack)
     relevant_loc_techs = _get_relevant_loc_techs(cost_op_model)
     if most_recent_spore_num == 0:
         new_scores = _get_new_scores(cost_op_model._model_data, cost_op_model)
@@ -40,6 +41,7 @@ def rerun_model(dir_path):
 
     assert len(new_scores) == len(relevant_loc_techs)
     assert len((cost_op_model._model_data["cost_energy_cap"].loc[{"costs": "spores_score"}].dropna("loc_techs_investment_cost"))) == len(relevant_loc_techs)
+    print(f"Running SPORES with slack of {cost_op_model.run_config['spores_options']['slack']}")
     cost_op_model.run(force_rerun=True)
 
 
@@ -59,9 +61,11 @@ def _get_relevant_loc_techs(cost_op_model):
     )
 
 
-def _prep_cost_op_model(dir_path):
+def _prep_cost_op_model(dir_path, slack):
     cost_op_model = calliope.read_netcdf(dir_path + "spore_0.nc")
+    cost_op_model.run_config["spores_options"]["save_per_spore_path"] = dir_path + "spore_{}.nc"
     cost_op_model.run_config["spores_options"]["skip_cost_op"] = True
+    cost_op_model.run_config["spores_options"]["slack"] = slack
     cost_op_model.run_config["objective_options"]["cost_class"] = {"spores_score": 1, "excl_score": 0, "monetary": 0}
     cost_op_model._model_data["group_cost_max"].loc[{"costs": "monetary"}] = (
         cost_op_model._model_data.cost.sum().item() *
@@ -75,5 +79,6 @@ def _prep_cost_op_model(dir_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("spore_dir", help="Directory to load cost optimal model and save new spores")
+    parser.add_argument("--slack", help="SPORES slack", default=0.1, type=float)
     args = parser.parse_args()
-    rerun_model(args.spore_dir)
+    rerun_model(args.spore_dir, args.slack)

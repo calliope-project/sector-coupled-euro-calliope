@@ -9,7 +9,7 @@ import calliope
 EXCL_SCORE_COST = 100
 
 
-def rerun_model(dir_path, n_spores, techs=None, tech_groups=None):
+def rerun_model(dir_path, n_spores, slack, techs=None, tech_groups=None):
     calliope.set_log_verbosity()
     excl_path_string = ",".join([i for i in [techs, tech_groups] if i is not None])
     cost_op_model = calliope.read_netcdf(dir_path + "spore_0.nc")
@@ -23,7 +23,7 @@ def rerun_model(dir_path, n_spores, techs=None, tech_groups=None):
     else:
         latest_spore = 0
 
-    cost_op_model = update_run_config(cost_op_model, n_spores, dir_path, excl_path_string)
+    cost_op_model = update_run_config(cost_op_model, n_spores, slack, dir_path, excl_path_string)
     cost_op_model = setup_cost_opt_model(cost_op_model, techs, tech_groups)
 
     if latest_spore == 0:
@@ -44,6 +44,7 @@ def rerun_model(dir_path, n_spores, techs=None, tech_groups=None):
     cost_op_model._model_data["cost_energy_cap"].loc[{"costs": "spores_score", "loc_techs_investment_cost": relevant_loc_techs}] += new_scores
 
     assert len((cost_op_model._model_data["cost_energy_cap"].loc[{"costs": "spores_score"}].dropna("loc_techs_investment_cost"))) == len(relevant_loc_techs)
+    print(f"Running SPORES with slack of {cost_op_model.run_config['spores_options']['slack']}")
 
     cost_op_model.run(force_rerun=True)
 
@@ -93,9 +94,10 @@ def setup_cost_opt_model(cost_op_model, techs, tech_groups):
     return cost_op_model
 
 
-def update_run_config(cost_op_model, n_spores, dir_path, excl_path_string):
+def update_run_config(cost_op_model, n_spores, slack, dir_path, excl_path_string):
     cost_op_model.run_config["spores_options"]["skip_cost_op"] = True
     cost_op_model.run_config["objective_options"]["cost_class"] = {"spores_score": 1, "excl_score": 10, "monetary": 0}
+    cost_op_model.run_config["spores_options"]["slack"] = slack
     cost_op_model.run_config["spores_options"]["spores_number"] = n_spores
     cost_op_model.run_config["spores_options"]["save_per_spore_path"] = dir_path + "spore_excl-{}-{{}}.nc".format(excl_path_string)
     return cost_op_model
@@ -105,11 +107,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("spore_dir", help="Directory to load cost optimal model and save new spores")
     parser.add_argument("--n_spores", help="Number of exclusion spores to run", default=10, type=int)
+    parser.add_argument("--slack", help="Cost slack", default=0.1, type=float)
     parser.add_argument("--techs", help="Tech to exclude")
     parser.add_argument("--tech_groups", help="Tech group to exclude")
     args = parser.parse_args()
 
     rerun_model(
-        args.spore_dir, args.n_spores,
+        args.spore_dir, args.n_spores, args.slack,
         techs=args.techs, tech_groups=args.tech_groups
     )
