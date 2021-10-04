@@ -2,6 +2,7 @@ __default__:
     runtime: 60
     cores: 1
     memory: 16000
+    scratch: 100
     output: "build/logs/{rule}.{wildcards}.log"
     name: "{rule}.{wildcards}"
 run_continental:
@@ -23,3 +24,8 @@ input_netcdf:
     runtime: 240
     memory: 40000
     cores: 4
+run_eurocalliope:
+    runtime: 1440
+    cores: 6
+    memory: 80000
+    scratch: 4000
