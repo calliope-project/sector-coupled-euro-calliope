@@ -78,7 +78,7 @@ scenarios:
 """
 
 
-def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, transport_params, scaling_factors, model_time):
+def fill_constraint_template(path_to_annual_demand, path_to_result, year, transport_params, scaling_factors, model_time):
     """Generate a file that represents links in Calliope."""
     annual_demand = util.read_tdf(path_to_annual_demand)
 
@@ -86,7 +86,7 @@ def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, 
         _df = (
             annual_demand
             .drop(annual_demand.filter(regex='electricity').index)
-            .xs((dataset, 'road', model_year), level=('dataset', 'cat_name', 'year'))
+            .xs((dataset, 'road', int(year)), level=('dataset', 'cat_name', 'year'))
         )
 
         return _df.droplevel('unit').unstack('end_use')
@@ -107,8 +107,12 @@ def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, 
 
     efficiency_ice = annual_distance.apply(_get_efficiency, fuel='diesel', axis=1)
     efficiency_ev = annual_distance.apply(_get_efficiency, fuel='electricity', axis=1)
-    ev_cap = annual_vehicles.mul(transport_params['ev_battery_capacity']).div({k: v.get('electricity', np.nan) for k, v in transport_params['efficiency'].items()}).fillna(0)
-
+    ev_cap = (
+        annual_vehicles
+        .mul(transport_params['ev_battery_capacity'])
+        .div({k: v.get('electricity', np.nan) for k, v in transport_params['efficiency'].items()})
+        .fillna(0)
+    )
     if transport_params.get('group', None) is not None:
         # I.e. we group vehicle classes into either 'light' or 'heavy'
         efficiency_ice = efficiency_ice.groupby(transport_params['group'], axis=1).apply(_wavg, weights=annual_distance)
@@ -117,7 +121,7 @@ def fill_constraint_template(path_to_annual_demand, path_to_result, model_year, 
         annual_distance = annual_distance.groupby(transport_params['group'], axis=1).sum()
         annual_vehicles = annual_vehicles.groupby(transport_params['group'], axis=1).sum()
 
-    model_timedelta = util.get_timedelta(model_time, model_year)
+    model_timedelta = util.get_timedelta(model_time, year)
     scaling_factors["transport_efficiency"] = scaling_factors["transport"] / scaling_factors["power"]
 
     env = jinja2.Environment(lstrip_blocks=True, trim_blocks=True)
@@ -140,7 +144,7 @@ if __name__ == "__main__":
     fill_constraint_template(
         path_to_annual_demand=snakemake.input.annual_demand,
         path_to_result=snakemake.output[0],
-        model_year=snakemake.params.model_year,
+        year=snakemake.wildcards.year,
         transport_params=snakemake.params.transport,
         model_time=snakemake.params.model_time,
         scaling_factors=snakemake.params.scaling_factors,

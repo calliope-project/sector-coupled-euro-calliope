@@ -20,25 +20,26 @@ import:
     - './links.yaml'
     - './directional-rooftop.yaml'
     #- './outer-countries.yaml'  # todo add this in as an override option
-    - './vehicle_group_constraints.yaml'
-    - './heat_group_constraints.yaml'
-    - './fuel_group_constraints.yaml'
-    - './emissions_scenarios.yaml'
+    - './vehicle_group_constraints_{{ year }}.yaml'
+    - './heat_group_constraints_{{ year }}.yaml'
+    - './fuel_group_constraints_{{ year }}.yaml'
+    - './emissions_scenarios_{{ year }}.yaml'
     - './gas_storage.yaml'
     - './coal_supply.yaml'
     - './fossil-fuel-supply.yaml'
-    - './biofuel-supply.yaml'
+    - './biofuel-supply-{{ year }}.yaml'
 model:
     name: 'Euro-Calliope'
     calliope_version: 0.6.6
     timeseries_data_path: './'
+    subset_time: {{ subset_time }}
 run:
-    objective_options: {
-        'cost_class': {'monetary': 1},
-        'sense': 'minimize'
-    }
+    objective_options:
+        cost_class:
+            monetary: 1
+        sense: 'minimize'
     solver: gurobi
-    solver_io: python
+    solver_io: lp  # updated from 'python' due to issues with 'corrupted' files in gurobi python interface since Sept. 2021
     mode: plan
     solver_options:
         Threads: 6

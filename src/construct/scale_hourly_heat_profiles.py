@@ -7,7 +7,7 @@ idx = pd.IndexSlice
 
 
 def get_heat_demand(
-    path_to_annual_demand, path_to_dwelling_ratio, path_to_profile, model_year, key, out_path
+    path_to_annual_demand, path_to_dwelling_ratio, path_to_profile, first_year, final_year, key, out_path
 ):
     """
     Take annual demand per region and use it to scale hourly profiles
@@ -15,18 +15,32 @@ def get_heat_demand(
     """
 
     annual_demand_df = util.read_tdf(path_to_annual_demand)
-    annual_demand_df = annual_demand_df.xs(model_year, level='year').droplevel('unit')
     dwelling_ratio_df = pd.read_csv(path_to_dwelling_ratio, index_col=0, squeeze=True)
     hourly_profile = pd.read_csv(path_to_profile, index_col=0, parse_dates=True, header=[0, 1])
 
     # Scale profiles to annual demand
     # (inc. shifting according to timezones and combining SFH and MFH profiles)
+    scaled_profiles = pd.concat([
+        heat_demand_per_year(
+            annual_demand_df.xs(year, level='year').droplevel('unit'),
+            hourly_profile.loc[str(year)],
+            dwelling_ratio_df,
+            year,
+            key
+        )
+        for year in range(first_year, final_year + 1)
+    ]).sort_index()
+
+    scaled_profiles.to_csv(out_path)
+
+
+def heat_demand_per_year(annual_demand_df, hourly_profile, dwelling_ratio_df, year, key):
     if key in ["heat", "heat-bau-electricity"]:
         _key = [f"space_{key}", f"water_{key}"]
     else:
         _key = key.replace("-", "_")
     scaled_profile = _scale_profiles(
-        hourly_profile, annual_demand_df, dwelling_ratio_df, model_year, _key
+        hourly_profile, annual_demand_df, dwelling_ratio_df, year, _key
     )
     # Add industry space heating demand as a flat demand in all hours
     if key in ['space-heat', 'heat']:
@@ -37,9 +51,7 @@ def get_heat_demand(
         scaled_profile -= industry_space_heat.div(len(scaled_profile.index))
 
     util.verify_profiles(scaled_profile, _key, annual_demand_df)
-
-    # Save
-    scaled_profile.to_csv(out_path)
+    return scaled_profile
 
 
 def _scale_profiles(hourly_profile, annual_demand, dwelling_ratio, model_year, key):
@@ -88,7 +100,8 @@ if __name__ == "__main__":
         path_to_annual_demand=snakemake.input.annual_demand,
         path_to_dwelling_ratio=snakemake.input.dwelling_ratio,
         path_to_profile=snakemake.input.profile,
-        model_year=snakemake.params.model_year,
+        first_year=snakemake.params.first_year,
+        final_year=snakemake.params.final_year,
         key=snakemake.params.key,
         out_path=snakemake.output[0],
     )

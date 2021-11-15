@@ -29,3 +29,9 @@ run_eurocalliope:
     cores: 6
     memory: 80000
     scratch: 4000
+build_eurocalliope:
+    runtime: 480
+    memory: 100000
+heat_demand_profiles:
+    runtime: 100
+    memory: 80000

@@ -83,6 +83,6 @@ if __name__ == "__main__":
         path_to_biofuel_potential_mwh=snakemake.input.biofuel_potential,
         path_to_biofuel_costs=snakemake.input.biofuel_costs,
         scaling_factors=snakemake.params["scaling_factors"],
-        year=snakemake.params["year"],
+        year=snakemake.wildcards.year,
         path_to_result=snakemake.output[0]
     )

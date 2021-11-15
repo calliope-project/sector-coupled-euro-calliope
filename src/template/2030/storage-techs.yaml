@@ -58,7 +58,7 @@ overrides:
                 constraints:
                     energy_cap_max: inf
                     storage_cap_max: inf
-                    energy_cap_per_storage_cap: 0.0054
+                    energy_cap_per_storage_cap_equals: 0.0054
                     energy_eff: 0.81  # 0.90 round-trip
                     lifetime: 30
                 costs:

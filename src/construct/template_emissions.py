@@ -23,7 +23,7 @@ def generate_emissions_scenarios(path_to_emissions_targets, path_to_regions, pat
     """Generate a file that represents links in Calliope."""
     emissions_targets = pd.read_csv(path_to_emissions_targets, header=0)
     regions = pd.read_csv(path_to_regions, header=0, index_col=0, squeeze=True)
-    annual_demand = util.read_tdf(path_to_annual_demand).xs(year, level="year")
+    annual_demand = util.read_tdf(path_to_annual_demand).xs(int(year), level="year")
     per_target_regions = {}
     less_coal = {}
     if projection_year == "current":
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         path_to_regions=snakemake.input.regions,
         path_to_annual_demand=snakemake.input.annual_demand,
         scaling_factors=snakemake.params.scaling_factors,
-        year=snakemake.params.year,
+        year=snakemake.wildcards.year,
         projection_year=snakemake.params.projection_year,
         path_to_result=snakemake.output[0],
     )

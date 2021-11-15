@@ -164,8 +164,8 @@ parameters:
 
 
 calliope-parameters: # arbitrary many calliope parameters applied as override
-    model.subset_time: ['2016-01-01', '2016-12-31']
-year: 2016
+    model.subset_time: ['year-01-01', 'year-12-31']
+plot-year: 2018
 projection-year: "2050"
 connected-regions: # regions with insufficient potentials can be connected to neighbours
     AUT-9_1: AUT-3_1 # Vienna: Lower Austria
@@ -261,6 +261,10 @@ sea-connections:
         - [GBR_5, ISL_1]
         - [GRC_2, CYP_1]
 scope:
+    temporal:
+        first-year: 2010
+        final-year: 2018
+    spatial:
     countries:
         - "Austria"
         - "Belgium"

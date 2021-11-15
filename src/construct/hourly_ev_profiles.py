@@ -2,7 +2,7 @@ import pandas as pd
 
 
 def get_hourly_ev_profiles(
-    regions_path, ev_profiles_path, dataset_name, demand_range, model_year, out_path
+    regions_path, ev_profiles_path, dataset_name, demand_range, first_year, final_year, out_path
 ):
     """
     Fill empty countries and map EV profiles to national subregions.
@@ -10,10 +10,22 @@ def get_hourly_ev_profiles(
     the fleet.
     """
     regions_df = pd.read_csv(regions_path).set_index(['id', 'country_code'])
-    ev_profiles_df = (
-        pd.read_csv(ev_profiles_path, index_col=[0, 1, 2], parse_dates=[0])
-        .xs(model_year, level='year')
+    ev_profiles_df = pd.read_csv(
+        ev_profiles_path, index_col=[0, 1, 2], parse_dates=[0]
     )
+    profiles = []
+    for year in range(first_year, final_year + 1):
+        profiles.append(get_one_year_hourly_ev_profiles(
+            dataset_name, demand_range, regions_df,
+            ev_profiles_df.xs(year, level='year')
+        ))
+    pd.concat(profiles, sort=True).sort_index().to_csv(out_path)
+
+
+def get_one_year_hourly_ev_profiles(
+    dataset_name, demand_range, regions_df, ev_profiles_df
+):
+
     # Demand is normalised to just get the fluctuations in demand rather than absolute values
     # We create two demand profiles, to create a min/max range of total demand that can be met
     # in a timestep (or collection of timesteps)
@@ -56,7 +68,7 @@ def get_hourly_ev_profiles(
     )
     # to naive timezone, to match all other CSVs in the model
     ev_profile.index = ev_profile.index.tz_localize(None)
-    ev_profile.to_csv(out_path)
+    return ev_profile
 
 
 if __name__ == "__main__":
@@ -65,6 +77,7 @@ if __name__ == "__main__":
         ev_profiles_path=snakemake.input.ev_profiles,
         dataset_name=snakemake.params.dataset_name,
         demand_range=snakemake.params.demand_range,
-        model_year=snakemake.params.model_year,
+        first_year=snakemake.params.first_year,
+        final_year=snakemake.params.final_year,
         out_path=snakemake.output[0],
     )

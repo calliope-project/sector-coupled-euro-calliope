@@ -43,7 +43,7 @@ def regionalise_gas_storage(
     handle some non-machine-readable elements.
 
     Currently assigning storage info evenly to all regions on a subnational level.
-    Would be better to use exact locatonal data, as shown here:
+    Would be better to use exact locational data, as shown here:
     https://www.gie.eu/download/maps/2018/GIE_STOR_2018_A0_1189x841_FULL_FINAL.pdf
     """
 

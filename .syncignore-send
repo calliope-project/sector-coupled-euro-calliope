@@ -9,6 +9,7 @@ __pycache__
 .DS_Store
 build
 data/automatic
+data/weather
 notebooks
 euro-calliope/data
 land-eligibility/data

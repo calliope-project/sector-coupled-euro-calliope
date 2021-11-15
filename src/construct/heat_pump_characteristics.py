@@ -14,8 +14,8 @@ SOURCE = {
 
 
 def get_characteristic(
-    weather_pop, hp_characteristics, annual_demand,
-    heat_tech_params, characteristic, tech, sink, model_year, out_path
+    weather_pop, hp_characteristics, annual_demand, heat_tech_params,
+    characteristic, tech, sink, first_year, final_year, out_path
 ):
     """
     """
@@ -26,7 +26,24 @@ def get_characteristic(
         .rename(columns={'soil_temp': 'soil', 'air_temp': 'air'})
     )
     hp_data_df = util.read_tdf(hp_characteristics)
+    annual_demand_df = util.read_tdf(annual_demand)
 
+    characteristic = pd.concat([
+        characteristic_per_year(
+            annual_demand_df.xs(year, level="year"),
+            heat_tech_params, characteristic, tech, sink,
+            weather_pop_df.loc[str(year)], hp_data_df
+        )
+        for year in range(first_year, final_year + 1)
+    ], sort=True).sort_index()
+
+    characteristic.to_csv(out_path)
+
+
+def characteristic_per_year(
+    annual_demand_df, heat_tech_params, characteristic, tech, sink,
+    weather_pop_df, hp_data_df
+):
     if characteristic == "cop":
         hp_data_df = (
             hp_data_df.xs('COP', level='data_type')
@@ -75,13 +92,12 @@ def get_characteristic(
         region_data = region_data.merge(hp_data, left_index=True, right_index=True)
 
     if sink == 'water-heat':
-        region_data.xs(('water', SOURCE[tech]), level=('sink', 'source'), axis=1).to_csv(out_path)
+        return region_data.xs(('water', SOURCE[tech]), level=('sink', 'source'), axis=1)
     elif sink == 'space-heat':
-        space_heat_data(region_data, heat_tech_params['heat_sink_ratio'], SOURCE[tech]).to_csv(out_path)
+        return space_heat_data(region_data, heat_tech_params['heat_sink_ratio'], SOURCE[tech])
     elif sink == 'heat':
         water = region_data.xs(('water', SOURCE[tech]), level=('sink', 'source'), axis=1)
         space = space_heat_data(region_data, heat_tech_params['heat_sink_ratio'], SOURCE[tech])
-        annual_demand_df = util.read_tdf(annual_demand).xs(model_year, level="year")
         annual_water = annual_demand_df.xs(('water_heat'), level=('end_use')).sum(level='id')
         annual_space = annual_demand_df.xs(('space_heat'), level=('end_use')).sum(level='id')
         heat = (
@@ -89,7 +105,7 @@ def get_characteristic(
             .add(space.mul(annual_space, axis=1))
             .div(annual_water.add(annual_space))
         )
-        heat.to_csv(out_path)
+        return heat
 
 
 def space_heat_data(region_data, heat_sink_ratio_dict, source):
@@ -158,6 +174,7 @@ if __name__ == '__main__':
         characteristic=snakemake.params.characteristic,
         tech=snakemake.params.tech,
         sink=snakemake.params.sink,
-        model_year=snakemake.params.model_year,
+        first_year=snakemake.params.first_year,
+        final_year=snakemake.params.final_year,
         out_path=snakemake.output[0]
     )

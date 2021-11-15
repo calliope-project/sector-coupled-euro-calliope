@@ -100,14 +100,14 @@ scenarios:
 
 def fill_constraint_template(
     path_to_space_demand, path_to_water_demand, path_to_result,
-    path_to_waste_supply, model_year, period, scaling_factors
+    path_to_waste_supply, year, period, scaling_factors
 ):
     """Generate a file that represents links in Calliope."""
-    space_heat = pd.read_csv(path_to_space_demand, parse_dates=True, index_col=0)
-    water_heat = pd.read_csv(path_to_water_demand, parse_dates=True, index_col=0)
+    space_heat = pd.read_csv(path_to_space_demand, parse_dates=True, index_col=0).loc[str(year)]
+    water_heat = pd.read_csv(path_to_water_demand, parse_dates=True, index_col=0).loc[str(year)]
     waste_supply = (
         util.read_tdf(path_to_waste_supply)
-        .xs((model_year, "twh"), level=("year", "unit"))
+        .xs((int(year), "twh"), level=("year", "unit"))
         .droplevel('country_code')
     )
     storage_requirement = space_heat.add(water_heat).rolling(window=period).sum().abs().max()
@@ -130,7 +130,7 @@ if __name__ == "__main__":
         path_to_water_demand=snakemake.input.water_heat_demand,
         path_to_waste_supply=snakemake.input.waste_supply,
         path_to_result=snakemake.output[0],
-        model_year=snakemake.params.model_year,
+        year=snakemake.wildcards.year,
         period=snakemake.params.storage_period,
         scaling_factors=snakemake.params.scaling_factors,
     )

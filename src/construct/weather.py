@@ -12,7 +12,8 @@ idx = pd.IndexSlice
 
 
 def gridded_weather_population(
-    population, units, air_temp, wind_10m, soil_temp, model_year, weather_out_path
+    population, units, air_temp, wind_10m, soil_temp,
+    first_year, final_year, weather_out_path
 ):
     units_gdf = gpd.read_file(units)
     air_temp_ds = xr.open_dataset(air_temp)
@@ -26,16 +27,16 @@ def gridded_weather_population(
     )
 
     air_temp_df = _prep_weather_data(
-        air_temp_ds.temperature, model_year, mapped_pop
+        air_temp_ds.temperature, first_year, final_year, mapped_pop
     )
 
     # Only need site-wide mean wind speed for this analysis
     wind_speed_df = _prep_weather_data(
-        wind_speed_ds.wind_speed, model_year, mapped_pop
+        wind_speed_ds.wind_speed, first_year, final_year, mapped_pop
     )
 
     soil_temp_df = _prep_weather_data(
-        soil_temp_ds.soil_temperture_5, model_year, mapped_pop
+        soil_temp_ds.soil_temperture_5, first_year, final_year, mapped_pop
     ) - 273.15  # soil temperature is in K
 
     weather = pd.concat(
@@ -79,12 +80,12 @@ def _map_pop_to_weather(population, coords, units):
     return polys_eu.set_index('site').drop(columns=['name', 'type', 'proper'], errors='ignore')
 
 
-def _prep_weather_data(dataarray, model_year, mapped_pop):
+def _prep_weather_data(dataarray, first_year, final_year, mapped_pop):
     """
     xarray dataarray to pandas df with id, lat, lon, population as columns
     and hourly timeseries as index.
     """
-    _df = dataarray.loc[{'time': str(model_year)}].to_pandas()
+    _df = dataarray.loc[{'time': slice(str(first_year), str(final_year))}].to_pandas()
     _df = _df.loc[mapped_pop.index].assign(
         latitude=mapped_pop.latitude,
         longitude=mapped_pop.longitude,
@@ -104,6 +105,7 @@ if __name__ == "__main__":
         air_temp=snakemake.input.air_temp,
         wind_10m=snakemake.input.wind_10m,
         soil_temp=snakemake.input.soil_temp,
-        model_year=snakemake.params.model_year,
+        first_year=snakemake.params.first_year,
+        final_year=snakemake.params.final_year,
         weather_out_path=snakemake.output.weather_pop,
     )

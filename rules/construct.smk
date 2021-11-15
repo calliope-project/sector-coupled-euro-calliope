@@ -143,7 +143,7 @@ rule annual_energy_balances:
         carrier_names = "data/energy_balance_carrier_names.csv"
     output: "build/annual_energy_balances.csv"
     params:
-        countries = config["scope"]["countries"]
+        countries = config["scope"]["spatial"]["countries"]
     conda: "../envs/default.yaml"
     script: "../src/construct/annual_energy_balance.py"
 
@@ -197,7 +197,7 @@ rule annual_heat_demand:
         commercial_demand = "data/commercial/jrc_idees_processed_energy.csv",
         carrier_names = "data/energy_balance_carrier_names.csv"
     params:
-        countries = config["scope"]["countries"],
+        countries = config["scope"]["spatial"]["countries"],
         heat_tech_params = config["parameters"]["heat-end-use"]
     conda: "../envs/default.yaml"
     output:
@@ -236,7 +236,7 @@ rule annual_national_demand:
     params:
         scaling_factors = config["scaling-factors"],
         industry_config = config["parameters"]["industry"],
-        countries = config["scope"]["countries"]
+        countries = config["scope"]["spatial"]["countries"]
     output:
         all_annual = "build/national/annual-demand.csv",
     script: "../src/construct/annual_national_demand.py"
@@ -296,7 +296,8 @@ rule weather_and_population:
         soil_temp = "data/weather/tsoil5.nc",
     conda: "../envs/geodata.yaml"
     params:
-        model_year = config["year"]
+        first_year = config["scope"]["temporal"]["first-year"],
+        final_year = config["scope"]["temporal"]["final-year"]
     output:
         weather_pop = "build/{resolution}/weather_pop.csv.gz",
     script: "../src/construct/weather.py"
@@ -344,7 +345,8 @@ rule cooking_heat_demand:
         annual_demand = "build/{resolution}/annual-demand.csv",
     conda: "../envs/default.yaml"
     params:
-        model_year = config["year"],
+        first_year = config["scope"]["temporal"]["first-year"],
+        final_year = config["scope"]["temporal"]["final-year"],
         demand_key = "cooking{demand_key}"
     output: "build/model/{resolution}/cooking{demand_key,.*}-demand.csv"
     script: "../src/construct/scale_hourly_cooking_profiles.py"
@@ -358,7 +360,8 @@ rule scaled_heat_demand_profiles:
         dwelling_ratio = rules.regional_dwelling_ratio.output[0],
         profile = "build/{resolution}/{end_use}heat-profile.csv",
     params:
-        model_year = config["year"],
+        first_year = config["scope"]["temporal"]["first-year"],
+        final_year = config["scope"]["temporal"]["final-year"],
         key = "{end_use,.*}heat{demand_key,.*}"  # ,.* allows the wildcard to be empty
     conda: "../envs/geodata.yaml"
     output:
@@ -374,7 +377,8 @@ rule scaled_public_transport_demand_profiles:
         annual_demand = "build/{resolution}/annual-demand.csv",
         rail_profiles = "data/transport/rail_daily_profiles_destinee.csv",
     params:
-        model_year = config["year"]
+        first_year = config["scope"]["temporal"]["first-year"],
+        final_year = config["scope"]["temporal"]["final-year"]
     conda: "../envs/default.yaml"
     output: "build/{resolution}/public-transport-demand.csv"
     script: "../src/construct/scale_hourly_transport_profiles.py"
@@ -391,7 +395,8 @@ rule update_electricity_with_other_sectors:
         annual_demand = "build/{resolution}/annual-demand.csv",
         hourly_electricity = eurocalliope("build/model/{resolution}/electricity-demand.csv")
     params:
-        model_year = config["year"]
+        first_year = config["scope"]["temporal"]["first-year"],
+        final_year = config["scope"]["temporal"]["final-year"]
     conda: "../envs/default.yaml"
     output: "build/model/{resolution}/electricity-demand.csv"
     script: "../src/construct/electricity_with_other_sectors.py"
@@ -410,7 +415,8 @@ rule heat_pump_characteristics:
         characteristic = "{characteristic}",
         tech = "{tech}hp",
         sink = "{sink}heat",
-        model_year = config["year"]
+        first_year = config["scope"]["temporal"]["first-year"],
+        final_year = config["scope"]["temporal"]["final-year"]
     conda: "../envs/default.yaml"
     output: "build/model/{resolution}/{characteristic}-{tech,.*}hp-{sink,.*}heat.csv"
     script: "../src/construct/heat_pump_characteristics.py"
@@ -425,44 +431,43 @@ rule ev_energy_cap:
     params:
         dataset_name = "{profile}",
         demand_range = config["parameters"]["transport"]["weekly_demand"],
-        model_year = config["year"],
+        first_year = config["scope"]["temporal"]["first-year"],
+        final_year = config["scope"]["temporal"]["final-year"]
     conda: "../envs/default.yaml"
     output: "build/model/{resolution}/{profile}-ev.csv"
     script: "../src/construct/hourly_ev_profiles.py"
 
 
 rule annual_fuel_demand_constraints:
-    message: "create all {wildcards.resolution} group constraints associated with annual fuel demand"
+    message: "create all {wildcards.resolution} group constraints associated with annual fuel demand in the year {wildcards.year}"
     input:
         src = "src/construct/template_fuel_demand.py",
         annual_demand="build/{resolution}/annual-demand.csv"
     params:
-        model_year = config["year"],
         scaling_factors = config["scaling-factors"],
         industry_carriers = config["parameters"]["industry"]["carriers"],
         model_time = config["calliope-parameters"]["model.subset_time"]
     conda: "../envs/default.yaml"
-    output: "build/model/{resolution}/fuel_group_constraints.yaml"
+    output: "build/model/{resolution}/fuel_group_constraints_{year}.yaml"
     script: "../src/construct/template_fuel_demand.py"
 
 
 rule annual_vehicle_constraints:
-    message: "create all {wildcards.resolution} constraints associated with annual road vehicle demand"
+    message: "create all {wildcards.resolution} constraints associated with annual road vehicle demand in the year {wildcards.year}"
     input:
         src = "src/construct/template_vehicle_demand.py",
         annual_demand="build/{resolution}/annual-demand.csv"
     params:
-        model_year = config["year"],
         transport = config["parameters"]["transport"],
         scaling_factors = config["scaling-factors"],
         model_time = config["calliope-parameters"]["model.subset_time"]
     conda: "../envs/default.yaml"
-    output: "build/model/{resolution}/vehicle_group_constraints.yaml"
+    output: "build/model/{resolution}/vehicle_group_constraints_{year}.yaml"
     script: "../src/construct/template_vehicle_demand.py"
 
 
 rule annual_heat_constraints:
-    message: "create all {wildcards.resolution} constraints associated with annual heat demand"
+    message: "create all {wildcards.resolution} constraints associated with annual heat demand in the year {wildcards.year}"
     input:
         src = "src/construct/template_heat_demand.py",
         space_heat_demand = "build/model/{resolution}/space-heat-demand.csv",
@@ -470,11 +475,10 @@ rule annual_heat_constraints:
         heat_demand = "build/model/{resolution}/heat-demand.csv",
         waste_supply = rules.annual_waste_supply.output[0]
     params:
-        model_year = config["year"],
         storage_period = 48,  # there can only be as much storage as is reasonable for 48hrs of demand
         scaling_factors = config["scaling-factors"]
     conda: "../envs/default.yaml"
-    output: "build/model/{resolution}/heat_group_constraints.yaml"
+    output: "build/model/{resolution}/heat_group_constraints_{year}.yaml"
     script: "../src/construct/template_heat_demand.py"
 
 
@@ -537,7 +541,7 @@ rule copy_fuel_supply_techs:
 
 
 rule copy_biofuel_techs:
-    message: "Build {wildcards.resolution} biofuel supply YAML"
+    message: "Build {wildcards.resolution} biofuel supply YAML with {wildcards.year} data"
     input:
         src = "src/construct/template_biofuel_supply.py",
         annual_demand = "build/{resolution}/annual-demand.csv",
@@ -549,10 +553,9 @@ rule copy_biofuel_techs:
             "build/data/{{resolution}}/biofuel/{scenario}/costs-eur-per-mwh.csv"
             .format(scenario=config["parameters"]["jrc-biofuel"]["scenario"])
         )
-    output: "build/model/{resolution}/biofuel-supply.yaml"
+    output: "build/model/{resolution}/biofuel-supply-{year}.yaml"
     params:
         scaling_factors = config["scaling-factors"],
-        year = config["year"],
     conda: "../envs/default.yaml"
     script: "../src/construct/template_biofuel_supply.py"
 
@@ -573,7 +576,7 @@ rule copy_2030_overrides:
 
 
 rule emissions_scenario_yaml:
-    message: "Generate Calliope {wildcards.resolution} emission target scenario YAML."
+    message: "Generate Calliope {wildcards.resolution} emission target scenario YAML using {wildcards.year} data."
     input:
         src = "src/construct/template_emissions.py",
         emissions_targets = config["data-sources"]["emissions-targets"],
@@ -582,9 +585,8 @@ rule emissions_scenario_yaml:
     params:
         scaling_factors = config["scaling-factors"],
         projection_year = config["projection-year"],
-        year = config["year"],
     conda: "../envs/default.yaml"
-    output: "build/model/{resolution}/emissions_scenarios.yaml"
+    output: "build/model/{resolution}/emissions_scenarios_{year}.yaml"
     script: "../src/construct/template_emissions.py"
 
 
@@ -605,7 +607,7 @@ rule coal_supply_yaml:
 
 
 rule model:
-    message: "Build entire model on resolution {wildcards.resolution}."
+    message: "Build entire model on resolution {wildcards.resolution} for model year {wildcards.year}."
     input:
         "build/model/interest-rate.yaml",
         "build/model/renewable-techs.yaml",
@@ -661,8 +663,13 @@ rule model:
         "build/model/overrides-2030/renewable-techs.yaml",
         "build/model/overrides-2030/storage-techs.yaml",
         "build/model/overrides-2030/transformation-techs.yaml",
-        definition = "src/template/model.yaml"
-    output:
-        model = "build/model/{resolution}/model.yaml"
-    shell:
-        "cp {input.definition} {output}"
+        template = "src/template/model.yaml",
+        src = "src/construct/template_model_in_year.py"
+    params:
+        subset_time = config["calliope-parameters"]["model.subset_time"]
+    output: "build/model/{resolution}/model-{year}.yaml"
+    script: "../src/construct/template_model_in_year.py"
+
+rule model_all_years:
+    message: "Build all years of model files"
+    input: expand("build/model/{{resolution}}/model-{year}.yaml", year=range(config["scope"]["temporal"]["first-year"], config["scope"]["temporal"]["final-year"] + 1))

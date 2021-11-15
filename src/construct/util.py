@@ -84,8 +84,8 @@ def read_eurostat_tsv(path_to_tsv, index_names, slice_idx=None, slice_lvl=None):
 
 def get_timedelta(model_time, model_year):
     model_timedelta = (
-        pd.to_datetime(model_time[1].format(year=model_year)) -
-        pd.to_datetime(model_time[0].format(year=model_year))
+        pd.to_datetime(model_time[1].replace("year", model_year)) -
+        pd.to_datetime(model_time[0].replace("year", model_year))
     ).days + 1
     if pd.to_datetime(model_year).is_leap_year:
         model_timedelta = model_timedelta / 366

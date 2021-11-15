@@ -15,6 +15,8 @@ CARRIERS = {
 }
 idx = pd.IndexSlice
 
+YEAR_RANGE = slice(2000, 2018)
+
 
 def get_transport_demand(
     energy_balances_path, jrc_road_energy_path, jrc_road_distance_path, jrc_road_vehicles_path,
@@ -111,29 +113,13 @@ def get_transport_demand(
     ).max() < 1e-10
 
     # Air and shipping energy
-    air_energy = (
-        energy_balances
-        .loc[['FC_TRA_DAVI_E', 'INTAVI']]
-        .unstack('carrier_code')
-        ['O4000XBIO']
-        .sum(level=['country', 'year'])
-        .add(other_transport_aviation, fill_value=0)
-        .apply(util.tj_to_twh)
-        .to_frame('twh')
-        .rename_axis(columns='unit')
-        .stack()
+    air_energy = get_marine_aviation(
+        energy_balances.loc[['FC_TRA_DAVI_E', 'INTAVI']],
+        other_transport_aviation
     )
-    marine_energy = (
-        energy_balances
-        .loc[['INTMARB', 'FC_TRA_DNAVI_E']]
-        .unstack('carrier_code')
-        ['O4000XBIO']
-        .sum(level=['country', 'year'])
-        .add(other_transport_marine, fill_value=0)
-        .apply(util.tj_to_twh)
-        .to_frame('twh')
-        .rename_axis(columns='unit')
-        .stack()
+    marine_energy = get_marine_aviation(
+        energy_balances.loc[['INTMARB', 'FC_TRA_DNAVI_E']],
+        other_transport_marine
     )
 
     total_road_distance.to_csv(road_distance_out_path)
@@ -161,24 +147,22 @@ def get_all_distance_efficiency(
         .add(other_transport_road, fill_value=0)
         .apply(util.tj_to_twh)
         .rename_axis(index=['country_code', 'year', 'carrier'])
+        .unstack("year")
+        .loc[:, YEAR_RANGE]
+        .interpolate(axis=1, limit_direction="both")
+        .stack()
     )
 
     # contribution of each transport mode to carrier consumption from JRC_IDEES
     # 2016-2018 from 2015 data; non-JRC countries, based on neighbour data
     carrier_contribution = fill_missing_countries_and_years(
-        energy_df.div(energy_df.sum(level=['carrier', 'country_code', 'year']))
+        energy_df
+        .div(energy_df.sum(level=['carrier', 'country_code', 'year']))
     )
     # Energy consumption per transport mode by mapping transport mode
     # carrier contributions to total carrier consumption
-    transport_energy_per_mode = pd.merge(
-        transport_energy_balance.to_frame('eurostat'),
-        carrier_contribution.to_frame('jrc'),
-        left_index=True,
-        right_on=transport_energy_balance.index.names
-    )
-    transport_energy_per_mode = (
-        transport_energy_per_mode['eurostat'].mul(transport_energy_per_mode['jrc'])
-    )
+    transport_energy_per_mode = carrier_contribution.mul(transport_energy_balance).dropna()
+
     # Distance per unit energy consumed per transport mode according to JRC IDEES
     # 2016-2018 from 2015 data; non-JRC countries, based on neighbour data
     transport_efficiency = fill_missing_countries_and_years(
@@ -208,7 +192,6 @@ def get_all_distance_efficiency(
         .fillna(aligned_dfs[0])
         .sum(level=['vehicle_type', unique_dim, 'country_code', 'unit', 'year'])
     )
-
     return total_transport_distance, transport_efficiency, transport_energy_per_mode
 
 
@@ -252,6 +235,23 @@ def fill_missing_countries_and_years(jrc_data):
     )
     jrc_data.columns = jrc_data.columns.astype(int)
     return jrc_data.stack()
+
+
+def get_marine_aviation(energy_balances, other_energy):
+    return (
+        energy_balances
+        .unstack('carrier_code')
+        ['O4000XBIO']
+        .sum(level=['country', 'year'])
+        .add(other_energy, fill_value=0)
+        .apply(util.tj_to_twh)
+        .unstack("year")
+        .interpolate(axis=1, limit_direction="both")
+        .stack()
+        .to_frame('twh')
+        .rename_axis(columns='unit')
+        .stack()
+    )
 
 
 if __name__ == "__main__":
