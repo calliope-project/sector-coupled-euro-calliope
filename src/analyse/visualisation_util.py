@@ -3,7 +3,9 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+import calliope
 from calliope.core.util.dataset import split_loc_techs
+from friendly_calliope.consolidate_calliope_output import get_flows, agg_flows
 idx = pd.IndexSlice
 
 
@@ -47,13 +49,13 @@ class VisUtil():
         "hydro_run_of_river": "hydro",
     }
     STORAGE_MAPPING = {
-        "hp_heat_storage_small": "heat_small",
-        "electric_heater_heat_storage_small": "heat_small",
-        "biofuel_heat_storage_small": "heat_small",
-        "methane_heat_storage_small": "heat_small",
-        "chp_wte_back_pressure_heat_storage_big": "heat_big",
-        "chp_biofuel_extraction_heat_storage_big": "heat_big",
-        "chp_methane_extraction_heat_storage_big": "heat_big",
+        "hp_heat_storage_small": "heat_storage_small",
+        "electric_heater_heat_storage_small": "heat_storage_small",
+        "biofuel_heat_storage_small": "heat_storage_small",
+        "methane_heat_storage_small": "heat_storage_small",
+        "chp_wte_back_pressure_heat_storage_big": "heat_storage_big",
+        "chp_biofuel_extraction_heat_storage_big": "heat_storage_big",
+        "chp_methane_extraction_heat_storage_big": "heat_storage_big",
         "methane_storage": "methane_storage",
         "hydrogen_storage": "hydrogen_storage",
         "pumped_hydro": "hydro_storage",
@@ -230,6 +232,33 @@ class VisUtil():
         # positive == net import to loc_from from loc_to
         return transmission["import"] - transmission["export"]
 
+    def clean_transmission_cap(self, var="energy_cap"):
+        try:
+            data_var = self.model_data[var]
+        except KeyError:
+            data_var = self.inputs[var]
+        transmission_cap = (
+            split_loc_techs(data_var, return_as="Series")
+            .where(lambda x: ~np.isinf(x))
+            .dropna()
+            .filter(regex="transmission")
+            .unstack('locs')
+        )
+        transmission_cap.index = (
+            transmission_cap.index.str.split(":", expand=True).rename(["techs", "loc_from"])
+        )
+        transmission_cap = (
+            transmission_cap
+            .rename_axis(columns="loc_to")
+            .stack()
+            .unstack("techs")
+            .groupby(self.TRANSMISSION_MAPPING, axis=1).sum()
+            .stack()
+        )
+        # negative == net export from loc_from to loc_to
+        # positive == net import to loc_from from loc_to
+        return transmission_cap
+
     def set_resource_availability(self):
         energy_cap_max = self.energy_cap_max.loc[idx[:, self.power_density.index]]
         biofuel_availability = self.group_carrier_prod_max
@@ -280,15 +309,20 @@ class VisUtil():
             )
             for potential_scenario, potential in potential_area.items()
         }
-        use_of_protected_area = resource_use_grouped.sub(potentials["technical-potential"])
+        protected_area = potentials["technical-potential"].sub(
+            potentials["technical-potential-protected"]
+        )
+        use_of_protected_area = resource_use_grouped.sub(
+            potentials["technical-potential-protected"]
+        )
         self.metrics["protected_area_use"] = (
             use_of_protected_area.clip(lower=0)
-            .div(potentials["technical-potential-protected"])
+            .div(protected_area)
             .rename(lambda x: x.replace("eligibility_", "").replace("_km2", ""), level="techs")
         )
         self.metrics["non_protected_area_use"] = (
-            resource_use_grouped.sub(use_of_protected_area)
-            .div(potentials["technical-potential"])
+            resource_use_grouped.sub(use_of_protected_area.clip(lower=0))
+            .div(potentials["technical-potential-protected"])
             .rename(lambda x: x.replace("eligibility_", "").replace("_km2", ""), level="techs")
         )
 
@@ -323,20 +357,27 @@ class VisUtil():
 
     def set_ac_vs_dc_net_transmission(self):
         self.metrics["transmission_flows"] = self.clean_transmission()
+        self.metrics["transmission_caps"] = self.clean_transmission_cap()
+        self.metrics["transmission_cap_expansion"] = (
+            self.metrics["transmission_caps"]
+            .sub(self.clean_transmission_cap(var="energy_cap_min"))
+        )
 
     def set_system_cost(self):
         self.metrics["system_cost"] = self.model_data.cost.loc[{"costs": "monetary"}].sum().item()
 
     def set_direct_vs_district(self):
         self.metrics["direct_vs_district_energy"] = self.sum_then_groupby(self.energy_cap, self.HEAT_TECH_MAPPING)
-        self.metrics["direct_vs_district_prod"] = self.sum_then_groupby(self.carrier_prod, self.HEAT_TECH_MAPPING)
+        # Drop electricity to avoid getting CHP electricity production
+        self.metrics["direct_vs_district_prod"] = self.sum_then_groupby(self.carrier_prod.drop("electricity", level="carriers"), self.HEAT_TECH_MAPPING)
 
     def set_dependence_on_electrolysis(self):
         self.metrics["electrolysis_energy"] = self.just_sum(self.energy_cap, ["electrolysis"], keep_locs=True)
         self.metrics["electrolysis_prod"] = self.just_sum(self.carrier_prod, ["electrolysis"], keep_locs=True)
 
     def set_heat_fuel_source(self):
-        self.metrics["heat_prod"] = self.sum_then_groupby(self.carrier_prod, self.HEAT_TECH_CARRIER_MAPPING)
+        # Drop electricity to avoid getting CHP electricity production
+        self.metrics["heat_prod"] = self.sum_then_groupby(self.carrier_prod.drop("electricity", level="carriers"), self.HEAT_TECH_CARRIER_MAPPING)
 
     def set_transport_fuel_source(self):
         self.metrics["transport_prod"] = self.sum_then_groupby(self.carrier_prod, self.TRANSPORT_MAPPING)
@@ -389,6 +430,17 @@ class VisUtil():
             .dropna()
         )
 
+    def set_flows(self):
+        energy_flows = get_flows(
+            calliope.Model(model_data=self.model_data, config=None), None,
+            region_group={}
+        )
+        for metric in [["sum"], ["max"], ["sum", "1M"], ["max", "1M"]]:
+            _flow_data = agg_flows(energy_flows, *metric)
+            for _flow in ["in", "out"]:
+                metric_name = f"flow_{_flow}_{'_'.join(metric)}"
+                self.metrics[metric_name] = _flow_data[metric_name].dropna()
+
     def set_all_metrics(self, potential_area):
         self.set_resource_use_share()
         self.set_electricity_total()
@@ -407,7 +459,7 @@ class VisUtil():
         self.set_resource_area_share(potential_area)
         self.set_ev_charge_correlation()
         self.set_curtailment()
-
+        self.set_flows()
 
 def get_grouped_metrics(scenario_utils, scenario_name):
     grouped_metrics = {}

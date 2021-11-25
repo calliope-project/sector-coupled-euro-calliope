@@ -12,4 +12,4 @@ dependencies:
     - matplotlib
     - seaborn
     - pip:
-        - git+https://github.com/brynpickering/friendly-calliope.git@5504b857377d2b91fc6686beed272bf8cfec4393
+        - git+https://github.com/brynpickering/friendly-calliope.git@642a1ee3d9bc72dc09ad778ae723221275d0a8be

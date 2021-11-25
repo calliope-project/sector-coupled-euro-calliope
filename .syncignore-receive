@@ -1,4 +1,6 @@
 # build files to ignore when receiving from cluster
-build/data/*.nc
-spores_*/**/*.nc
 spores_2h_metrics/
+spores_2h_15slack_metrics/
+spores_2h_5slack_metrics/
+*.log
+*.nc

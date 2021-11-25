@@ -25,7 +25,7 @@ rule receive:
         local_results_dir = config["cluster-sync"]["local-results-dir"]
     shell:
         """
-        rsync -avzh --progress --delete -r --exclude-from={params.receive_ignore} \
+        rsync -avzh --progress --max-size=200m --delete -r --exclude-from={params.receive_ignore} \
         {params.url}:{params.cluster_build_dir} {params.local_results_dir}
         """
 
