@@ -33,11 +33,8 @@ overrides:
                 electric_heater:
                 electric_hob:
                 gas_hob:
-                chp_biofuel:
                 chp_biofuel_extraction:
                 chp_methane_extraction:
-                chp_methane_back_pressure_simple:
-                chp_methane_back_pressure_combined:
                 demand_space_heat:
                 demand_water_heat:
                 demand_heat:
@@ -54,16 +51,10 @@ overrides:
                 hp_tech_heat_to_demand:
                 electric_heater_heat_storage_small:
                 electric_heater_tech_heat_to_demand:
-                chp_biofuel_heat_storage_big:
-                chp_biofuel_tech_heat_to_demand:
                 chp_biofuel_extraction_heat_storage_big:
                 chp_biofuel_extraction_tech_heat_to_demand:
                 chp_methane_extraction_heat_storage_big:
                 chp_methane_extraction_tech_heat_to_demand:
-                chp_methane_back_pressure_simple_heat_storage_big:
-                chp_methane_back_pressure_simple_tech_heat_to_demand:
-                chp_methane_back_pressure_combined_heat_storage_big:
-                chp_methane_back_pressure_combined_tech_heat_to_demand:
                 waste_supply:
                 chp_wte_back_pressure:
                 chp_wte_back_pressure_heat_storage_big:

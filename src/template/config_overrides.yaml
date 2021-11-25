@@ -2,9 +2,6 @@ overrides:
     config_overrides:
             model.subset_time: {{ subset_time }}
             techs:
-                chp_biofuel.exists: false  # not using for overall simplification (less prominent CHP techs)
-                chp_methane_back_pressure_simple.exists: false  # not using for overall simplification (less prominent CHP techs)
-                chp_methane_back_pressure_combined.exists: false  # not using for overall simplification (less prominent CHP techs)
                 solar_thermal_collector.exists: false  # TODO: create ST timeseries to allow these techs to exist
                 solar_thermal_energy.exists: false  # TODO: create ST timeseries to allow these techs to exist
                 ashp.exists: false
@@ -15,11 +12,5 @@ overrides:
                 ashp_tech_heat_to_demand.exists: false
                 gshp_heat_storage_small.exists: false
                 gshp_tech_heat_to_demand.exists: false
-                chp_biofuel_heat_storage_big.exists: false
-                chp_biofuel_tech_heat_to_demand.exists: false
-                chp_methane_back_pressure_simple_heat_storage_big.exists: false
-                chp_methane_back_pressure_simple_tech_heat_to_demand.exists: false
-                chp_methane_back_pressure_combined_heat_storage_big.exists: false
-                chp_methane_back_pressure_combined_tech_heat_to_demand.exists: false
                 hydrogen_electricity_storage.exists: false
                 biogas_to_electricity_supply.exists: false
