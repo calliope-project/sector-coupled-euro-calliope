@@ -23,10 +23,11 @@ import:
     - './vehicle_group_constraints_{{ year }}.yaml'
     - './heat_group_constraints_{{ year }}.yaml'
     - './fuel_group_constraints_{{ year }}.yaml'
-    - './emissions_scenarios_{{ year }}.yaml'
+    - './emissions-scenarios-{ year }}.yaml'
     - './gas_storage.yaml'
     - './coal_supply.yaml'
     - './fossil-fuel-supply.yaml'
+    - './fuel-distribution.yaml'
     - './biofuel-supply-{{ year }}.yaml'
 model:
     name: 'Euro-Calliope'

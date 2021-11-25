@@ -22,7 +22,7 @@ subworkflow landeligibility:
     snakefile: "land-eligibility/Snakefile"
     configfile: "land-eligibility/config/default.yaml"
 
-localrules: copy_euro_calliope, copy_resolution_specific_euro_calliope, model, links, outer_countries, eurostat_data_tsv, ch_data_xlsx, when2heat, copy_from_template
+localrules: copy_euro_calliope, copy_resolution_specific_euro_calliope, model, eurostat_data_tsv, ch_data_xlsx, when2heat
 ruleorder: model > links > outer_countries > copy_from_template > copy_euro_calliope > annual_national_demand > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > gas_storage > copy_fuel_supply_techs > copy_biofuel_techs > copy_resolution_specific_euro_calliope
 wildcard_constraints:
     definition_file = "[^\/]*" # must not travers into directories
@@ -596,7 +596,7 @@ rule emissions_scenario_yaml:
         scaling_factors = config["scaling-factors"],
         projection_year = config["projection-year"],
     conda: "../envs/default.yaml"
-    output: "build/model/{resolution}/emissions_scenarios_{year}.yaml"
+    output: "build/model/{resolution}/emissions-scenarios-{year}.yaml"
     script: "../src/construct/template_emissions.py"
 
 
@@ -628,7 +628,6 @@ rule model:
         "build/model/transport-techs.yaml",
         "build/model/link-techs.yaml",
         "build/model/legacy-techs.yaml",
-        "build/model/{resolution}/emissions_scenarios.yaml",
         "build/model/{resolution}/locations.yaml",
         "build/model/{resolution}/directional-rooftop.yaml",
         "build/model/{resolution}/gas_storage.yaml",
