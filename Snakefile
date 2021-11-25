@@ -6,6 +6,7 @@ configfile: "config/default.yaml"
 include: "rules/construct.smk"
 include: "rules/analyse.smk"
 include: "rules/sync.smk"
+include: "rules/run.smk"
 
 localrules: all, clean, make_runs
 onstart:

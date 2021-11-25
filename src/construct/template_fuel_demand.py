@@ -71,12 +71,9 @@ def fill_constraint_template(
     """Generate a file that represents links in Calliope."""
     annual_demand = util.read_tdf(path_to_annual_demand)
     annual_demand = (
-        annual_demand
-        .xs(('industry_demand', int(year)), level=('dataset', 'year'))
-        .sum(level=['id', 'end_use'])
-        .unstack('end_use')
-        .apply(util.filter_small_values, rel_tol=1e-4)  # remove excessively small values
+        annual_demand.xs(('industry_demand', int(year)), level=('dataset', 'year')).sum(level=['id', 'end_use']).unstack('end_use')
         .loc[:, industry_carriers]
+        .apply(util.filter_small_values, rel_tol=1e-4)  # remove excessively small values
     )
 
     scaling_factors["specific_costs"] = scaling_factors["monetary"] / scaling_factors["power"]

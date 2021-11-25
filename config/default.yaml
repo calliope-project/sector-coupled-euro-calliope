@@ -20,7 +20,7 @@ quality-control:
         outlier-data-thresholds:
             relative-to-mean-min: 0.25
             relative-to-mean-max: 2
-            percentage-deviation-post-cleaning-max: 1
+            percentage-deviation-post-cleaning-max: 10
         entsoe-data-priority:
             - actual_entsoe_transparency
             - actual_entsoe_power_statistics
@@ -61,6 +61,7 @@ parameters:
         cost-year: "2050"
     biofuel-efficiency: 0.45
     nuclear-capacity-year: "2050"
+    eligible-area: technical-potential
     fossil-fuel-cost:
         source: "JRC ref"
         year: 2050
@@ -254,6 +255,7 @@ sea-connections:
         - [NLD_1, GBR_1]
         - [NLD_1, NOR_1]
         - [DEU_1, NOR_1]
+        - [DNK_1, DNK_2]
         - [DNK_1, NOR_1]
         - [DNK_1, SWE_3]
         - [DEU_1, SWE_4]

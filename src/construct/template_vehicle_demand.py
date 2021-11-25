@@ -61,8 +61,8 @@ overrides:
             {% for tech in annual_distance.columns %}
             {{ tech }}_transport_ev:
                 constraints:
-                    carrier_prod_per_month_min.{{ tech }}_transport: file=demand-min-{{ tech }}-ev.csv
-                    carrier_prod_per_month_max.{{ tech }}_transport: file=demand-max-{{ tech }}-ev.csv
+                    carrier_prod_per_month_min_time_varying: file=demand-min-{{ tech }}-ev.csv
+                    carrier_prod_per_month_max_time_varying: file=demand-max-{{ tech }}-ev.csv
             {% endfor %}
 
     monthly_transport_demand_equality:
@@ -70,7 +70,7 @@ overrides:
             {% for tech in annual_distance.columns %}
             {{ tech }}_transport_ev:
                 constraints:
-                    carrier_prod_per_month_equals.{{ tech }}_transport: file=demand-equals-{{ tech }}-ev.csv
+                    carrier_prod_per_month_equals_time_varying: file=demand-equals-{{ tech }}-ev.csv
             {% endfor %}
 
 scenarios:

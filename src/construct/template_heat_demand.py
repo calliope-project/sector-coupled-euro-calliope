@@ -70,11 +70,12 @@ overrides:
             cooking_demand_share_{{ idx }}:
                 locs: [{{ idx }}]
                 techs: [electric_hob, gas_hob]
-                demand_share_per_timestep_decision.cooking: 0.95
+                demand_share_per_timestep_decision.cooking: .inf
 
             heating_demand_share_{{ idx }}:
                 locs: [{{ idx }}]
                 techs: [methane_tech_heat_to_demand, biofuel_tech_heat_to_demand, ashp_tech_heat_to_demand, gshp_tech_heat_to_demand, hp_tech_heat_to_demand, electric_heater_tech_heat_to_demand, chp_biofuel_extraction_tech_heat_to_demand, chp_methane_extraction_tech_heat_to_demand, chp_wte_back_pressure_tech_heat_to_demand, chp_hydrogen_tech_heat_to_demand]
+                demand_share_per_timestep_decision.heat: .inf
         {% endfor %}
 
     annual_waste_supply:

@@ -78,7 +78,7 @@ def subnationalise_demand(
         employees, nuts_dfs[2006], industry_activity_codes, industry_config
     )
 
-    all_df = pd.concat([commercial_df, industry_df, pop_weighted_df])
+    all_df = pd.concat([commercial_df, industry_df, pop_weighted_df]).droplevel("country_code")
 
     # FillNA for any missing info
     _df = all_df.unstack('id').stack(dropna=False)
@@ -177,15 +177,27 @@ def subnational_commercial_demand(
     """
     gva_df = util.read_eurostat_tsv(gva, ['unit', 'cat_name', 'region'])
 
-    gva_eu = (
+    gva_eu_commercial = (
         gva_df
         .xs('MIO_EUR')
         .loc[['G-J', 'K-N', 'O-U']]  # commercial subsectors
         .sum(level='region', min_count=1)
         .reindex(nuts_2016.index)
+    )
+    gva_eu_total = (
+        gva_df
+        .xs('MIO_EUR')
+        .loc['TOTAL']
+        .sum(level='region', min_count=1)
+        .reindex(nuts_2016.index)
+    )
+    gva_eu = (
+        gva_eu_commercial
+        .fillna(gva_eu_total)
         .rename_axis(index='nuts3')
         .set_index([nuts_2016.region, nuts_2016.country_code], append=True)
     )
+
     # Get GVA for Switzerland
     ch_gva_dfs = []
     for canton in pd.ExcelFile(ch_gva).sheet_names:
@@ -210,13 +222,13 @@ def subnational_commercial_demand(
     gva_intensity[units.set_index(['id', 'country_code'])['type'] == 'country'] = 1
     gva_intensity = (
         gva_intensity
-        .T.fillna(gva_intensity.mean(axis=1)).T
+        .fillna({col: gva_intensity.mean(axis=1) for col in gva_intensity.columns})
         .rename_axis(columns='year')
         .stack()
     )
+
     # scale to make up for missing Greek/Spanish islands
     gva_intensity = gva_intensity.div(gva_intensity.sum(level=['year', 'country_code']))
-
     commercial_heat_demand = align_and_scale(
         heat_demand.xs('commercial', level='cat_name'), gva_intensity, units
     )

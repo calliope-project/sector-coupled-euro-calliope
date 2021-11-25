@@ -12,10 +12,10 @@ links:
         {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission:
             constraints:
                 energy_cap_min: {{ data * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
-            costs.monetary.energy_cap: {{ costs["{}-{}".format(link[0], link[1].lower())] * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR/MW") }}
         {% if link[2] == "one-way" %}
             one_way: true
         {% endif %}
+            costs.monetary.energy_cap: {{ costs["{}-{}".format(link[0], link[1].lower())] * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR/MW") }}
         {% endif %}
         {% endfor %}
     {% endfor %}

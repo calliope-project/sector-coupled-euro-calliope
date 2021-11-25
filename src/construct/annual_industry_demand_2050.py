@@ -72,7 +72,6 @@ def get_industry_demand(
         all_other_industry_space_heat
     ])
     all_consumption.columns = all_consumption.columns.astype(int).rename('year')
-
     all_filled_consumption = fill_missing_data(energy_balances, cat_names, carrier_names, all_consumption)
     units = all_filled_consumption.index.get_level_values('unit')
     all_filled_consumption.loc[units == 'ktoe'] = (
@@ -268,7 +267,9 @@ def get_steel_energy_consumption(energy_df, prod_df):
 
 def get_chem_energy_consumption(electrical_consumption, prod_df, demand):
     """
-    We remove feedstock and steam-based processing, which will be replaced by direct H2 provision
+    We remove feedstock and steam-based processing from "basic chemicals" production,
+    which will be replaced by direct H2 provision.
+    All other demand (non-basic chemicals & basic chemicals electricity) is directly passed over.
     """
     chem_electricity_consumption = (
         electrical_consumption
@@ -335,7 +336,6 @@ def get_chem_energy_consumption(electrical_consumption, prod_df, demand):
     chem_methanol_consumption = sum(masses[k] * methanol_demand[k] * METHANOL_LHV_KTOE for k in methanol_demand.keys())
     chem_co2_consumption = sum(masses[k] * co2_demand[k] for k in co2_demand.keys())
     chem_energy_consumption = sum(masses[k] * energy_demand[k] * MWH_PER_T_TO_KTOE_PER_KT for k in energy_demand.keys())
-
     # Space heat
     space_heat_demand = (
         demand
@@ -380,6 +380,7 @@ def fill_missing_data(energy_balances, cat_names, carrier_names, energy_consumpt
         .rename_axis(index=['cat_name', 'country_code'])
         .apply(util.tj_to_ktoe)
     )
+
     # If JRC-IDEES data exists, there will be data in 'energy_consumption' for that country
     balances_with_jrc_data = industry_energy_balances.loc[
         pd.IndexSlice[:, energy_consumption.index.levels[1]], energy_consumption.columns
@@ -395,7 +396,7 @@ def fill_missing_data(energy_balances, cat_names, carrier_names, energy_consumpt
     )
     # Multiply the JRC data with the contribution from each country
     # So all JRC countries consume 3.43e4ktoe electricity in paper and pulp in 2014,
-    # hence CH consumes ~4.34e2ktoe electricity in paper and pulp in 2014
+    # hence CH consumes ~3.43e2ktoe electricity in paper and pulp in 2014
     countries_without_jrc_data_consumption = (
         energy_consumption
         .sum(level=['cat_name', 'unit', 'carrier'])
@@ -426,12 +427,20 @@ def fill_missing_data(energy_balances, cat_names, carrier_names, energy_consumpt
         .unstack()
         .reorder_levels(all_euro_calliope_consumption.index.names)
     )
+    # Fill data where JRC says there is no consumption of any form in a country's industry sybsector
+    # But where the energy balances show consumption (e.g. UK, Wood and wood products)
+    _to_fill = all_euro_calliope_consumption.stack().unstack(["carrier", "unit"])
+    _filler = industry_energy_balances.stack().mul(average_consumption_per_energy_use, axis=0).unstack(["carrier", "unit"])
+    filled_jrc_no_data = _to_fill.where(_to_fill.sum(axis=1) > 0).fillna(_filler)
 
-    filled_2016_to_2018 = all_euro_calliope_consumption.where(lambda x: x > 0).fillna(
-        industry_energy_balances.mul(average_consumption_per_energy_use, axis=0)
-    )
-    fill_mid_gaps = filled_2016_to_2018.interpolate(method='linear', limit_area='inside', axis=1)
-    all_filled = fill_mid_gaps.T.fillna(fill_mid_gaps.mean(axis=1)).T
+    # Fill data for all years between 2016 and 2018, since there is no data from JRC
+    _to_fill = filled_jrc_no_data.stack(["unit", "carrier"]).unstack("year")
+    new_years_filler = _filler.stack(["unit", "carrier"]).unstack("year")
+    filled_2016_to_2018 = _to_fill.assign(**{str(_year): new_years_filler.loc[_to_fill.sum(axis=1) > 0, _year] for _year in range(2016, 2019)})
+    filled_2016_to_2018.columns = filled_2016_to_2018.columns.astype(int)
+
+    # Fill any remaining missing data (e.g. BA, pre 2013) with backfill (older years) / forwardfill (newer years) / linear interpolation (middle years)
+    all_filled = filled_2016_to_2018.interpolate(axis=1, limit_direction="both")
 
     verify_data(all_filled, industry_energy_balances)
 

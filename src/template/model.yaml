@@ -31,7 +31,7 @@ import:
     - './biofuel-supply-{{ year }}.yaml'
 model:
     name: 'Euro-Calliope'
-    calliope_version: 0.6.6
+    calliope_version: 0.6.8
     timeseries_data_path: './'
     subset_time: {{ subset_time }}
 run:
@@ -75,6 +75,9 @@ overrides:
             hydrogen_storage:
                 constraints:
                     energy_cap_per_storage_cap_max: 0.25 # min 4h full-power discharge
+
+    res_1h:
+        model.time: null
 
     res_2h:
         model.time:
