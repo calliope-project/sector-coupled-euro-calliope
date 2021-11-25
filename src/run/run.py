@@ -12,32 +12,22 @@ from calliope.backend.pyomo.util import (
 )
 
 
-def run_model(path_to_model, scenario, path_to_result):
+def run_model(path_to_model, path_to_output):
     current_path = os.path.abspath(os.curdir)
     os.chdir(os.environ["TMPDIR"])
 
-    model = calliope.Model(
-        os.path.join(current_path, path_to_model),
-        scenario=scenario
-    )
-
-    # FIXME: Temporary fixes, until everything is rebuilt
-    model._model_data["group_demand_share_per_timestep_decision"] = model._model_data.group_demand_share_per_timestep_decision.clip(min=np.inf)
-    model.run_config["solver_io"] = None
-
     calliope.set_log_verbosity("info", include_solver_output=True, capture_warnings=True)
+    model = calliope.read_netcdf(os.path.join(current_path, path_to_model))
+
     model.run(build_only=True)
 
     add_eurocalliope_constraints(model)
     new_model = model.backend.rerun()
 
     if new_model.results.attrs.get('termination_condition', None) not in ['optimal', 'feasible']:
-        model._model_data.attrs["scenario"] = scenario
-        model.to_netcdf(path_to_result)
-        raise calliope.exceptions.BackendError("Problem is non optimal, saving only input data to file.")
+        calliope.exceptions.BackendError("Problem is non optimal, not saving anything.")
 
-    new_model._model_data.attrs["scenario"] = scenario
-    new_model.to_netcdf(os.path.join(current_path, path_to_result))
+    new_model.to_netcdf(os.path.join(current_path, path_to_output))
 
 
 def add_eurocalliope_constraints(model):
@@ -237,16 +227,16 @@ def add_capacity_factor_constraints(model, backend_model):
         If there is capacity of a technology, force the annual capacity factor to be
         at least a certain amount
         """
-        return _capacity_factor_constrain_rule_factory(backend_model, loc_tech, "min")
+        return _capacity_factor_constraint_rule_factory(backend_model, loc_tech, "min")
 
     def _capacity_factor_max_constraint_rule(backend_model, loc_tech):
         """
         If there is capacity of a technology, force the annual capacity factor to be
         at most a certain amount
         """
-        return _capacity_factor_constrain_rule_factory(backend_model, loc_tech, "max")
+        return _capacity_factor_constraint_rule_factory(backend_model, loc_tech, "max")
 
-    def _capacity_factor_constrain_rule_factory(backend_model, loc_tech, sense):
+    def _capacity_factor_constraint_rule_factory(backend_model, loc_tech, sense):
         """
         If there is capacity of a technology, force the annual capacity factor to be
         at most (sense="max") or at least (sense="min") a certain amount
@@ -306,10 +296,7 @@ def add_carrier_prod_per_month_constraints(model, backend_model):
             for a specific loc tech that must take place in a given calender month in the model
             """
             model_data_dict = backend_model.__calliope_model_data
-            try:
-                loc_tech_carrier = model_data_dict["data"]["lookup_loc_techs"][loc_tech]
-            except KeyError:
-                loc_tech_carrier = model_data_dict["data"]["lookup_primary_loc_tech_carriers_out"][loc_tech]
+            loc_tech_carrier = model_data_dict["data"]["lookup_loc_techs_conversion"][("out", loc_tech)]
 
             prod = backend_model.carrier_prod
             prod_total = sum(
@@ -333,6 +320,7 @@ def add_carrier_prod_per_month_constraints(model, backend_model):
                         f"carrier_prod_per_month_{sense}_time_varying",
                         (loc_tech, timestep),
                     )
+                    * backend_model.timestep_resolution[timestep]
                     for timestep in backend_model.timesteps
                     if backend_model.month_numbers[timestep].value == month
                 )
@@ -387,7 +375,6 @@ def add_carrier_prod_per_month_constraints(model, backend_model):
 
 if __name__ == "__main__":
     run_model(
-        path_to_model=snakemake.input.model_yaml_path,
-        scenario=snakemake.params.scenario,
-        path_to_result=snakemake.output[0]
+        path_to_model=snakemake.input.model,
+        path_to_output=snakemake.output[0]
     )
