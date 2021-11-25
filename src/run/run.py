@@ -50,6 +50,9 @@ def add_eurocalliope_constraints(model):
     if any(var.startswith("carrier_prod_per_month") for var in model._model_data.data_vars):
         print("Building carrier_prod_per_month constraint")
         add_carrier_prod_per_month_constraints(model, backend_model)
+    if any("distribution" in tech for tech in model._model_data.techs.values):
+        print("Building fuel distribution constraint")
+        add_fuel_distribution_constraint(model, backend_model)
 
 
 def equalizer(lhs, rhs, sign):
@@ -371,6 +374,36 @@ def add_carrier_prod_per_month_constraints(model, backend_model):
                 [f"loc_techs_carrier_prod_per_month_{sense}", "months"],
                 _carrier_prod_per_month_constraint_rule_generator(sense),
             )
+
+
+def add_fuel_distribution_constraint(model, backend_model):
+    def _fuel_distribution_constraint_rule(backend_model, carrier):
+        tech_import = f"{carrier}_distribution_import"
+        tech_export = f"{carrier}_distribution_export"
+        if tech_import not in backend_model.techs:
+            return po.Constraint.Skip
+
+        tech_carrier_import = f"{tech_import}::{carrier}"
+        tech_carrier_export = f"{tech_export}::{carrier}"
+        carrier_import = sum(
+            backend_model.carrier_prod[loc_tech_carrier, timestep]
+            for timestep in backend_model.timesteps
+            for loc_tech_carrier in backend_model.loc_tech_carriers_prod
+            if tech_carrier_import in loc_tech_carrier
+        )
+        carrier_export = sum(
+            backend_model.carrier_con[loc_tech_carrier, timestep]
+            for timestep in backend_model.timesteps
+            for loc_tech_carrier in backend_model.loc_tech_carriers_con
+            if tech_carrier_export in loc_tech_carrier
+        )
+        return carrier_import == -1 * carrier_export
+
+    model.backend.add_constraint(
+        "fuel_distribution_constraint",
+        ["carriers"],
+        _fuel_distribution_constraint_rule,
+    )
 
 
 if __name__ == "__main__":

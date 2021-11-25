@@ -540,6 +540,16 @@ rule copy_fuel_supply_techs:
     script: "../src/construct/template_fossil_fuel_supply.py"
 
 
+rule copy_fuel_distribution_techs:
+    message: "Build {wildcards.resolution} fuel distribution YAML"
+    input:
+        src = "src/construct/template_fuel_distribution_network.py",
+        regions = rules.regions.output[0],
+    output: "build/model/{resolution}/fuel-distribution.yaml"
+    conda: "../envs/default.yaml"
+    script: "../src/construct/template_fuel_distribution_network.py"
+
+
 rule copy_biofuel_techs:
     message: "Build {wildcards.resolution} biofuel supply YAML with {wildcards.year} data"
     input:
@@ -623,6 +633,7 @@ rule model:
         "build/model/{resolution}/directional-rooftop.yaml",
         "build/model/{resolution}/gas_storage.yaml",
         rules.copy_fuel_supply_techs.output,
+        rules.copy_fuel_distribution_techs.output,
         rules.copy_biofuel_techs.output,
         rules.emissions_scenario_yaml.output,
         rules.coal_supply_yaml.output,
