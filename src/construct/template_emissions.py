@@ -7,7 +7,7 @@ import util
 
 TEMPLATE = """
 overrides:
-    {% for scenario in ["2030_current", "2030_neutral", "2050_current", "2050_neutral"] %}
+    {% for scenario in ["2030_current", "2030_neutral", "2030_neutral_extra", "2050_current", "2050_neutral"] %}
     {{ scenario }}:
         group_constraints:
             {% for row_id, row in emissions_targets.iterrows() %}
@@ -26,15 +26,17 @@ def generate_emissions_scenarios(path_to_emissions_targets, path_to_regions, pat
     annual_demand = util.read_tdf(path_to_annual_demand).xs(int(year), level="year")
     per_target_regions = {}
     less_coal = {}
-    if projection_year == "current":
+    if projection_year == "current":  # 2030 runs ignore fossil feedstock demands in industry
         starting_point = "1990_energy_mtCO2eq"
-    elif projection_year in ["2050", 2050]:
+    elif projection_year in ["2050", 2050]:  # 2050 runs include fossil feedstock demands in industry
         starting_point = "1990_energy_steel_chemical_mtCO2eq"
     for _idx in emissions_targets.index:
         per_target_regions[_idx] = [
             i for i in regions.index
             if regions.loc[i] in emissions_targets.loc[_idx, "region"].split(",")
         ]
+        # We don't account for coal use in industry to meet energy demands (relevant when we haven't transformed industry processes),
+        # so we reduce the CO2 cap by the emissions caused by that coal here (i.e. less scope to emit GHGs elsewhere in the system)
         try:
             less_coal[_idx] = (
                 annual_demand.xs(
