@@ -105,3 +105,9 @@ overrides:
                         energy_cap: {{ 8.1e6 * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MW_electricity") }}
                         om_annual: {{ 0.191e6 * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MW_electricity/year") }}
                         om_prod: {{ 26.5 * scaling_factors.specific_costs }} # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MWh_electricity") }}
+
+            chp_hydrogen:  # [Danish energy agency, electricity and district heating, 12 LT-PEMFC CHP, 2050]
+                costs:
+                    monetary:
+                        energy_cap: {{ 1.1e6 * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MW_electricity") }}
+                        om_annual: {{ 0.055e6 * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MW_electricity/year") }}

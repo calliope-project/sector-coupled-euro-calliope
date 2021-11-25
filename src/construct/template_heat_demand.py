@@ -59,6 +59,9 @@ overrides:
                 chp_wte_back_pressure:
                 chp_wte_back_pressure_heat_storage_big:
                 chp_wte_back_pressure_tech_heat_to_demand:
+                chp_hydrogen:
+                chp_hydrogen_heat_storage_big:
+                chp_hydrogen_tech_heat_to_demand:
         {% endfor %}
 
     heat_tech_grouping:
@@ -71,8 +74,7 @@ overrides:
 
             heating_demand_share_{{ idx }}:
                 locs: [{{ idx }}]
-                techs: [methane_tech_heat_to_demand, biofuel_tech_heat_to_demand, ashp_tech_heat_to_demand, gshp_tech_heat_to_demand, hp_tech_heat_to_demand, electric_heater_tech_heat_to_demand, chp_biofuel_tech_heat_to_demand, chp_biofuel_extraction_tech_heat_to_demand, chp_methane_extraction_tech_heat_to_demand, chp_methane_back_pressure_simple_tech_heat_to_demand, chp_methane_back_pressure_combined_tech_heat_to_demand, chp_wte_back_pressure_tech_heat_to_demand]
-                demand_share_per_timestep_decision.heat: 0.95
+                techs: [methane_tech_heat_to_demand, biofuel_tech_heat_to_demand, ashp_tech_heat_to_demand, gshp_tech_heat_to_demand, hp_tech_heat_to_demand, electric_heater_tech_heat_to_demand, chp_biofuel_extraction_tech_heat_to_demand, chp_methane_extraction_tech_heat_to_demand, chp_wte_back_pressure_tech_heat_to_demand, chp_hydrogen_tech_heat_to_demand]
         {% endfor %}
 
     annual_waste_supply:
