@@ -167,7 +167,7 @@ parameters:
 calliope-parameters: # arbitrary many calliope parameters applied as override
     model.subset_time: ['year-01-01', 'year-12-31']
 plot-year: 2018
-projection-year: "2050"
+projection-year: 2050
 connected-regions: # regions with insufficient potentials can be connected to neighbours
     AUT-9_1: AUT-3_1 # Vienna: Lower Austria
     BEL-1_1: BEL-2_1 # Bruxelles: Flanders

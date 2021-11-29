@@ -23,7 +23,7 @@ import:
     - './vehicle_group_constraints_{{ year }}.yaml'
     - './heat_group_constraints_{{ year }}.yaml'
     - './fuel_group_constraints_{{ year }}.yaml'
-    - './emissions-scenarios-{ year }}.yaml'
+    - './emissions-scenarios-{{ year }}.yaml'
     - './gas_storage.yaml'
     - './coal_supply.yaml'
     - './fossil-fuel-supply.yaml'
@@ -49,7 +49,7 @@ run:
         FeasibilityTol: 1e-3
         OptimalityTol: 1e-4
         BarConvTol: 1e-4
-
+    relax_constraint.demand_share_per_timestep_decision_main_constraint: 0.025
 overrides:
     no-hydro-costs:
         # Because we force all hydro to current levels, there

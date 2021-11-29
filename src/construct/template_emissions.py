@@ -26,9 +26,9 @@ def generate_emissions_scenarios(path_to_emissions_targets, path_to_regions, pat
     annual_demand = util.read_tdf(path_to_annual_demand).xs(int(year), level="year")
     per_target_regions = {}
     less_coal = {}
-    if projection_year == "current":  # 2030 runs ignore fossil feedstock demands in industry
+    if projection_year == 2030:  # 2030 runs ignore fossil feedstock demands in industry
         starting_point = "1990_energy_mtCO2eq"
-    elif projection_year in ["2050", 2050]:  # 2050 runs include fossil feedstock demands in industry
+    elif projection_year == 2050:  # 2050 runs include fossil feedstock demands in industry
         starting_point = "1990_energy_steel_chemical_mtCO2eq"
     for _idx in emissions_targets.index:
         per_target_regions[_idx] = [

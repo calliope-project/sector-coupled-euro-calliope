@@ -1,4 +1,8 @@
 
+wildcard_constraints:
+    co2_scenario = "neutral|current",
+    storyline = "government-directed|people-powered|market-driven"
+
 rule spores:
     message: "Running Calliope {wildcards.resolution} resolution SPORES model"
     input:
@@ -15,26 +19,45 @@ rule spores:
     shell:
         "bsub -n {params.threads} -W {params.mins} -R {params.mem} -o {output.logs} 'calliope run --save_netcdf {output.model} --scenario {params.scenario} {input.model_yaml_path}'"
 
+def get_scenario(base_scenario, projection_year, co2_scenario, add_link_cap=True):
+    if projection_year == 2030:
+        scenario = base_scenario + f",heat_techs_2030,renewable_techs_2030,transformation_techs_2030,2030_{co2_scenario},coal_supply,fossil-fuel-supply"
+        if add_link_cap:
+            scenario += ",link_cap_1x"
+    elif projection_year == 2050:
+        if add_link_cap:
+            scenario = base_scenario + ",link_cap_dynamic"
+        else:
+            scenario = base_scenario
+        if co2_scenario == "current":
+            scenario += f",2050_{co2_scenario},fossil-fuel-supply"
+    return scenario
+
+
 rule build_eurocalliope:
-    message: "Building Calliope {wildcards.resolution} model with {wildcards.model_resolution} hourly temporal resolution for the model year {wildcards.year}"
+    message: "Building Calliope {wildcards.resolution} model with {wildcards.model_resolution} hourly temporal resolution for the model year {wildcards.year} and with co2 `{wildcards.co2_scenario}` limit"
     input:
         script = "src/run/create_input.py",
         model_yaml_path = "build/model/{resolution}/model-{year}.yaml"
     params:
-        scenario = lambda wildcards: f"industry_fuel_shared,transport,heat,config_overrides,gas_storage,link_cap_dynamic,freeze-hydro-capacities,res_{wildcards.model_resolution}h,add-biofuel",
-    output: "build/{resolution}/inputs/run_{year}_{model_resolution}H.nc"
+        scenario = lambda wildcards: get_scenario(
+            f"industry_fuel_shared,transport,heat,config_overrides,gas_storage,freeze-hydro-capacities,res_{wildcards.model_resolution}h,add-biofuel,synfuel_transmission",
+            config["projection-year"], wildcards.co2_scenario, add_link_cap=True
+        )
+    output: "build/{resolution}/inputs/run_{year}_{model_resolution}H_{co2_scenario}.nc"
     conda: "../envs/calliope.yaml"
     script: "../src/run/create_input.py"
 
 rule run_eurocalliope:
-    message: "Running Calliope {wildcards.resolution} model with {wildcards.model_resolution} hourly temporal resolution for the model year {wildcards.year}"
+    message: "Running Calliope {wildcards.resolution} model with {wildcards.model_resolution} hourly temporal resolution for the model year {wildcards.year} and with co2 `{wildcards.co2_scenario}` limit"
     input:
         script = "src/run/run.py",
         model = rules.build_eurocalliope.output[0]
     envmodules: "gurobi/9.0.2"
-    output: "build/{resolution}/outputs/run_{year}_{model_resolution}H.nc"
+    output: "build/{resolution}/outputs/run_{year}_{model_resolution}H_{co2_scenario}.nc"
     conda: "../envs/calliope.yaml"
     script: "../src/run/run.py"
+
 
 rule build_storylines:
     message: "Building Calliope {wildcards.resolution} model with {wildcards.model_resolution} hourly temporal resolution for the model year {wildcards.year} and {wildcards.storyline} social storyline"
@@ -42,10 +65,14 @@ rule build_storylines:
         script = "src/run/create_input.py",
         model_yaml_path = "build/model/{resolution}/model-{year}.yaml"
     params:
-        scenario = lambda wildcards: f"industry_fuel_shared,transport,heat,config_overrides,gas_storage,freeze-hydro-capacities,res_{wildcards.model_resolution}h,add-biofuel,{wildcards.storyline}-all",
+        scenario = lambda wildcards: get_scenario(
+            f"industry_fuel_shared,transport,heat,config_overrides,gas_storage,freeze-hydro-capacities,res_{wildcards.model_resolution}h,add-biofuel,{wildcards.storyline}-all,synfuel_transmission,spores_supply",
+            config["projection-year"], "neutral_extra", add_link_cap=False
+        )
     output: "build/{resolution}/inputs/run_{year}_{model_resolution}H_{storyline}.nc"
     conda: "../envs/calliope.yaml"
     script: "../src/run/create_input.py"
+
 
 rule run_storylines:
     message: "Running Calliope {wildcards.resolution} model with {wildcards.model_resolution} hourly temporal resolution for the model year {wildcards.year} and {wildcards.storyline} social storyline"
@@ -53,8 +80,23 @@ rule run_storylines:
         script = "src/run/run_storylines.py",
         model = rules.build_storylines.output[0]
     params:
-        max_transmission = lambda wildcards: config["storylines"]["max-transmission"][wildcards.storyline]
+        max_transmission = lambda wildcards: config["storylines"]["max-transmission"][wildcards.storyline],
+        mode = "plan"
     envmodules: "gurobi/9.0.2"
     output: "build/{resolution}/outputs/run_{year}_{model_resolution}H_{storyline}.nc"
+    conda: "../envs/calliope.yaml"
+    script: "../src/run/run_storylines.py"
+
+
+rule run_storylines_spores:
+    message: "Running Calliope {wildcards.resolution} model with {wildcards.model_resolution} hourly temporal resolution for the model year {wildcards.year} and {wildcards.storyline} social storyline"
+    input:
+        script = "src/run/run_storylines.py",
+        model = rules.build_storylines.output[0]
+    params:
+        max_transmission = lambda wildcards: config["storylines"]["max-transmission"][wildcards.storyline],
+        mode = "spores"
+    envmodules: "gurobi/9.0.2"
+    output: "build/{resolution}/outputs/run_{year}_{model_resolution}H_{storyline}/"
     conda: "../envs/calliope.yaml"
     script: "../src/run/run_storylines.py"

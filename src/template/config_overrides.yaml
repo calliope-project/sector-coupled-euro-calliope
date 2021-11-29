@@ -1,6 +1,5 @@
 overrides:
     config_overrides:
-            model.subset_time: {{ subset_time }}
             techs:
                 solar_thermal_collector.exists: false  # TODO: create ST timeseries to allow these techs to exist
                 solar_thermal_energy.exists: false  # TODO: create ST timeseries to allow these techs to exist
