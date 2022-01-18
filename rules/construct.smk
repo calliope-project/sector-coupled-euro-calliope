@@ -159,11 +159,11 @@ rule annual_industry_demand:
         jrc_industry_production = "data/industry/jrc_idees_processed_production.csv.gz",
     conda: "../envs/default.yaml"
     output:
-        new_demand=temp("build/annual_industry_energy_demand_{projection_year}.csv"),
+        new_demand="build/annual_industry_energy_demand_{projection_year}.csv",
         bau_electricity=temp("build/annual_industry_bau_electricity_{projection_year}.csv")
     wildcard_constraints:
         projection_year = "2030|2050"
-    script: "../src/construct/annual_industry_demand_{projection_year}.py"
+    script: "../src/construct/annual_industry_demand_{wildcards.projection_year}.py"
 
 
 rule annual_transport_demand:
@@ -651,11 +651,11 @@ rule model:
         expand(
             "build/model/{{resolution}}/{characteristic}-{tech}-{sink}.csv",
             characteristic=["energy-cap", "cop"], tech=["ashp", "gshp", "hp"],
-            sink=["space-heat", "water-heat", "heat"]
+            sink=[config["parameters"]["heat-end-use"]["carriers"]] if isinstance(config["parameters"]["heat-end-use"]["carriers"], str) else config["parameters"]["heat-end-use"]["carriers"]
         ),
         expand(
             "build/model/{{resolution}}/{end_use}-demand.csv",
-            end_use=["electricity", "space-heat", "water-heat", "heat", "cooking"]
+            end_use=["electricity", "cooking"] + ([config["parameters"]["heat-end-use"]["carriers"]] if isinstance(config["parameters"]["heat-end-use"]["carriers"], str) else config["parameters"]["heat-end-use"]["carriers"])
         ),
         expand(
             "build/model/{{resolution}}/capacityfactors-{technology}.csv",
