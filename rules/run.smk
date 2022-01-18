@@ -53,7 +53,7 @@ rule run_eurocalliope:
     input:
         script = "src/run/run.py",
         model = rules.build_eurocalliope.output[0]
-    envmodules: "gurobi/9.0.2"
+    envmodules: "gurobi/9.1.1"
     output: "build/{resolution}/outputs/run_{year}_{model_resolution}H_{co2_scenario}.nc"
     conda: "../envs/calliope.yaml"
     script: "../src/run/run.py"
@@ -82,7 +82,7 @@ rule run_storylines:
     params:
         max_transmission = lambda wildcards: config["storylines"]["max-transmission"][wildcards.storyline],
         mode = "plan"
-    envmodules: "gurobi/9.0.2"
+    envmodules: "gurobi/9.1.1"
     output: "build/{resolution}/outputs/run_{year}_{model_resolution}H_{storyline}.nc"
     conda: "../envs/calliope.yaml"
     script: "../src/run/run_storylines.py"
@@ -96,7 +96,7 @@ rule run_storylines_spores:
     params:
         max_transmission = lambda wildcards: config["storylines"]["max-transmission"][wildcards.storyline],
         mode = "spores"
-    envmodules: "gurobi/9.0.2"
+    envmodules: "gurobi/9.1.1"
     output: "build/{resolution}/outputs/run_{year}_{model_resolution}H_{storyline}/"
     conda: "../envs/calliope.yaml"
     script: "../src/run/run_storylines.py"
