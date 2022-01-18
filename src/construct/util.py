@@ -110,6 +110,8 @@ def filter_small_values(data, rel_tol=1e-5):
     with independently.
     """
     data_sum = data.sum()
+    if data_sum == 0 and data.min() >= 0:
+        return data
 
     data[abs(data) < abs(data).max() * rel_tol] = 0
 
