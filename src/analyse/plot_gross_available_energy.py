@@ -19,7 +19,7 @@ ENERGY_BALANCE_GROUPS = {
     "P1000": "Other fossils",
     'G3000': "Natural gas",
     'W6100_6220': "Waste",
-    'N900H': 'Nuclear heat',
+    'N900H': 'Nuclear',
     '^O4000.*$': "Oil",
     'S2000': "Oil",
     "^RA1.*$|^RA2.*$|^RA3.*$|^RA4.*$|^RA5.*$": 'Renewables',
@@ -31,7 +31,7 @@ ENERGY_PRODUCERS = {
     "biofuel_supply": "Biofuels",
     "hydro_reservoir": "Renewables",
     "hydro_run_of_river": "Renewables",
-    "nuclear": "Nuclear heat",
+    "nuclear": "Nuclear",
     "open_field_pv": "Renewables",
     "roof_mounted_pv": "Renewables",
     "wind_offshore": "Renewables",
@@ -42,7 +42,7 @@ COLORS = {
     "Oil": "#5d5d5d",
     "Natural gas": "#b9b9b9",
     "Other fossils": "#181818",
-    "Nuclear heat": "#cc0000",
+    "Nuclear": "#cc0000",
     "Biofuels": "#8fce00",
     "Renewables": "#2986cc",
     "Waste": "#ce7e00",
@@ -50,7 +50,7 @@ COLORS = {
     "Electricity": "#2986cc"
 }
 
-NUCLEAR_HEAT_MUTIPLIER = 1 / 0.4  # our model uses an efficiency of 40% for nuclear
+NUCLEAR_HEAT_MUTIPLIER = 3  # Eurostat uses a multiplier of 3 to go from nuclear power to nuclear heat
 
 
 def plot_energy_bars(
@@ -134,6 +134,7 @@ def get_input_energy(path_to_energy_balances, countries, model_year):
         .sort_values(ascending=False)
         .apply(util.tj_to_twh)
     )
+    grouped_gross_avail_energy.loc["Nuclear"] /= NUCLEAR_HEAT_MUTIPLIER
     country_subselection = gross_avail_energy.dropna(how="all", axis=1).columns
     return country_subselection, grouped_gross_avail_energy
 
@@ -153,7 +154,6 @@ def get_output_energy(path_to_spores_dpkg, country_subselection):
         .sum(level=["technology", "carriers"])
         .groupby(ENERGY_PRODUCERS, level="technology").sum()
     )
-    flow_out_summed.loc["Nuclear heat"] *= NUCLEAR_HEAT_MUTIPLIER
     smallest_spore = flow_out_summed.sum().idxmin()
     biggest_spore = flow_out_summed.sum().idxmax()
     return flow_out_summed[smallest_spore], flow_out_summed[biggest_spore]

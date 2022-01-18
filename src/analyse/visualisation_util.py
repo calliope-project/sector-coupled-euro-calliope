@@ -170,7 +170,6 @@ class VisUtil():
                 .reorder_levels(initial_levels)
                 .dropna()
             )
-
         else:
             return initial_series
 
