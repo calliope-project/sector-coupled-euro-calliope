@@ -20,11 +20,11 @@ rule spores:
         "bsub -n {params.threads} -W {params.mins} -R {params.mem} -o {output.logs} 'calliope run --save_netcdf {output.model} --scenario {params.scenario} {input.model_yaml_path}'"
 
 def get_scenario(base_scenario, projection_year, co2_scenario, add_link_cap=True):
-    if projection_year == 2030:
+    if int(projection_year) == 2030:
         scenario = base_scenario + f",heat_techs_2030,renewable_techs_2030,transformation_techs_2030,2030_{co2_scenario},coal_supply,fossil-fuel-supply"
         if add_link_cap:
             scenario += ",link_cap_1x"
-    elif projection_year == 2050:
+    elif int(projection_year) == 2050:
         if add_link_cap:
             scenario = base_scenario + ",link_cap_dynamic"
         else:
