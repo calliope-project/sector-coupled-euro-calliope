@@ -6,32 +6,62 @@ TEMPLATE = """
 overrides:
     synfuel_transmission:
         techs:
-            diesel_distribution_export:
+            syn_diesel_distribution_export:
                 essentials:
-                    carrier: diesel
+                    carrier: syn_diesel
                     parent: demand
                 constraints:
                     resource: -.inf
                     force_resource: false
 
-            methane_distribution_export:
+            syn_methane_distribution_export:
                 essentials:
-                    carrier: methane
+                    carrier: syn_methane
                     parent: demand
                 constraints:
                     resource: -.inf
                     force_resource: false
 
-            diesel_distribution_import:
+            syn_kerosene_distribution_export:
                 essentials:
-                    carrier: diesel
+                    carrier: syn_kerosene
+                    parent: demand
+                constraints:
+                    resource: -.inf
+                    force_resource: false
+
+            syn_methanol_distribution_export:
+                essentials:
+                    carrier: syn_methanol
+                    parent: demand
+                constraints:
+                    resource: -.inf
+                    force_resource: false
+
+            syn_diesel_distribution_import:
+                essentials:
+                    carrier: syn_diesel
                     parent: supply
                 constraints:
                     resource: .inf
 
-            methane_distribution_import:
+            syn_methane_distribution_import:
                 essentials:
-                    carrier: methane
+                    carrier: syn_methane
+                    parent: supply
+                constraints:
+                    resource: .inf
+
+            syn_kerosene_distribution_import:
+                essentials:
+                    carrier: syn_kerosene
+                    parent: supply
+                constraints:
+                    resource: .inf
+
+            syn_methanol_distribution_import:
+                essentials:
+                    carrier: syn_methanol
                     parent: supply
                 constraints:
                     resource: .inf
@@ -39,10 +69,14 @@ overrides:
         locations:
             {{ regions|join(",") }}:
                 techs:
-                    diesel_distribution_export:
-                    methane_distribution_export:
-                    diesel_distribution_import:
-                    methane_distribution_import:
+                    syn_diesel_distribution_export:
+                    syn_methane_distribution_export:
+                    syn_diesel_distribution_import:
+                    syn_methane_distribution_import:
+                    syn_kerosene_distribution_export:
+                    syn_methanol_distribution_export:
+                    syn_kerosene_distribution_import:
+                    syn_methanol_distribution_import:
 
 
 """

@@ -50,6 +50,10 @@ overrides:
                 hydrogen_to_methane:
                 electrolysis:
                 dac:
+                syn_diesel_converter:
+                syn_methane_converter:
+                syn_kerosene_converter:
+                syn_methanol_converter:
                 {% for carrier in carriers %}
                 {% if annual_demand.loc[idx, carrier] > 1e-6 %}
                 demand_industry_{{ carrier }}:
@@ -72,7 +76,8 @@ def fill_constraint_template(
     annual_demand = util.read_tdf(path_to_annual_demand)
     annual_demand = (
         annual_demand.xs(('industry_demand', int(year)), level=('dataset', 'year')).sum(level=['id', 'end_use']).unstack('end_use')
-        .loc[:, industry_carriers]
+        .reindex(industry_carriers, axis=1)
+        .fillna(0)
         .apply(util.filter_small_values, rel_tol=1e-4)  # remove excessively small values
     )
 

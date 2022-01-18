@@ -40,7 +40,7 @@ run:
             monetary: 1
         sense: 'minimize'
     solver: gurobi
-    solver_io: lp  # updated from 'python' due to issues with 'corrupted' files in gurobi python interface since Sept. 2021
+    solver_io: python
     mode: plan
     solver_options:
         Threads: 6

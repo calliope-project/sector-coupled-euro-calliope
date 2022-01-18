@@ -41,7 +41,7 @@ rule build_eurocalliope:
         model_yaml_path = "build/model/{resolution}/model-{year}.yaml"
     params:
         scenario = lambda wildcards: get_scenario(
-            f"industry_fuel_shared,transport,heat,config_overrides,gas_storage,freeze-hydro-capacities,res_{wildcards.model_resolution}h,add-biofuel,synfuel_transmission",
+            f"industry_fuel_isolated,transport,heat,config_overrides,gas_storage,freeze-hydro-capacities,res_{wildcards.model_resolution}h,add-biofuel,synfuel_transmission",
             config["projection-year"], wildcards.co2_scenario, add_link_cap=True
         )
     output: "build/{resolution}/inputs/run_{year}_{model_resolution}H_{co2_scenario}.nc"
@@ -66,7 +66,7 @@ rule build_storylines:
         model_yaml_path = "build/model/{resolution}/model-{year}.yaml"
     params:
         scenario = lambda wildcards: get_scenario(
-            f"industry_fuel_shared,transport,heat,config_overrides,gas_storage,freeze-hydro-capacities,res_{wildcards.model_resolution}h,add-biofuel,{wildcards.storyline}-all,synfuel_transmission,spores_supply",
+            f"industry_fuel_isolated,transport,heat,config_overrides,gas_storage,freeze-hydro-capacities,res_{wildcards.model_resolution}h,add-biofuel,{wildcards.storyline}-all,synfuel_transmission,spores_supply",
             config["projection-year"], "neutral_extra", add_link_cap=False
         )
     output: "build/{resolution}/inputs/run_{year}_{model_resolution}H_{storyline}.nc"
