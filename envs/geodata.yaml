@@ -1,4 +1,4 @@
-name: default
+name: geodata
 channels:
     - conda-forge
 dependencies:
@@ -13,9 +13,11 @@ dependencies:
     - geopandas=0.8.0
     - descartes=1.1.0
     - fiona=1.8.13
+    - tbb=2020.2
     - rasterio=1.1.5
     - rasterstats=0.14.0
     - xlrd=1.2.0
     - pycountry=19.8.18
+    - pip=19.2.3
     - pip:
         - -e ../../lib[geo]

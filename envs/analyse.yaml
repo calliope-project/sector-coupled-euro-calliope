@@ -11,5 +11,8 @@ dependencies:
     - geopandas
     - matplotlib
     - seaborn
+    - pip=19.2.3
+    - pycountry=19.8.18
+    - netcdf4
     - pip:
-        - git+https://github.com/brynpickering/friendly-calliope.git@642a1ee3d9bc72dc09ad778ae723221275d0a8be
+        - git+https://github.com/brynpickering/friendly-calliope.git@d78d15e05160a94001ff66aad7bd835025839754
