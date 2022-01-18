@@ -60,7 +60,7 @@ parameters:
         potential-year: "2050"
         cost-year: "2050"
     biofuel-efficiency: 0.45
-    nuclear-capacity-year: "2050"
+    nuclear-capacity-year: 2050
     eligible-area: technical-potential
     fossil-fuel-cost:
         source: "JRC ref"
