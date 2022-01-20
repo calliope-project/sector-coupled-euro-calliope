@@ -29,6 +29,18 @@ rule receive:
         {params.url}:{params.cluster_build_dir} {params.local_results_dir}
         """
 
+rule receive_pre_builds:
+    message: "Receive build changes from cluster"
+    params:
+        url = config["cluster-sync"]["url"],
+        cluster_build_dir = config["cluster-sync"]["cluster-base-dir"] + "/build/",
+        local_results_dir = config["cluster-sync"]["local-results-dir"]
+    shell:
+        """
+        rsync -avzh --progress --delete -r --include="*.zip" --exclude="*" \
+        {params.url}:{params.cluster_build_dir} {params.local_results_dir}
+        """
+
 
 rule clean_cluster_results:
     message: "Clean results downloaded from cluster"

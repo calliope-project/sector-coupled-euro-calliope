@@ -29,6 +29,22 @@ rule all:
         "build/figures/eurospores/map.pdf"
 
 
+rule generate_pre_builds:
+    message: "Generate pre-built models for all weather years"
+    input:
+        expand(
+            "build/model/{resolution}/model-{year}.yaml",
+            resolution=["national", "eurospores"], year=[i for i in range(2010, 2019)]
+        )
+    output: "build/pre-built-model-{date}.zip"
+    shell:
+        """
+        pushd build
+        zip -r $OLDPWD/{output} model/ */annual-demand* annual_industry_energy_demand*  -x "*storyline.yaml" "*bau*" "*water-heat*" "*gshp*" "*ashp*" "*space-heat*"
+        popd
+        """
+
+
 rule make_runs:
     message: "Creating Calliope {wildcards.resolution} run scripts"
     input:
