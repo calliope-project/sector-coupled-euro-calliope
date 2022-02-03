@@ -25,8 +25,8 @@ subworkflow landeligibility:
 localrules: copy_euro_calliope, copy_resolution_specific_euro_calliope, model, eurostat_data_tsv, ch_data_xlsx, when2heat
 ruleorder: model > links > outer_countries > copy_from_template > copy_euro_calliope > annual_national_demand > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > gas_storage > copy_fuel_supply_techs > copy_biofuel_techs > copy_resolution_specific_euro_calliope
 wildcard_constraints:
-    definition_file = "[^\/]*" # must not travers into directories
-
+    definition_file = "[^\/]*", # must not travers into directories
+    year = "|".join([str(i) for i in range(2010, 2019)])
 
 rule copy_euro_calliope:
     message: "Copy file {input[0]} from euro-calliope."
@@ -160,7 +160,7 @@ rule annual_industry_demand:
     conda: "../envs/default.yaml"
     output:
         new_demand="build/annual_industry_energy_demand_{projection_year}.csv",
-        bau_electricity=temp("build/annual_industry_bau_electricity_{projection_year}.csv")
+        bau_electricity="build/annual_industry_bau_electricity_{projection_year}.csv"
     wildcard_constraints:
         projection_year = "2030|2050"
     script: "../src/construct/annual_industry_demand_{wildcards.projection_year}.py"
@@ -513,7 +513,7 @@ rule copy_from_template:
         shares = [i / 10 for i in range(11)],
         subset_time = config["calliope-parameters"]["model.subset_time"]
     wildcard_constraints:
-        template = "((spores.yaml)|(fuel_scenarios.yaml)|(demand_share.yaml)|(config_overrides.yaml))"
+        template = "((spores.yaml)|(config_overrides.yaml))"
     conda: "../envs/default.yaml"
     script: "../src/construct/template_scenarios.py"
 
@@ -664,8 +664,6 @@ rule model:
         ),
         "build/model/config_overrides.yaml",
         "build/model/spores.yaml",
-        "build/model/fuel_scenarios.yaml",
-        "build/model/demand_share.yaml",
         "build/model/overrides-2030/heat-techs.yaml",
         "build/model/overrides-2030/renewable-techs.yaml",
         "build/model/overrides-2030/storage-techs.yaml",

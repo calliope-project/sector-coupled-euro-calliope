@@ -163,7 +163,6 @@ parameters:
             ashp: 0.91
             gshp: 0.09
 
-
 calliope-parameters: # arbitrary many calliope parameters applied as override
     model.subset_time: ['year-01-01', 'year-12-31']
 plot-year: 2018

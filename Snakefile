@@ -40,7 +40,7 @@ rule generate_pre_builds:
     shell:
         """
         pushd build
-        zip -r $OLDPWD/{output} model/ */annual-demand* annual_industry_energy_demand*  -x "*storyline.yaml" "*bau*" "*water-heat*" "*gshp*" "*ashp*" "*space-heat*"
+        zip -r $OLDPWD/{output} model/ */annual-demand* annual_industry_energy_demand*  -x "*bau*" "*water-heat*" "*gshp*" "*ashp*" "*space-heat*"
         popd
         """
 
