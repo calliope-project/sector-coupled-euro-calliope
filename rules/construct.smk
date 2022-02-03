@@ -586,17 +586,16 @@ rule copy_2030_overrides:
 
 
 rule emissions_scenario_yaml:
-    message: "Generate Calliope {wildcards.resolution} emission target scenario YAML using {wildcards.year} data."
+    message: "Generate Calliope {wildcards.resolution} emission target scenario YAML."
     input:
         src = "src/construct/template_emissions.py",
         emissions_targets = config["data-sources"]["emissions-targets"],
-        annual_demand = "build/{{resolution}}/annual-demand-{}.csv".format(config["projection-year"]),
         regions = rules.regions.output[0]
     params:
         scaling_factors = config["scaling-factors"],
         projection_year = config["projection-year"],
     conda: "../envs/default.yaml"
-    output: "build/model/{resolution}/emissions-scenarios-{year}.yaml"
+    output: "build/model/{resolution}/emissions-scenarios.yaml"
     script: "../src/construct/template_emissions.py"
 
 

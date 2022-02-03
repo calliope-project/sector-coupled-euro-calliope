@@ -1,10 +1,10 @@
 ﻿region,1990_mtCO2eq,1990_energy_mtCO2eq,1990_energy_steel_chemical_mtCO2eq,2030_current,2030_neutral,2030_neutral_extra,2050_current,2050_neutral,comment
-"AUT,BEL,BGR,HRV,CYP,CZE,DNK,EST,FIN,FRA,DEU,GRC,HUN,IRL,ITA,LVA,LTU,LUX,NLD,POL,PRT,ROU,SVK,SVN,ESP,SWE,GBR",5656.4,4351.2,4707.4,0.47,0.55,0.66,0.64,1,EU27 + GBR - MLT (https://di.unfccc.int/ghg_profiles/annexOne/MLT/MLT_ghg_profile.pdf)
-CHE,53.8,41.9,42.8,0.47,0.55,0.66,0.64,1,https://di.unfccc.int/ghg_profiles/annexOne/CHE/CHE_ghg_profile.pdf
-NOR,51.5,29.4,43.2,0.47,0.55,0.66,0.64,1,https://di.unfccc.int/ghg_profiles/annexOne/NOR/NOR_ghg_profile.pdf
-ISL,3.7,1.85,2.7,0.47,0.55,0.66,0.64,1,https://di.unfccc.int/ghg_profiles/annexOne/ISL/ISL_ghg_profile.pdf
-ALB,11.3,7.91,8.475,0.47,0.55,0.66,0.64,1,https://www.climatewatchdata.org/countries/ALB + assumption of 70% emissions from energy sector + 5% from iron&steel + chemical
-SRB,82,57.4,61.5,0.47,0.55,0.66,0.64,1,https://www.climatewatchdata.org/countries/SRB + assumption of 70% emissions from energy sector + 5% from iron&steel + chemical
-BIH,30.1,21.07,22.575,0.47,0.55,0.66,0.64,1,https://www.climatewatchdata.org/countries/BIH + assumption of 70% emissions from energy  + 5% from iron&steel + chemicalsector + 5% from iron&steel + chemical
-MKD,14,9.8,10.5,0.47,0.55,0.66,0.64,1,https://www.climatewatchdata.org/countries/MKD + assumption of 70% emissions from energy sector + 5% from iron&steel + chemical
-MNE,2.6,1.82,1.95,0.47,0.55,0.66,0.64,1,https://www.climatewatchdata.org/countries/MNE + assumption of 70% emissions from energy sector + 5% from iron&steel + chemical
+"AUT,BEL,BGR,HRV,CYP,CZE,DNK,EST,FIN,FRA,DEU,GRC,HUN,IRL,ITA,LVA,LTU,LUX,NLD,POL,PRT,ROU,SVK,SVN,ESP,SWE,GBR",5656.4,4351.2,4707.4,0.47,0.55,0.65,0.64,1,EU27 + GBR - MLT (https://di.unfccc.int/ghg_profiles/annexOne/MLT/MLT_ghg_profile.pdf)
+CHE,53.8,41.9,42.8,0.47,0.55,0.65,0.64,1,https://di.unfccc.int/ghg_profiles/annexOne/CHE/CHE_ghg_profile.pdf
+NOR,51.5,29.4,43.2,0.47,0.55,0.81,0.64,1,https://di.unfccc.int/ghg_profiles/annexOne/NOR/NOR_ghg_profile.pdf
+ISL,3.7,1.85,2.7,0.47,0.55,0.90,0.64,1,https://di.unfccc.int/ghg_profiles/annexOne/ISL/ISL_ghg_profile.pdf
+ALB,11.3,7.91,8.475,0.47,0.55,0.70,0.64,1,https://www.climatewatchdata.org/countries/ALB + assumption of 70% emissions from energy sector + 5% from iron&steel + chemical
+SRB,82,57.4,61.5,0.47,0.55,0.70,0.64,1,https://www.climatewatchdata.org/countries/SRB + assumption of 70% emissions from energy sector + 5% from iron&steel + chemical
+BIH,30.1,21.07,22.575,0.47,0.55,0.70,0.64,1,https://www.climatewatchdata.org/countries/BIH + assumption of 70% emissions from energy  + 5% from iron&steel + chemicalsector + 5% from iron&steel + chemical
+MKD,14,9.8,10.5,0.47,0.55,0.70,0.64,1,https://www.climatewatchdata.org/countries/MKD + assumption of 70% emissions from energy sector + 5% from iron&steel + chemical
+MNE,2.6,1.82,1.95,0.47,0.55,0.70,0.64,1,https://www.climatewatchdata.org/countries/MNE + assumption of 70% emissions from energy sector + 5% from iron&steel + chemical
