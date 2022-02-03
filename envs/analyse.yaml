@@ -15,4 +15,4 @@ dependencies:
     - pycountry=19.8.18
     - netcdf4
     - pip:
-        - git+https://github.com/brynpickering/friendly-calliope.git@d78d15e05160a94001ff66aad7bd835025839754
+        - git+https://github.com/brynpickering/friendly-calliope.git@8f324674f99bd2c5299e9224756d2a683044e37d
