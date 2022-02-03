@@ -22,6 +22,9 @@ EUROSTAT_CARRIER_SIMPLIFICATION = {
 
 YEAR_RANGE = slice(2000, 2018)
 
+final_projected_demand_level_order = ["subsector", "country_code", "unit", "carrier", "year"]
+final_bau_demand_level_order = ["subsector", "country_code", "unit", "year"]
+
 
 def get_industry_demand(
     path_to_energy_balances, path_to_cat_names, path_to_carrier_names,
@@ -34,8 +37,21 @@ def get_industry_demand(
     cat_names = pd.read_csv(path_to_cat_names, header=0, index_col=0)
     carrier_names = pd.read_csv(path_to_carrier_names, header=0, index_col=0)
 
-    space_heat_demand = energy_df.xs("demand").xs("Low enthalpy heat", level="subsection").sum(level=['country_code', 'cat_name', 'unit']).assign(carrier_name="space_heat").set_index("carrier_name", append=True)
-    space_heat_consumption = energy_df.xs("consumption").xs("Low enthalpy heat", level="subsection").sum(level=['country_code', 'cat_name', 'carrier_name', 'unit']).rename(JRC_TO_EUROSTAT_CARRIER_MAPPING, level="carrier_name")
+    space_heat_demand = (
+        energy_df
+        .xs("demand")
+        .xs("Low enthalpy heat", level="subsection")
+        .sum(level=['country_code', 'cat_name', 'unit'])
+        .assign(carrier_name="space_heat")
+        .set_index("carrier_name", append=True)
+    )
+    space_heat_consumption = (
+        energy_df
+        .xs("consumption")
+        .xs("Low enthalpy heat", level="subsection")
+        .sum(level=['country_code', 'cat_name', 'carrier_name', 'unit'])
+        .rename(JRC_TO_EUROSTAT_CARRIER_MAPPING, level="carrier_name")
+    )
 
     industry_energy_balances = (
         energy_balances
@@ -91,8 +107,8 @@ def get_industry_demand(
         .stack()
     )
 
-    industry_energy_balances.to_csv(path_to_new_output)
-    electricity_bau.to_csv(path_to_bau_output)
+    industry_energy_balances.reorder_levels(final_projected_demand_level_order).to_csv(path_to_new_output)
+    electricity_bau.reorder_levels(final_bau_demand_level_order).to_csv(path_to_bau_output)
 
 
 def fill_missing_data(energy_balances, energy_consumption):

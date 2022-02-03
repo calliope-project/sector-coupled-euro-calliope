@@ -12,6 +12,9 @@ METHANOL_LHV_KTOE = 0.476  # 19.915 MJ/kg LHV -> 19915000MJ/kt -> 0.476ktoe/kt
 
 YEAR_RANGE = slice(2000, 2018)
 
+final_projected_demand_level_order = ["subsector", "country_code", "unit", "carrier", "year"]
+final_bau_demand_level_order = ["subsector", "country_code", "unit", "year"]
+
 
 def get_industry_demand(
     path_to_energy_balances, path_to_cat_names, path_to_carrier_names,
@@ -80,7 +83,7 @@ def get_industry_demand(
     all_filled_consumption = all_filled_consumption.rename({'ktoe': 'twh'}, level='unit')
     all_filled_consumption.index = all_filled_consumption.index.set_names('subsector', level='cat_name')
 
-    all_filled_consumption.stack().to_csv(path_to_new_output)
+    all_filled_consumption.reorder_levels(final_projected_demand_level_order).to_csv(path_to_new_output)
 
     # Also save current electricity consumption, for removal from the ENTSOE hourly electricity profiles
     electricity_bau = (
@@ -95,7 +98,7 @@ def get_industry_demand(
         .apply(util.tj_to_twh)
         .rename({'TJ': 'twh'}, level='unit')
     )
-    electricity_bau.to_csv(path_to_bau_output)
+    electricity_bau.reorder_levels(final_bau_demand_level_order).to_csv(path_to_bau_output)
 
 
 def get_carrier_demand(carrier, all_demand, energy_df):
