@@ -606,11 +606,8 @@ rule coal_supply_yaml:
         src = "src/construct/template_coal_supply.py",
         power_plants = eurocalliope("data/automatic/JRC_OPEN_UNITS.csv"),
         units = landeligibility("build/{resolution}/units.geojson"),
-        fuel_costs = rules.fuel_cost_xlsx.output[0]
     params:
         scaling_factors = config["scaling-factors"],
-        fuel_cost_source = config["parameters"]["fossil-fuel-cost"]["source"],
-        fuel_cost_year = config["parameters"]["fossil-fuel-cost"]["year"]
     conda: "../envs/geodata.yaml"
     output: "build/model/{resolution}/coal_supply.yaml"
     script: "../src/construct/template_coal_supply.py"

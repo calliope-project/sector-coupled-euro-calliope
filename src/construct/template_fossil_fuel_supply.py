@@ -1,6 +1,4 @@
 """Applies config parameters to 2030 basis template files."""
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 
@@ -52,6 +50,16 @@ overrides:
                         om_prod: {{ fuel_cost.Oil * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MWh") }}
                     co2:
                         om_prod: {{ 0.26 * scaling_factors.co2_cost / scaling_factors.power }}   # {{ (scaling_factors.power / scaling_factors.co2_cost) | unit("tCO2/MWh") }} | ASSUME: same as emissions for crude oil
+            coal_supply:
+                essentials:
+                    name: Coal
+                    carrier: coal
+                    parent: supply
+                costs:
+                    monetary:
+                        om_prod: {{ fuel_cost.Coal * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR2015/MWh") }}
+                    co2:
+                        om_prod: {{ 0.34 * scaling_factors.co2_cost / scaling_factors.power }}   # {{ (scaling_factors.power / scaling_factors.co2_cost) | unit("tCO2/MWh") }}
 
 
         locations:
@@ -61,6 +69,7 @@ overrides:
                 kerosene_supply:
                 methanol_supply:
                 methane_supply:
+                coal_supply:
             {% endfor %}
 """
 
