@@ -9,8 +9,6 @@ import:
     - '../demand-techs.yaml'
     - '../legacy-techs.yaml'
     - '../spores.yaml'
-    - '../fuel_scenarios.yaml'
-    - '../demand_share.yaml'
     - '../overrides-2030/renewable-techs.yaml'
     - '../overrides-2030/storage-techs.yaml'
     - '../overrides-2030/heat-techs.yaml'
@@ -19,7 +17,6 @@ import:
     - './locations.yaml'
     - './links.yaml'
     - './directional-rooftop.yaml'
-    #- './outer-countries.yaml'  # todo add this in as an override option
     - './vehicle_group_constraints_{{ year }}.yaml'
     - './heat_group_constraints_{{ year }}.yaml'
     - './fuel_group_constraints_{{ year }}.yaml'
