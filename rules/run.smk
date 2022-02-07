@@ -7,7 +7,7 @@ rule spores:
     input:
         model_yaml_path = "build/model/{resolution}/model.yaml"
     params:
-        scenario = "industry_fuel_isolated,transport,heat,config_overrides,gas_storage,link_cap_dynamic,spores_electricity",
+        scenario = "industry_fuel,transport,heat,config_overrides,gas_storage,link_cap_dynamic,spores_electricity",
         threads = 6,
         mins = 1440,
         mem = "rusage[mem=90G]",
@@ -40,7 +40,7 @@ rule build_eurocalliope:
         model_yaml_path = "build/model/{resolution}/model-{year}.yaml"
     params:
         scenario = lambda wildcards: get_scenario(
-            f"industry_fuel_isolated,transport,heat,config_overrides,gas_storage,freeze-hydro-capacities,res_{wildcards.model_resolution}h,add-biofuel,synfuel_transmission",
+            f"industry_fuel,transport,heat,config_overrides,gas_storage,freeze-hydro-capacities,res_{wildcards.model_resolution}h,add-biofuel,synfuel_transmission",
             config["projection-year"], wildcards.co2_scenario, add_link_cap=True
         )
     output: "build/{resolution}/inputs/run_{year}_{model_resolution}H_{co2_scenario}.nc"

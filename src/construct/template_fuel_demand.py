@@ -6,7 +6,7 @@ from eurocalliopelib import filters
 
 TEMPLATE = """
 overrides:
-    annual_fuel_demand_isolated:
+    annual_fuel_demand:
         group_constraints:
             {% for idx in annual_demand.index %}
             {% for carrier in carriers %}
@@ -18,17 +18,6 @@ overrides:
                     {{ carrier }}: {{ -1 * annual_demand.loc[idx, carrier] * timedelta }}
             {% endif %}
             {% endfor %}
-            {% endfor %}
-
-    annual_fuel_demand_shared:
-        group_constraints:
-            {% for carrier in carriers %}
-            {% if annual_demand[carrier].sum() > 1e-6 %}
-            all_{{ carrier }}:
-                techs: [demand_industry_{{ carrier }}]
-                carrier_con_min:
-                    {{ carrier }}: {{ -1 * annual_demand[carrier].sum() * timedelta }}
-            {% endif %}
             {% endfor %}
 
     industry_techs:
@@ -63,8 +52,7 @@ overrides:
                 {% endfor %}
         {% endfor %}
 scenarios:
-    industry_fuel_isolated: [annual_fuel_demand_isolated, industry_techs]
-    industry_fuel_shared: [annual_fuel_demand_shared, industry_techs]
+    industry_fuel: [annual_fuel_demand, industry_techs]
 """
 
 
