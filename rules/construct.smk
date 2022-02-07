@@ -551,10 +551,9 @@ rule copy_fuel_distribution_techs:
 
 
 rule copy_biofuel_techs:
-    message: "Build {wildcards.resolution} biofuel supply YAML with {wildcards.year} data"
+    message: "Build {wildcards.resolution} biofuel supply YAML"
     input:
         src = "src/construct/template_biofuel_supply.py",
-        annual_demand = "build/{{resolution}}/annual-demand-{}.csv".format(config["projection-year"]),
         biofuel_potential = eurocalliope(
             "build/data/{{resolution}}/biofuel/{scenario}/potential-mwh-per-year.csv"
             .format(scenario=config["parameters"]["jrc-biofuel"]["scenario"])
@@ -563,7 +562,7 @@ rule copy_biofuel_techs:
             "build/data/{{resolution}}/biofuel/{scenario}/costs-eur-per-mwh.csv"
             .format(scenario=config["parameters"]["jrc-biofuel"]["scenario"])
         )
-    output: "build/model/{resolution}/biofuel-supply-{year}.yaml"
+    output: "build/model/{resolution}/biofuel-supply.yaml"
     params:
         scaling_factors = config["scaling-factors"],
     conda: "../envs/default.yaml"

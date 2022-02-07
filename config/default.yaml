@@ -14,6 +14,9 @@ data-sources:
     jrc-ppdb: https://zenodo.org/record/3574566/files/JRC-PPDB-OPEN.ver1.0.zip
     fuel-costs: https://heatroadmap.eu/wp-content/uploads/2020/01/HRE_D6.1_Appendix_1.xlsx
     emissions-targets: data/emissions.csv
+    industry-demand-scale: data/industry_subsector_scales.csv
+    building-electricity-demand-scale: data/building_electricity_scales.csv
+    annual-demand-scale: data/annual_demand_scales.csv
 quality-control:
     load:
         acceptable-load-data-gap-hours: 48
@@ -35,6 +38,8 @@ scaling-factors:
     transport: 0.01  # from Mio km to 100 Mio km
     co2: 0.0001  # from t to 10 kt
     co2_cost:  0.000001  # from t to Mt
+scale-demands: false
+demand-scale-scenario: "current"
 capacity-factors:
     min: 0.001 # consider smaller values to be 0; this helps numerics in the LP
     max: 10 # for hydro reservoirs, leading to a numerical range of 1e5 (hourly resolution)
@@ -111,7 +116,7 @@ parameters:
             max: 1.1
             equals: 1
     industry:
-        carriers: [diesel, kerosene, methanol, methane]  # choice of [diesel, kerosene, methane, methanol, co2, hydrogen], everything else will be incorporated into industry electricity demand
+        carriers: [diesel, kerosene, methanol, methane, biofuel, coal]  # choice of [diesel, kerosene, methane, methanol, co2, hydrogen, biofuel, coal], everything else will be incorporated into industry electricity demand. [coal, biofuel] are only relevant to the 2030 projection year. They have no electrification option, so removing them from this list will remove the energy from the system entirely.
         electrification_efficiency:  # see transformation-techs.yaml
             co2: 5000000.0  # tCO2/TWhe
             diesel: 0.5  # TWh_diesel/TWhe
@@ -266,206 +271,206 @@ scope:
         first-year: 2010
         final-year: 2018
     spatial:
-    countries:
-        - "Austria"
-        - "Belgium"
-        - "Bulgaria"
-        - "Croatia"
-        - "Cyprus"
-        - "Czech Republic"
-        - "Denmark"
-        - "Estonia"
-        - "Finland"
-        - "France"
-        - "Germany"
-        - "Greece"
-        - "Hungary"
-        - "Ireland"
-        - "Italy"
-        - "Latvia"
-        - "Lithuania"
-        - "Luxembourg"
-        - "Netherlands"
-        - "Poland"
-        - "Portugal"
-        - "Romania"
-        - "Slovakia"
-        - "Slovenia"
-        - "Spain"
-        - "Sweden"
-        - "United Kingdom"
-        - "Albania"
-        - "Bosnia and Herzegovina"
-        - "North Macedonia"
-        - "Montenegro"
-        - "Norway"
-        - "Serbia"
-        - "Switzerland"
-        - "Iceland"
-    bounds:
-        x_min: -15.8 # in degrees east
-        x_max: 37  # in degrees east
-        y_min: 30  # in degrees north
-        y_max: 75  # in degrees north
-units-without-shore:
-    continental: []
-    national:
-        - AUT
-        - BIH # has a shore, but offshore potential very small
-        - CHE
-        - CZE
-        - HUN
-        - LUX
-        - MKD
-        - SRB
-        - SVK
-        - SVN # has a shore, but offshore potential very small
-shapes: # This config must be consistent with data from https://doi.org/10.5281/zenodo.3244985.
-    continental:
-        Austria: nuts0
-        Belgium: nuts0
-        Bulgaria: nuts0
-        Croatia: nuts0
-        Cyprus: nuts0
-        Czech Republic: nuts0
-        Denmark: nuts0
-        Estonia: nuts0
-        Finland: nuts0
-        France: nuts0
-        Germany: nuts0
-        Greece: nuts0
-        Hungary: nuts0
-        Ireland: nuts0
-        Italy: nuts0
-        Latvia: nuts0
-        Lithuania: nuts0
-        Luxembourg: nuts0
-        Netherlands: nuts0
-        Poland: nuts0
-        Portugal: nuts0
-        Romania: nuts0
-        Slovakia: nuts0
-        Slovenia: nuts0
-        Spain: nuts0
-        Sweden: nuts0
-        United Kingdom: nuts0
-        Albania: gadm0
-        Bosnia and Herzegovina: gadm0
-        North Macedonia: gadm0
-        Montenegro: gadm0
-        Norway: nuts0
-        Serbia: gadm0
-        Switzerland: nuts0
-        Iceland: nuts0
-    national:
-        Austria: nuts0
-        Belgium: nuts0
-        Bulgaria: nuts0
-        Croatia: nuts0
-        Cyprus: nuts0
-        Czech Republic: nuts0
-        Denmark: nuts0
-        Estonia: nuts0
-        Finland: nuts0
-        France: nuts0
-        Germany: nuts0
-        Greece: nuts0
-        Hungary: nuts0
-        Ireland: nuts0
-        Italy: nuts0
-        Latvia: nuts0
-        Lithuania: nuts0
-        Luxembourg: nuts0
-        Netherlands: nuts0
-        Poland: nuts0
-        Portugal: nuts0
-        Romania: nuts0
-        Slovakia: nuts0
-        Slovenia: nuts0
-        Spain: nuts0
-        Sweden: nuts0
-        United Kingdom: nuts0
-        Albania: gadm0
-        Bosnia and Herzegovina: gadm0
-        North Macedonia: gadm0
-        Montenegro: gadm0
-        Norway: nuts0
-        Serbia: gadm0
-        Switzerland: nuts0
-        Iceland: nuts0
-    regional:
-        # The link between NUTS and administrative units unfortunately is not obvious.
-        # It's not documented anywhere -- at least I could not find any information.
-        # Hence, I am using GADM here instead.
-        # Validation source: https://en.wikipedia.org/wiki/List_of_administrative_divisions_by_country
-        Austria: gadm1 # gadm1 and wiki match 9
-        Belgium: gadm1 # match 3
-        Bulgaria: gadm1 # match 28
-        Croatia: gadm1 # match 21
-        Cyprus: gadm1
-        Czech Republic: gadm1 # match 14
-        Denmark: gadm1 # match 5
-        Estonia: gadm1 # gadm1 16 regions; wiki 15 regions
-        Finland: gadm1 # gadm1 5 regions; wiki 19 regions
-        France: gadm1 # match 13
-        Germany: gadm1 # match 16
-        Greece: gadm1 # gadm1 8 regions; wiki 13 (14) regions
-        Hungary: gadm1 # match 20
-        Ireland: gadm1 # match 26
-        Italy: gadm1 # match 20
-        Latvia: gadm1 # gadm1 5 regions; wiki 119 regions
-        Lithuania: gadm1 # match 10
-        Luxembourg: gadm2 # match 12
-        Netherlands: gadm1 # gadm1 14 regions; wiki 12 regions
-        Poland: gadm1 # match 16
-        Portugal: gadm1 # match 18
-        Romania: gadm1 # match 42
-        Slovakia: gadm1 # match 8
-        Slovenia: gadm1 # match 12
-        Spain: gadm1 # match 17
-        Sweden: gadm1 # match 21
-        United Kingdom: gadm1 # match 4
-        Albania: gadm1 # match 12
-        Bosnia and Herzegovina: gadm1 # match 3
-        North Macedonia: nuts3 # match 8 (statistical, non-administrative)
-        Montenegro: gadm1 # match 21
-        Norway: gadm1 # match 19
-        Serbia: gadm1 # gadm1 25 regions; wiki 5 regions
-        Switzerland: gadm1 # match 26
-        Iceland: gadm1
-    eurospores:
-        Austria: nuts3
-        Belgium: nuts0
-        Bulgaria: nuts0
-        Croatia: nuts0
-        Cyprus: nuts0
-        Czech Republic: nuts3
-        Denmark: nuts3
-        Estonia: nuts0
-        Finland: nuts3
-        France: nuts3
-        Germany: nuts3
-        Greece: nuts3
-        Hungary: nuts0
-        Ireland: nuts0
-        Italy: nuts3
-        Latvia: nuts0
-        Lithuania: nuts0
-        Luxembourg: nuts0
-        Netherlands: nuts0
-        Poland: nuts3
-        Portugal: nuts3
-        Romania: nuts3
-        Slovakia: nuts0
-        Slovenia: nuts0
-        Spain: nuts3
-        Sweden: nuts3
-        United Kingdom: nuts3
-        Albania: gadm0
-        Bosnia and Herzegovina: gadm0
-        North Macedonia: gadm0
-        Montenegro: gadm0
-        Norway: nuts3
-        Serbia: gadm0
-        Switzerland: nuts3
-        Iceland: nuts0
+        countries:
+            - "Austria"
+            - "Belgium"
+            - "Bulgaria"
+            - "Croatia"
+            - "Cyprus"
+            - "Czech Republic"
+            - "Denmark"
+            - "Estonia"
+            - "Finland"
+            - "France"
+            - "Germany"
+            - "Greece"
+            - "Hungary"
+            - "Ireland"
+            - "Italy"
+            - "Latvia"
+            - "Lithuania"
+            - "Luxembourg"
+            - "Netherlands"
+            - "Poland"
+            - "Portugal"
+            - "Romania"
+            - "Slovakia"
+            - "Slovenia"
+            - "Spain"
+            - "Sweden"
+            - "United Kingdom"
+            - "Albania"
+            - "Bosnia and Herzegovina"
+            - "North Macedonia"
+            - "Montenegro"
+            - "Norway"
+            - "Serbia"
+            - "Switzerland"
+            - "Iceland"
+        bounds:
+            x_min: -15.8 # in degrees east
+            x_max: 37  # in degrees east
+            y_min: 30  # in degrees north
+            y_max: 75  # in degrees north
+    units-without-shore:
+        continental: []
+        national:
+            - AUT
+            - BIH # has a shore, but offshore potential very small
+            - CHE
+            - CZE
+            - HUN
+            - LUX
+            - MKD
+            - SRB
+            - SVK
+            - SVN # has a shore, but offshore potential very small
+    shapes: # This config must be consistent with data from https://doi.org/10.5281/zenodo.3244985.
+        continental:
+            Austria: nuts0
+            Belgium: nuts0
+            Bulgaria: nuts0
+            Croatia: nuts0
+            Cyprus: nuts0
+            Czech Republic: nuts0
+            Denmark: nuts0
+            Estonia: nuts0
+            Finland: nuts0
+            France: nuts0
+            Germany: nuts0
+            Greece: nuts0
+            Hungary: nuts0
+            Ireland: nuts0
+            Italy: nuts0
+            Latvia: nuts0
+            Lithuania: nuts0
+            Luxembourg: nuts0
+            Netherlands: nuts0
+            Poland: nuts0
+            Portugal: nuts0
+            Romania: nuts0
+            Slovakia: nuts0
+            Slovenia: nuts0
+            Spain: nuts0
+            Sweden: nuts0
+            United Kingdom: nuts0
+            Albania: gadm0
+            Bosnia and Herzegovina: gadm0
+            North Macedonia: gadm0
+            Montenegro: gadm0
+            Norway: nuts0
+            Serbia: gadm0
+            Switzerland: nuts0
+            Iceland: nuts0
+        national:
+            Austria: nuts0
+            Belgium: nuts0
+            Bulgaria: nuts0
+            Croatia: nuts0
+            Cyprus: nuts0
+            Czech Republic: nuts0
+            Denmark: nuts0
+            Estonia: nuts0
+            Finland: nuts0
+            France: nuts0
+            Germany: nuts0
+            Greece: nuts0
+            Hungary: nuts0
+            Ireland: nuts0
+            Italy: nuts0
+            Latvia: nuts0
+            Lithuania: nuts0
+            Luxembourg: nuts0
+            Netherlands: nuts0
+            Poland: nuts0
+            Portugal: nuts0
+            Romania: nuts0
+            Slovakia: nuts0
+            Slovenia: nuts0
+            Spain: nuts0
+            Sweden: nuts0
+            United Kingdom: nuts0
+            Albania: gadm0
+            Bosnia and Herzegovina: gadm0
+            North Macedonia: gadm0
+            Montenegro: gadm0
+            Norway: nuts0
+            Serbia: gadm0
+            Switzerland: nuts0
+            Iceland: nuts0
+        regional:
+            # The link between NUTS and administrative units unfortunately is not obvious.
+            # It's not documented anywhere -- at least I could not find any information.
+            # Hence, I am using GADM here instead.
+            # Validation source: https://en.wikipedia.org/wiki/List_of_administrative_divisions_by_country
+            Austria: gadm1 # gadm1 and wiki match 9
+            Belgium: gadm1 # match 3
+            Bulgaria: gadm1 # match 28
+            Croatia: gadm1 # match 21
+            Cyprus: gadm1
+            Czech Republic: gadm1 # match 14
+            Denmark: gadm1 # match 5
+            Estonia: gadm1 # gadm1 16 regions; wiki 15 regions
+            Finland: gadm1 # gadm1 5 regions; wiki 19 regions
+            France: gadm1 # match 13
+            Germany: gadm1 # match 16
+            Greece: gadm1 # gadm1 8 regions; wiki 13 (14) regions
+            Hungary: gadm1 # match 20
+            Ireland: gadm1 # match 26
+            Italy: gadm1 # match 20
+            Latvia: gadm1 # gadm1 5 regions; wiki 119 regions
+            Lithuania: gadm1 # match 10
+            Luxembourg: gadm2 # match 12
+            Netherlands: gadm1 # gadm1 14 regions; wiki 12 regions
+            Poland: gadm1 # match 16
+            Portugal: gadm1 # match 18
+            Romania: gadm1 # match 42
+            Slovakia: gadm1 # match 8
+            Slovenia: gadm1 # match 12
+            Spain: gadm1 # match 17
+            Sweden: gadm1 # match 21
+            United Kingdom: gadm1 # match 4
+            Albania: gadm1 # match 12
+            Bosnia and Herzegovina: gadm1 # match 3
+            North Macedonia: nuts3 # match 8 (statistical, non-administrative)
+            Montenegro: gadm1 # match 21
+            Norway: gadm1 # match 19
+            Serbia: gadm1 # gadm1 25 regions; wiki 5 regions
+            Switzerland: gadm1 # match 26
+            Iceland: gadm1
+        eurospores:
+            Austria: nuts3
+            Belgium: nuts0
+            Bulgaria: nuts0
+            Croatia: nuts0
+            Cyprus: nuts0
+            Czech Republic: nuts3
+            Denmark: nuts3
+            Estonia: nuts0
+            Finland: nuts3
+            France: nuts3
+            Germany: nuts3
+            Greece: nuts3
+            Hungary: nuts0
+            Ireland: nuts0
+            Italy: nuts3
+            Latvia: nuts0
+            Lithuania: nuts0
+            Luxembourg: nuts0
+            Netherlands: nuts0
+            Poland: nuts3
+            Portugal: nuts3
+            Romania: nuts3
+            Slovakia: nuts0
+            Slovenia: nuts0
+            Spain: nuts3
+            Sweden: nuts3
+            United Kingdom: nuts3
+            Albania: gadm0
+            Bosnia and Herzegovina: gadm0
+            North Macedonia: gadm0
+            Montenegro: gadm0
+            Norway: nuts3
+            Serbia: gadm0
+            Switzerland: nuts3
+            Iceland: nuts0

@@ -43,26 +43,15 @@ scenarios:
 
 
 def parameterise_template(
-    path_to_annual_demand, path_to_biofuel_potential_mwh, path_to_biofuel_costs,
-    year, scaling_factors, path_to_result
+    path_to_biofuel_potential_mwh, path_to_biofuel_costs, scaling_factors, path_to_result
 ):
     """Applies config parameters to template files."""
 
-    annual_demand = util.read_tdf(path_to_annual_demand)
     potentials = (
         pd.read_csv(path_to_biofuel_potential_mwh, index_col=0, squeeze=True)
         .fillna(0)
     )
     cost = float(pd.read_csv(path_to_biofuel_costs).columns[0])
-    try:
-        annual_biofuel_demand = (
-            annual_demand.xs(("biofuel", year), level=("end_use", "year"))
-            .groupby(level="id").sum()
-            .div(scaling_factors["power"])
-        )
-    except KeyError:
-        annual_biofuel_demand = 0
-    potentials = potentials.sub(annual_biofuel_demand).clip(lower=0)
     scaling_factors["specific_costs"] = scaling_factors["monetary"] / scaling_factors["power"]
 
     env = jinja2.Environment(lstrip_blocks=True, trim_blocks=True)
@@ -79,10 +68,8 @@ def parameterise_template(
 
 if __name__ == "__main__":
     parameterise_template(
-        path_to_annual_demand=snakemake.input.annual_demand,
         path_to_biofuel_potential_mwh=snakemake.input.biofuel_potential,
         path_to_biofuel_costs=snakemake.input.biofuel_costs,
         scaling_factors=snakemake.params["scaling_factors"],
-        year=snakemake.wildcards.year,
         path_to_result=snakemake.output[0]
     )
