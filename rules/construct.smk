@@ -215,7 +215,9 @@ rule annual_waste_supply:
         population = landeligibility("build/{resolution}/population.csv"),
         units = landeligibility("build/{resolution}/units.geojson"),
     conda: "../envs/geodata.yaml"
-    output: "build/{resolution}/annual_waste_supply.csv"
+    output:
+        renewable = "build/{resolution}/annual_renewable_waste_supply.csv",
+        total = "build/{resolution}/annual_waste_supply.csv"
     script: "../src/construct/annual_waste_supply.py"
 
 
@@ -473,7 +475,7 @@ rule annual_heat_constraints:
         space_heat_demand = "build/model/{resolution}/space-heat-demand.csv",
         water_heat_demand = "build/model/{resolution}/water-heat-demand.csv",
         heat_demand = "build/model/{resolution}/heat-demand.csv",
-        waste_supply = rules.annual_waste_supply.output[0]
+        waste_supply = rules.annual_waste_supply.output.total
     params:
         storage_period = 48,  # there can only be as much storage as is reasonable for 48hrs of demand
         scaling_factors = config["scaling-factors"]
@@ -551,7 +553,7 @@ rule copy_fuel_distribution_techs:
 
 
 rule copy_biofuel_techs:
-    message: "Build {wildcards.resolution} biofuel supply YAML"
+    message: "Build {wildcards.resolution} biofuel supply YAML, subtracting {wildcards.year} renewable waste consumption to power CHPs"
     input:
         src = "src/construct/template_biofuel_supply.py",
         biofuel_potential = eurocalliope(
@@ -561,8 +563,9 @@ rule copy_biofuel_techs:
         biofuel_costs = eurocalliope(
             "build/data/{{resolution}}/biofuel/{scenario}/costs-eur-per-mwh.csv"
             .format(scenario=config["parameters"]["jrc-biofuel"]["scenario"])
-        )
-    output: "build/model/{resolution}/biofuel-supply.yaml"
+        ),
+        renewable_waste_consumption_for_chp = rules.annual_waste_supply.output.renewable
+    output: "build/model/{resolution}/biofuel-supply-{year}.yaml"
     params:
         scaling_factors = config["scaling-factors"],
     conda: "../envs/default.yaml"
@@ -635,7 +638,6 @@ rule model:
         rules.annual_vehicle_constraints.output,
         rules.annual_heat_constraints.output,
         rules.links.output,
-        #rules.outer_countries.output,
         "build/model/{resolution}/demand-equals-light-ev.csv",
         "build/model/{resolution}/demand-min-light-ev.csv",
         "build/model/{resolution}/demand-max-light-ev.csv",

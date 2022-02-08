@@ -25,7 +25,7 @@ import:
     - './coal_supply.yaml'
     - './fossil-fuel-supply.yaml'
     - './fuel-distribution.yaml'
-    - './biofuel-supply.yaml'
+    - './biofuel-supply-{{ year }}.yaml'
 model:
     name: 'Euro-Calliope'
     calliope_version: 0.6.8

@@ -68,6 +68,8 @@ def fill_constraint_template(
         .fillna(0)
         .apply(util.filter_small_values, rel_tol=1e-4)  # remove excessively small values
     )
+    # Keep only those industry carriers with a non-zero value at at least 1 location
+    industry_carriers = [i for i in industry_carriers if i in annual_demand.columns]
 
     scaling_factors["specific_costs"] = scaling_factors["monetary"] / scaling_factors["power"]
     model_timedelta = util.get_timedelta(model_time, year)

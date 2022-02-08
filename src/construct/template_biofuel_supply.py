@@ -43,7 +43,8 @@ scenarios:
 
 
 def parameterise_template(
-    path_to_biofuel_potential_mwh, path_to_biofuel_costs, scaling_factors, path_to_result
+    path_to_biofuel_potential_mwh, path_to_biofuel_costs, path_to_renewable_waste_consumption_for_chp,
+    year, scaling_factors, path_to_result
 ):
     """Applies config parameters to template files."""
 
@@ -51,6 +52,18 @@ def parameterise_template(
         pd.read_csv(path_to_biofuel_potential_mwh, index_col=0, squeeze=True)
         .fillna(0)
     )
+    renewable_waste_consumption_for_chp = (
+        util.read_tdf(path_to_renewable_waste_consumption_for_chp)
+        .xs((year, "twh"), level=("year", "unit"))
+        .mul(1e6)  # TWh -> MWh
+        .droplevel("country_code")
+    )
+    potentials = (
+        potentials
+        .sub(renewable_waste_consumption_for_chp, fill_value=0)
+        .clip(lower=0)
+    )
+
     cost = float(pd.read_csv(path_to_biofuel_costs).columns[0])
     scaling_factors["specific_costs"] = scaling_factors["monetary"] / scaling_factors["power"]
 
@@ -70,6 +83,8 @@ if __name__ == "__main__":
     parameterise_template(
         path_to_biofuel_potential_mwh=snakemake.input.biofuel_potential,
         path_to_biofuel_costs=snakemake.input.biofuel_costs,
+        path_to_renewable_waste_consumption_for_chp=snakemake.input.renewable_waste_consumption_for_chp,
         scaling_factors=snakemake.params["scaling_factors"],
+        year=int(snakemake.wildcards.year),
         path_to_result=snakemake.output[0]
     )

@@ -15,7 +15,7 @@ overrides:
                 locs: [{{ idx }}]
                 storage_cap_max: {{ storage_requirement[idx] }}  # {{ (1 / scaling_factors.energy) | unit("TWh") }}
             storage_big_{{ idx }}:
-                techs: [chp_biofuel_heat_storage_big, chp_biofuel_extraction_heat_storage_big, chp_methane_extraction_heat_storage_big, chp_methane_back_pressure_simple_heat_storage_big, chp_methane_back_pressure_combined_heat_storage_big, chp_wte_back_pressure_heat_storage_big]
+                techs: [chp_biofuel_heat_storage_big, chp_biofuel_extraction_heat_storage_big, chp_methane_extraction_heat_storage_big, chp_methane_back_pressure_simple_heat_storage_big, chp_methane_back_pressure_combined_heat_storage_big, chp_wte_back_pressure_heat_storage_big, hydrogen_heat_storage_big]
                 locs: [{{ idx }}]
                 storage_cap_max: {{ storage_requirement[idx] }}  # {{ (1 / scaling_factors.energy) | unit("TWh") }}
         {% endfor %}
