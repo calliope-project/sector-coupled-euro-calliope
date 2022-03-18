@@ -7,7 +7,6 @@ import numpy as np
 from friendly_data.converters import to_df
 from frictionless.package import Package
 
-import cartopy.crs as ccrs
 from cartopy.io import shapereader
 
 import matplotlib.pyplot as plt
@@ -26,25 +25,24 @@ COLORS = {
 }
 
 
-def plot_input_transmission(path_to_model, path_to_units, path_to_output, bounds):
-    fig = plt.figure(figsize=(15, 16))
-    gs = gridspec.GridSpec(2, 1, figure=fig, height_ratios=[20, 1], hspace=0)  # rows, columns
+def plot_input_transmission(path_to_model, path_to_units, path_to_output):
+    fig, ax = plt.subplots(
+        2, 1,
+        figsize=(15, 16),
+        gridspec_kw={"height_ratios": [20, 1], "hspace": 0}
+    )
 
-    extent = (bounds['x_min'], bounds['x_max'], bounds['y_min'], bounds['y_max'])
+    ax[0].axis("off")
 
-    ax_eu = plt.subplot(gs[0, 0])
-    ax_eu.set_extent(extent)
-    ax_eu.axis("off")  #outline_patch.set_linewidth(0)
-
-    gdf = gpd.read_file(path_to_units).to_crs("EPSG:3035")
-    plot_polygons(gdf, ax_eu, include_neighbours=True)
+    gdf = gpd.read_file(path_to_units).to_crs("EPSG:3035").set_index("id")
+    plot_polygons(gdf, ax[0], include_neighbours=True)
 
     link_caps = get_link_caps_from_input(path_to_model)
-    cap_max = link_caps.max().max()
-    add_links(link_caps, cap_max, ax_eu)
+    cap_min = link_caps.sum(axis=1).min()
+    cap_max = link_caps.sum(axis=1).max()
 
-    ax_leg = plt.subplot(gs[1, 0])
-    make_legend(ax_leg)
+    add_links(link_caps, cap_max, gdf, ax[0])
+    make_legend(ax[1], cap_min, cap_max)
 
     if path_to_output.endswith(".png"):
         kwargs = {"dpi": 300}
@@ -91,13 +89,13 @@ def plot_spores_transmission(path_to_spores, path_to_units, spores, titles, path
     smallest_line = mlines.Line2D(
         xdata=(0, 1), ydata=(0, 0),
         color=COLORS["ac"],
-        lw=1 + 1.5 * link_caps_min / link_caps_max,
+        lw=1 + 5 * link_caps_min / link_caps_max,
         label=f"+ {link_caps_min / 10} TWh"
     )
     biggest_line = mlines.Line2D(
         xdata=(0, 1), ydata=(0, 0),
         color=COLORS["ac"],
-        lw=1 + 1.5 * link_caps_max / link_caps_max,
+        lw=1 + 5 * link_caps_max / link_caps_max,
         label=f"+ {link_caps_max / 10} TWh"
     )
     ax_leg.legend(
@@ -121,6 +119,10 @@ def plot_polygons(gdf, ax, include_neighbours=True):
     gdf.dissolve('country_code').plot(
         facecolor='None', edgecolor='white', linewidth=0.5
     )
+    bounds = gdf.total_bounds
+    ax.set_ylim(bounds[1] * 0.95, bounds[3] * 1.05)
+    ax.set_xlim(bounds[0] * 0.95, bounds[2] * 1.05)
+
     if include_neighbours:
         # get country borders
         shpfilename = shapereader.natural_earth(
@@ -128,7 +130,7 @@ def plot_polygons(gdf, ax, include_neighbours=True):
         )
 
         # read the shapefile using geopandas
-        outer_gdf = gpd.read_file(shpfilename).to_crs("EPSG:3035")
+        outer_gdf = gpd.read_file(shpfilename).set_crs("EPSG:4326", inplace=True).to_crs("EPSG:3035")
 
         # read the outer country borders
         outer_gdf = outer_gdf.loc[~outer_gdf.ADM0_A3.isin(gdf.country_code.unique())]
@@ -144,9 +146,14 @@ def get_link_caps_from_input(path_to_model):
         {'loc_techs': m._model_data.loc_techs_transmission}
     ].to_pandas()
     links.index = (
-        links.index.str.split(':', expand=True).droplevel(1).rename(('to', 'tech', 'from'))
+        links
+        .index
+        .str
+        .split(':', expand=True)
+        .droplevel(1)  # empty column from splitting '::'
+        .rename(('to', 'tech', 'from'))
     )
-    return links.unstack(1)  # empty column from splitting '::'
+    return links.unstack("tech")
 
 
 def get_link_caps_from_output(path_to_spores_dpkg):
@@ -169,7 +176,7 @@ def add_links(link_caps, cap_max, gdf, ax, distinguish_ac_dc=True, width_by_cap=
     def _add_line(ax, point_from, point_to, color, lw_num, dashes=(None, None), linestyle='-'):
         ax.add_line(mlines.Line2D(
             xdata=(point_from[0], point_to[0]), ydata=(point_from[1], point_to[1]),
-            color=color, lw=1 + 1.5 * lw_num / cap_max,
+            color=color, lw=1 + 5 * lw_num / cap_max,
             linestyle=linestyle, dashes=dashes
         ))
 
@@ -199,6 +206,15 @@ def add_links(link_caps, cap_max, gdf, ax, distinguish_ac_dc=True, width_by_cap=
 
         cap_ac = cap.filter(regex='ac_').sum(min_count=1)
         cap_dc = cap.filter(regex='dc_').sum(min_count=1)
+        cap_all = cap.sum(min_count=1)
+        print(cap_all)
+        if width_by_cap:
+            lw = cap_all
+        else:
+            lw = 0.5
+        if np.isnan(cap_all) or cap_all == 0:
+            continue
+        print(lw)
         if distinguish_ac_dc:
             if ~np.isnan(cap_dc) and ~np.isnan(cap_ac):
                 _add_line(
@@ -222,13 +238,6 @@ def add_links(link_caps, cap_max, gdf, ax, distinguish_ac_dc=True, width_by_cap=
                     lw_num=cap_dc,
                 )
         else:
-            cap_all = cap.sum(min_count=1)
-            if np.isnan(cap_all) or cap_all == 0:
-                continue
-            if width_by_cap:
-                lw = cap_all
-            else:
-                lw = 0.5
             _add_line(
                 ax, point_from, point_to,
                 color=_get_line_color("ac", link),
@@ -238,8 +247,19 @@ def add_links(link_caps, cap_max, gdf, ax, distinguish_ac_dc=True, width_by_cap=
         links_completed.append(sorted(link))
 
 
-def make_legend(ax):
+def make_legend(ax, link_caps_min, link_caps_max):
+    print("making legend")
     ax.axis('off')
+    smallest_line = mlines.Line2D(
+        xdata=(0, 1), ydata=(0, 0),
+        color=COLORS['outer'], linestyle='-',
+        lw=1 + 5 * link_caps_min / link_caps_max
+    )
+    biggest_line = mlines.Line2D(
+        xdata=(0, 1), ydata=(0, 0),
+        color=COLORS['outer'], linestyle='-',
+        lw=1 + 5 * link_caps_max / link_caps_max
+    )
     _handles = [
         mlines.Line2D(xdata=[0, 1], ydata=[0, 1], color=COLORS['ac'], linestyle='-'),
         mlines.Line2D(xdata=[0, 1], ydata=[0, 1], color=COLORS['dc'], linestyle='-'),
@@ -247,26 +267,26 @@ def make_legend(ax):
                        color=COLORS['ac'], linestyle='-', dashes=(10, 1)),
          mlines.Line2D(xdata=[0, 1], ydata=[0, 1],
                        color=COLORS['dc'], linestyle='--', dashes=(5, 4))),
-        mlines.Line2D(xdata=[0, 1], ydata=[0, 1], color=COLORS['outer'], linestyle='-'),
+        smallest_line,
+        biggest_line,
         mpatches.Patch(facecolor=COLORS['eu_bg']),
-        mpatches.Patch(facecolor=COLORS['outer_bg']),
     ]
 
     _labels = [
         'AC transmission', 'DC transmission', 'AC and DC transmission',
-        'Transmission to/from outside model scope', 'Model region',
-        'Regions outside model scope'
+        f"Lowest initial inter-regional capacity: {link_caps_min * 100:.2f} GW",
+        f"Highest initial inter-regional capacity: {link_caps_max * 100:.2f} GW",
+        'Model region',
     ]
 
     ax.legend(
-        handles=_handles, labels=_labels, frameon=False, loc='center', fontsize=12, ncol=3
+        handles=_handles, labels=_labels, frameon=False, loc='center', fontsize=12, ncol=2
     )
 
 
 if __name__ == '__main__':
-    plot_system(
+    plot_input_transmission(
         path_to_model=snakemake.input.model,
         path_to_units=snakemake.input.units,
-        path_to_output=snakemake.output[0],
-        bounds=snakemake.params.bounds
-)
+        path_to_output=snakemake.output[0]
+    )

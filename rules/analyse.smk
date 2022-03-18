@@ -18,7 +18,7 @@ rule maps:
     message: "Creating Calliope {wildcards.resolution} map"
     input:
         src = "src/analyse/plot_transmission_map.py",
-        model = "build/{resolution}/inputs/run_2018_1H.nc",
+        model = "build/{resolution}/inputs/run_2018_2H.nc",
         units = landeligibility("build/{resolution}/units.geojson")
     params:
         bounds = config["scope"]["spatial"]["bounds"]
@@ -62,8 +62,7 @@ rule figure_2:
     input:
         src = "src/analyse/plot_gross_available_energy.py",
         energy_balances = "build/annual_energy_balances.csv",
-        spores = "build/eurospores/shared_spores",
-
+        spores = "build/eurospores/shared_spores_metrics",
     params:
         countries = config["scope"]["spatial"]["countries"],
         model_year = config["plot-year"]
@@ -75,28 +74,50 @@ rule figure_2:
 rule spores_result_metrics:
     message: "Get {wildcards.resolution} {wildcards.spore_dir} slack{wildcards.slack} {wildcards.spore}.nc high-level metrics"
     input:
-        src = "src/analyse/spores_metrics.py",
-        src_util = "src/analyse/visualisation_util.py",
-        cost_opt_model = "build/{resolution}/spores_2h{slack}/{spore_dir}/spore_0.nc",
-        spore = "build/{resolution}/spores_2h{slack}/{spore_dir}/{spore}.nc",
-        technical_potential_area=landeligibility("build/{resolution}/technical-potential/areas.csv"),
-        technical_potential_protected_area=landeligibility("build/{resolution}/technical-potential-protected/areas.csv")
-    params: config = config
+        src = "src/analyse/result_to_friendly.py",
+        input_model = "build/{resolution}/spores_2h{slack}/{spore_dir}/spore_0.nc",
+        model_result = "build/{resolution}/spores_2h{slack}/{spore_dir}/{spore}.nc",
+        annual_demand = "build/{resolution}/annual-demand.csv",
+        industry_demand = "build/annual_industry_energy_demand.csv.old",
+        cfs = lambda wildcards: glob.glob(f"build/model/{wildcards.resolution}/capacityfactors-*.csv")
+    params:
+        initial_keywords = ["SPORES", "Subnational"],
+        name = "calliope-subnational-spores-2050-carbon-neutral",
+        description = "Sector-coupled Euro-Calliope SPORES outputs",
+        year = 2018,
+        scenario = 1,
+        scenario_dim_name = "spore"
     conda: "../envs/analyse.yaml"
     output: directory("build/{resolution}/spores_2h{slack,.*}_metrics/{spore_dir}/{spore}")
-    script: "../src/analyse/spores_metrics.py"
+    script: "../src/analyse/result_to_friendly.py"
+
+
+rule cost_opt_result_metrics:
+    message: "Get {wildcards.resolution} {wildcards.model_resolution}H resolution cost optimal model high-level metrics for weather year {wildcards.year}"
+    input:
+        src = "src/analyse/result_to_friendly.py",
+        model_result = "build/{resolution}/outputs/run_{year}_{model_resolution}H.nc",
+        input_model = "build/{resolution}/inputs/run_{year}_{model_resolution}H.nc",
+        annual_demand = "build/{resolution}/annual-demand.csv",
+        industry_demand = "build/annual_industry_energy_demand.csv.old",
+        cfs = lambda wildcards: glob.glob(f"build/model/{wildcards.resolution}/capacityfactors-*.csv")
+    params:
+        initial_keywords = ["cost-optimal", "Subnational"],
+        name = "calliope-subnational-cost-optimal-2050-carbon-neutral",
+        description = "Sector-coupled Euro-Calliope Cost optimal outputs",
+        year = lambda wildcards: wildcards.year,
+        scenario = lambda wildcards: wildcards.year,
+        scenario_dim_name = "weather_year"
+    conda: "../envs/analyse.yaml"
+    output: directory("build/{resolution}/cost_opt/{year}_{model_resolution}H")
+    script: "../src/analyse/result_to_friendly.py"
 
 
 rule consolidate_spores_result_metrics:
     message: "Consolidate {wildcards.scenario} scenario, slack{wildcards.slack} {wildcards.resolution} SPORES into high-level metrics"
     input:
         src = "src/analyse/consolidate_spores.py",
-        cost_optimal_model = lambda wildcards: "build/{0}/spores_2h_metrics/{1}-industry_fuel_{2},spores_electricity/spore_0".format(
-            wildcards.resolution,
-            1 if wildcards.scenario == "isolated" else 2,
-            wildcards.scenario
-        ),
-        spores = lambda wildcards: expand(
+        all_friendly_files = lambda wildcards: expand(
             f"build/{wildcards.resolution}/spores_2h{wildcards.slack}_metrics/{{spore}}",
             spore=[
                 i.split(f"spores_2h{wildcards.slack}/")[1].replace(".nc", "")
@@ -104,6 +125,47 @@ rule consolidate_spores_result_metrics:
                 if "spore_0.nc" not in i
             ]
         )
+    params:
+        initial_keywords = ["SPORES", "Subnational"],
+        name = "calliope-subnational-spores-2050-carbon-neutral",
+        description = "Sector-coupled Euro-Calliope SPORES outputs",
     conda: "../envs/analyse.yaml"
-    output: directory("build/{resolution}/{scenario}_spores{slack,.*}")
+    output:
+        friendly_data = directory("build/{resolution}/{scenario}_spores{slack,.*}_metrics"),
+        processed_spores = "build/{resolution}/{scenario}_spores{slack,.*}_list.csv"
     script: "../src/analyse/consolidate_spores.py"
+
+
+rule consolidate_cost_opt_metrics:
+    message: "Consolidate all years cost optimal {wildcards.resolution} {wildcards.model_resolution} results into high-level metrics"
+    input:
+        src = "src/analyse/consolidate_cost_opt.py",
+        all_friendly_files = expand(
+            "build/{{resolution}}/cost_opt/{year}_{{model_resolution}}H",
+            year=range(config["scope"]["temporal"]["first-year"],
+            config["scope"]["temporal"]["final-year"] + 1)
+        ),
+    params:
+        initial_keywords = ["cost-optmal", "Subnational"],
+        name = "calliope-subnational-cost-opt-2050-carbon-neutral",
+        description = "Sector-coupled Euro-Calliope cost optimal outputs",
+    conda: "../envs/analyse.yaml"
+    output:
+        friendly_data = directory("build/{resolution}/cost_opt_metrics_{model_resolution}H"),
+    script: "../src/analyse/consolidate_cost_opt.py"
+
+
+rule plot_map_metrics:
+    message: "Plot {wildcards.spore} map metrics for interactive visualisation"
+    input:
+        src = "src/analyse/plot_spores_map_metrics.py",
+        friendly_data = "build/eurospores/shared_spores",
+        units = landeligibility("build/eurospores/units.geojson"),
+        unit_groups = "data/plotting_unit_groups.csv",
+    conda: "../envs/analyse.yaml"
+    output: "build/figures/map_fig/{spore}.jpg"
+    script: "../src/analyse/plot_spores_map_metrics.py"
+
+rule plot_all_map_metrics:
+    message: "Plot all SPORES map metrics for interactive visualisation"
+    input: expand("build/figures/map_fig/{spore}.jpg", spore=range(1, 441))

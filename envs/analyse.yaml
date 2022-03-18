@@ -2,17 +2,14 @@ name: analyse
 channels:
     - conda-forge
 dependencies:
-    - python=3.7
-    - numpy
-    - pandas=1.2
-    - xarray=0.17
+    - python=3.8
     - cartopy
-    - calliope=0.6.7
+    - calliope=0.6.8
     - geopandas
     - matplotlib
     - seaborn
-    - pip=19.2.3
+    - pip=19.3.1
     - pycountry=19.8.18
     - netcdf4
     - pip:
-        - git+https://github.com/brynpickering/friendly-calliope.git@8f324674f99bd2c5299e9224756d2a683044e37d
+        - git+https://github.com/brynpickering/friendly-calliope.git@285e57f12b9ea2b6fd6f0d9eea0056a474f7948b

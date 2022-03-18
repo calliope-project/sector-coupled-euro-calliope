@@ -19,7 +19,7 @@ ENERGY_BALANCE_GROUPS = {
     "P1000": "Other fossils",
     'G3000': "Natural gas",
     'W6100_6220': "Waste",
-    'N900H': 'Nuclear',
+    'N900H': 'Nuclear heat',
     '^O4000.*$': "Oil",
     'S2000': "Oil",
     "^RA1.*$|^RA2.*$|^RA3.*$|^RA4.*$|^RA5.*$": 'Renewables',
@@ -31,7 +31,7 @@ ENERGY_PRODUCERS = {
     "biofuel_supply": "Biofuels",
     "hydro_reservoir": "Renewables",
     "hydro_run_of_river": "Renewables",
-    "nuclear": "Nuclear",
+    "nuclear": "Nuclear heat",
     "open_field_pv": "Renewables",
     "roof_mounted_pv": "Renewables",
     "wind_offshore": "Renewables",
@@ -42,7 +42,7 @@ COLORS = {
     "Oil": "#5d5d5d",
     "Natural gas": "#b9b9b9",
     "Other fossils": "#181818",
-    "Nuclear": "#cc0000",
+    "Nuclear heat": "#cc0000",
     "Biofuels": "#8fce00",
     "Renewables": "#2986cc",
     "Waste": "#ce7e00",
@@ -50,7 +50,7 @@ COLORS = {
     "Electricity": "#2986cc"
 }
 
-NUCLEAR_HEAT_MUTIPLIER = 3  # Eurostat uses a multiplier of 3 to go from nuclear power to nuclear heat
+NUCLEAR_HEAT_MUTIPLIER = 0.4  # We need to account for going from Nuclear electricity output to Nuclear Heat, using the technology efficiency
 
 
 def plot_energy_bars(
@@ -134,29 +134,30 @@ def get_input_energy(path_to_energy_balances, countries, model_year):
         .sort_values(ascending=False)
         .apply(util.tj_to_twh)
     )
-    grouped_gross_avail_energy.loc["Nuclear"] /= NUCLEAR_HEAT_MUTIPLIER
+
     country_subselection = gross_avail_energy.dropna(how="all", axis=1).columns
     return country_subselection, grouped_gross_avail_energy
 
 
-def get_output_energy(path_to_spores_dpkg, country_subselection):
-    spores_datapackage = Package(
-        os.path.join(path_to_spores_dpkg, "spores", "datapackage.json")
-    )
-    spores_data_dicts = {
-        resource["name"]: to_df(resource).squeeze().unstack("scenario")
-        for resource in spores_datapackage["resources"]
-    }
+def get_output_energy(path_to_spores_data, country_subselection):
+
     countries = "|".join([util.get_alpha3(i) for i in country_subselection])
-    flow_out = spores_data_dicts["flow_out_sum"]
-    flow_out_summed = (
-        flow_out[flow_out.index.get_level_values("region").str.contains(countries)]
-        .sum(level=["technology", "carriers"])
-        .groupby(ENERGY_PRODUCERS, level="technology").sum()
+    primary_supply = pd.read_csv(
+        os.path.join(path_to_spores_data, "data", "primary_energy_supply.csv")
     )
-    smallest_spore = flow_out_summed.sum().idxmin()
-    biggest_spore = flow_out_summed.sum().idxmax()
-    return flow_out_summed[smallest_spore], flow_out_summed[biggest_spore]
+    primary_supply = primary_supply.set_index(list(primary_supply.columns[:-1])).squeeze()
+    primary_supply_summed = (
+        primary_supply[primary_supply.index.get_level_values("locs").str.contains(countries)]
+        .sum(level=["carriers", "spore"])
+        .drop("Net electricity import", level="carriers", errors="ignore")
+        .unstack("spore")
+        .rename({"Renewable electricity": "Renewables", "Nuclear electricity": "Nuclear heat"})
+    )
+    primary_supply_summed.loc["Nuclear heat"] /= NUCLEAR_HEAT_MUTIPLIER
+
+    smallest_spore = primary_supply_summed.sum().idxmin()
+    biggest_spore = primary_supply_summed.sum().idxmax()
+    return primary_supply_summed[smallest_spore], primary_supply_summed[biggest_spore]
 
 
 if __name__ == "__main__":

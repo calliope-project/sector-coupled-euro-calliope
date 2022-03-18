@@ -18,6 +18,12 @@ CMAPS = {
     'Building heat': 'Oranges', #'OrRd'
     'Synthetic fuel': 'YlGnBu',
 }
+SUBTITLES = {
+    'Electricity': "(appliances, cooling, rail, industry processes)",
+    'Synthetic fuel': "(industry processes & feedstocks, marine, aviation)",
+    'Building heat': "(space heating, hot water, cooking)",
+    'Road vehicle mileage': "(passenger, commercial, freight)",
+}
 TIMESERIES_COLORS = {
     'Synthetic fuel': '#a1dab4',
     'Building heat': '#fdae61',
@@ -29,7 +35,7 @@ TIMESERIES_COLORS = {
 GDF_SIMPLIFY = 0.01
 
 plt.rcParams.update({
-    "svg.fonttype": 'none'
+    "svg.fonttype": 'none',
 })
 
 
@@ -71,7 +77,7 @@ def plot_figure_1(
             .sum(level='id')
             / energy_scaling_factor
         ),
-        ('Road vehicle mileage', 'billion vehicle km'): (
+        ('Road vehicle mileage', 'Billion vehicle km'): (
             mean_annual_demand
             .loc[idx["transport_demand", :, :, ['motorcycle', 'bus', 'ldv', 'hdv', 'passenger_car']]]
             .sum(level='id')
@@ -95,7 +101,7 @@ def plot_figure_1(
         current_electricity_demand
         .sum(axis=1)
         .div(-1 * 10)
-        .rename('Current electricity load')
+        .rename('Actual 2018 electricity load profile')
         .rename_axis(None)
         .loc[str(model_year)]
     )
@@ -109,7 +115,7 @@ def plot_figure_1(
         fig = plt.figure(figsize=(15, 10))
         g = plt.GridSpec(
             nrows=5, ncols=ncols, figure=fig,
-            height_ratios=[1, 10, 1, 6, 2], hspace=0.1
+            height_ratios=[1, 10, 1, 6, 2], hspace=0.1, wspace=0.25
         )
         spatial_axes = {}
         spatial_axes['spatial_title'] = plt.subplot(g[0, :], frameon=False)
@@ -139,9 +145,9 @@ def plot_figure_1(
         plot_annual_bar(annual_total_axes, figure_data_df.sum())
 
         timeseries_axes = {
-            'Title': plt.subplot(g[-3, 1 + int(ncols / 4):], frameon=False),
-            'Plot': plt.subplot(g[-2, 3 + int(ncols / 4):ncols], frameon=False),
-            'Legend': plt.subplot(g[-1, 1 + int(ncols / 4):], frameon=False),
+            'Title': plt.subplot(g[-3, 2 + int(ncols / 4):], frameon=False),
+            'Plot': plt.subplot(g[-2, 4 + int(ncols / 4):ncols], frameon=False),
+            'Legend': plt.subplot(g[-1, 2 + int(ncols / 4):], frameon=False),
         }
         plot_timeseries(timeseries_axes, timeseries, current_timeseries)
 
@@ -156,7 +162,7 @@ def plot_figure_1(
 def plot_spatial(plot_gdf, axes, figure_data_df):
     national_gdf = plot_gdf.dissolve("country_code")
     axes['spatial_title'].axis('off')
-    axes['spatial_title'].set_title('a. Regional annual demand', fontweight='bold', loc='left', y=0.5)
+    axes['spatial_title'].set_title('a. Regional annual service demands', fontweight='bold', loc='left', y=0.5)
     for col in figure_data_df.columns:
         axes[col].axis('off')
 
@@ -165,13 +171,24 @@ def plot_spatial(plot_gdf, axes, figure_data_df):
             legend_kwds={'label': f'{col[1]}', 'orientation': 'horizontal', 'pad': 0.03}
         )
         national_gdf.plot(fc='None', ec='black', lw=0.1, ax=axes[col], legend=False, linestyle='dashed')
+        title_fontdict = {"fontsize": 8, "fontstyle": "italic"}
         axes[col].set_title(col[0])
-
+        axes[col].text(0.5, 0.98,
+            SUBTITLES[col[0]],
+            verticalalignment="bottom", horizontalalignment="center",
+            transform=axes[col].transAxes, **title_fontdict
+        )
 
 def plot_annual_bar(axes, annual_data):
     axes['Title'].axis('off')
-    #axes['Legend'].axis('off')
-    axes['Title'].set_title('b. Total annual demand', fontweight='bold', loc='left', y=0)
+    axes['Title'].set_title(
+        'b. Total annual service demands', fontweight='bold', loc='left', y=0
+    )
+    axes['Title'].text(0.1, 0,
+        "(road vehicle mileage translated to energy\nbased on model input vehicle efficiency)",
+        verticalalignment="top", horizontalalignment="left",
+        transform=axes['Title'].transAxes, fontsize="x-small", fontweight="bold"
+    )
 
     to_plot_stacked = (
         annual_data
@@ -247,7 +264,7 @@ def plot_annual_bar(axes, annual_data):
 def plot_timeseries(axes, model_timeseries_data, current_demand):
     axes['Title'].axis('off')
     axes['Legend'].axis('off')
-    axes['Title'].set_title('c. Hourly demand', fontweight='bold', loc='left', y=0)
+    axes['Title'].set_title('c. Hourly load profiles for fixed timeseries demands', fontweight='bold', loc='left', y=0)
 
     current_demand.rolling(24 * 7, center=True).mean().plot(
         ax=axes["Plot"], lw=2, c='black', linestyle='--'
@@ -266,10 +283,16 @@ def plot_timeseries(axes, model_timeseries_data, current_demand):
                 xdata=[0, 1], ydata=[0, 1], color=TIMESERIES_COLORS[ts], linestyle='-'
             )
         )
-        labels.append(ts)
+        if ts == "Electricity":
+            labels.append("Modelled electricity demand")
+        elif ts == "Building heat":
+            labels.append("Modelled building heat demand")
+        else:
+            labels.append(ts)
 
     sns.despine(ax=axes["Plot"])
     axes["Plot"].set_ylabel('Energy demand (TWh)')
+    axes["Plot"].tick_params(axis='x',which='minor',bottom=False)
     move_legend_between_axes(axes, handles, labels)
 
 
@@ -282,7 +305,8 @@ def move_legend_between_axes(axes, handles=None, labels=None):
         loc='upper center',
         bbox_to_anchor=[0.5, 0.5],
         ncol=5,
-        frameon=False
+        frameon=False,
+        fontsize="x-small"
     )
 
 
