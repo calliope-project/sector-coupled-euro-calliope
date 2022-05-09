@@ -12,9 +12,9 @@ links:
         {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission:
             constraints:
                 energy_cap_min: {{ data * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
-        {% if link[2] == "one-way" %}
-            one_way: true
-        {% endif %}
+                {% if link[2] == "one-way" %}
+                one_way: true
+                {% endif %}
             costs.monetary.energy_cap: {{ costs["{}-{}".format(link[0], link[1].lower())] * scaling_factors.specific_costs }}  # {{ (1 / scaling_factors.specific_costs) | unit("EUR/MW") }}
         {% endif %}
         {% endfor %}
@@ -124,15 +124,11 @@ overrides:
             {% for row_id, row in gtcs.iterrows() %}
             {{ row_id[0] }},{{ row_id[1] }}.techs:
                 {% for link, data in row.iteritems() %}
-                {% if data > 0 and data <= 1000 %}
-                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 40 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
-                {% elif data > 1000 and data <= 5000 %}
-                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 10 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
-                {% elif data > 5000 and data <= 10000 %}
-                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 5 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
-                {% elif data > 10000 and data <= 15000 %}
-                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 3 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
-                {% elif data > 15000 %}
+                {% if link[0] == 'dc' and data > 0 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ (data + 10000) * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% elif data < 15000 and data > 0 %}
+                {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ (data + 15000) * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
+                {% elif data >= 15000 %}
                 {{ link[0] }}_{{ link[1].lower().replace('-', '_') }}_transmission.constraints.energy_cap_max: {{ data * 2 * scaling_factors.power }}  # {{ (1 / scaling_factors.power) | unit("MW") }}
                 {% endif %}
                 {% endfor %}
@@ -158,15 +154,17 @@ def generate_links(path_to_gtc, scaling_factors, path_to_result, resolution, cos
         result_file.write(links)
 
 
-def _read_gtcs(path_to_gtc, resolution):
+def _read_gtcs(path_to_gtc, resolution, no_long_term=False):
 
     gtcs = (
         pd.read_csv(path_to_gtc, header=0)
         .set_index(['from', 'to', 'current', 'type', 'direction'])
-        .drop('comment', axis=1)
-        .squeeze()
-        .unstack(['current', 'type', 'direction'])
     )
+    if no_long_term:
+        gtcs = gtcs["under-construction"].fillna(gtcs["value"])
+    else:
+        gtcs = gtcs["value"]
+    gtcs = gtcs.unstack(['current', 'type', 'direction'])
     if resolution == 'national':
         gtcs.index = gtcs.index.map(lambda x: tuple(i.split('_')[0] for i in x))
         # Remove internal links and sum links across the same borders
