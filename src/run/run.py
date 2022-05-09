@@ -19,6 +19,8 @@ def run_model(path_to_model, path_to_output):
     calliope.set_log_verbosity("info", include_solver_output=True, capture_warnings=True)
     model = calliope.read_netcdf(os.path.join(current_path, path_to_model))
 
+    model = update_constraint_sets(model)
+
     model.run(build_only=True)
 
     add_eurocalliope_constraints(model)
@@ -30,29 +32,170 @@ def run_model(path_to_model, path_to_output):
     new_model.to_netcdf(os.path.join(current_path, path_to_output))
 
 
+def update_constraint_sets(model):
+    if "energy_cap_max_time_varying" in model._model_data.data_vars:
+        print("Adding production_max_time_varying constraint set")
+        model._model_data.coords["loc_tech_carrier_production_max_time_varying_constraint"] = [
+            loc_tech for loc_tech in model._model_data.loc_techs.values
+            if model.inputs.energy_cap_max_time_varying.loc[{"loc_techs": loc_tech}].notnull().all()
+        ]
+        print(
+            f"{len( model._model_data.loc_tech_carrier_production_max_time_varying_constraint)}"
+            " items in set"
+        )
+        for _set in [
+            "loc_tech_carriers_carrier_production_max_constraint",
+            "loc_techs_carrier_production_max_conversion_plus_constraint"
+        ]:
+            print(f"Removing production_max_time_varying loc::techs from {_set}")
+            model._model_data.coords[_set] = [
+                loc_tech_carrier for loc_tech_carrier
+                in model._model_data[_set].values
+                if loc_tech_carrier.rsplit("::", 1)[0] not in
+                model._model_data.loc_tech_carrier_production_max_time_varying_constraint
+            ]
+
+    if "cb" in model._model_data.data_vars:
+        print("Adding chp_cb constraint set")
+
+        model._model_data.coords["loc_techs_chp_extraction_cb_constraint"] = [
+            loc_tech
+            for loc_tech in model._model_data.loc_techs_conversion_plus.values
+            if model._model_data.cb.loc[{"loc_techs": loc_tech}].notnull()
+            and (
+                "energy_cap_ratio" not in model._model_data.data_vars or
+                model._model_data.energy_cap_ratio.loc[{"loc_techs": loc_tech}].isnull()
+            )
+        ]
+        print(
+            f"{len(model._model_data.loc_techs_chp_extraction_cb_constraint)}"
+            " items in set"
+        )
+        print(
+            "Removing conversion_plus loc::techs from "
+            "loc_techs_balance_conversion_plus_out_2_constraint"
+        )
+        model._model_data.coords["loc_techs_balance_conversion_plus_out_2_constraint"] = [
+            loc_tech for loc_tech
+            in model._model_data.loc_techs_balance_conversion_plus_out_2_constraint.values
+            if loc_tech not in
+            model._model_data.loc_techs_chp_extraction_cb_constraint
+        ]
+
+    if "cv" in model._model_data.data_vars:
+        print("Adding chp_cv constraint set")
+        model._model_data.coords["loc_techs_chp_extraction_cv_constraint"] = [
+            loc_tech
+            for loc_tech in model._model_data.loc_techs_conversion_plus.values
+            if model._model_data.cv.loc[{"loc_techs": loc_tech}].notnull()
+        ]
+
+        print(
+            f"{len(model._model_data.loc_techs_chp_extraction_cv_constraint)}"
+            " items in set"
+        )
+        print(
+            "Removing conversion_plus loc::techs from "
+            "loc_techs_balance_conversion_plus_out_2_constraint"
+        )
+        model._model_data.coords["loc_techs_balance_conversion_plus_out_2_constraint"] = [
+            loc_tech for loc_tech
+            in model._model_data.loc_techs_balance_conversion_plus_out_2_constraint.values
+            if loc_tech not in
+            model._model_data.loc_techs_chp_extraction_cv_constraint
+        ]
+
+    if "energy_cap_ratio" in model._model_data.data_vars and "cb" in model._model_data.data_vars:
+        print("Adding chp_p2h constraint set")
+        model._model_data.coords["loc_techs_chp_extraction_p2h_constraint"] = [
+            loc_tech
+            for loc_tech in model._model_data.loc_techs_conversion_plus.values
+            if model._model_data.cb.loc[{"loc_techs": loc_tech}].notnull()
+            and (
+                "energy_cap_ratio" in model._model_data.data_vars and
+                model._model_data.energy_cap_ratio.loc[{"loc_techs": loc_tech}].notnull()
+            )
+        ]
+
+        print(
+            f"{len(model._model_data.loc_techs_chp_extraction_p2h_constraint)}"
+            " items in set"
+        )
+
+    if any(var.startswith("capacity_factor") for var in model._model_data.data_vars):
+        print("Adding capacity_factor constraint set")
+
+        model._model_data.coords["loc_tech_carriers_capacity_factor_min_constraint"] = [
+            loc_tech
+            for loc_tech in model._model_data.loc_techs.values
+            if model._model_data.capacity_factor_min.loc[{"loc_techs": loc_tech}].notnull()
+        ]
+        model._model_data.coords["loc_tech_carriers_capacity_factor_max_constraint"] = [
+            loc_tech
+            for loc_tech in model._model_data.loc_techs.values
+            if model._model_data.capacity_factor_max.loc[{"loc_techs": loc_tech}].notnull()
+        ]
+        print(
+            f"{len(model._model_data.loc_tech_carriers_capacity_factor_min_constraint)}"
+            " items in set"
+        )
+
+    if any(var.startswith("carrier_prod_per_month") for var in model._model_data.data_vars):
+        print("Adding carrier_prod_per_month constraint set")
+        model._model_data.coords["months"] =np.unique(
+            model._model_data.timesteps.dt.month.values
+        )
+
+        model._model_data["month_numbers"] = model._model_data.timesteps.dt.month
+        model._model_data["month_numbers"].attrs["is_result"] = 0
+
+        for sense in ["min", "equals", "max"]:
+            if f"carrier_prod_per_month_{sense}_time_varying" in model._model_data.data_vars:
+                model._model_data.coords[
+                    f"loc_techs_carrier_prod_per_month_{sense}_constraint"
+                ] = [
+                    loc_tech
+                    for loc_tech in model._model_data.loc_techs.values
+                    if (
+                        model
+                        ._model_data[f"carrier_prod_per_month_{sense}_time_varying"]
+                        .loc[{"loc_techs": loc_tech}]
+                        .notnull()
+                        .all()
+                    )
+                ]
+                print(
+                    len(model._model_data[
+                        f'loc_techs_carrier_prod_per_month_{sense}_constraint'
+                    ]),
+                    f" items in {sense} set"
+                )
+
+    return model
+
+
 def add_eurocalliope_constraints(model):
-    backend_model = model._backend_model
     if "energy_cap_max_time_varying" in model._model_data.data_vars:
         print("Building production_max_time_varying constraint")
-        add_production_max_time_varying_constraint(model, backend_model)
+        add_production_max_time_varying_constraint(model)
     if "cb" in model._model_data.data_vars:
         print("Building chp_cb constraint")
-        add_chp_cb_constraint(model, backend_model)
+        add_chp_cb_constraint(model)
     if "cv" in model._model_data.data_vars:
         print("Building chp_cv constraint")
-        add_chp_cv_constraint(model, backend_model)
+        add_chp_cv_constraint(model)
     if "energy_cap_ratio" in model._model_data.data_vars and "cb" in model._model_data.data_vars:
         print("Building chp_p2h constraint")
-        add_chp_p2h_constraint(model, backend_model)
+        add_chp_p2h_constraint(model)
     if any(var.startswith("capacity_factor") for var in model._model_data.data_vars):
         print("Building capacity_factor constraint")
-        add_capacity_factor_constraints(model, backend_model)
+        add_capacity_factor_constraints(model)
     if any(var.startswith("carrier_prod_per_month") for var in model._model_data.data_vars):
         print("Building carrier_prod_per_month constraint")
-        add_carrier_prod_per_month_constraints(model, backend_model)
+        add_carrier_prod_per_month_constraints(model)
     if any("distribution" in tech for tech in model._model_data.techs.values):
         print("Building fuel distribution constraint")
-        add_fuel_distribution_constraint(model, backend_model)
+        add_fuel_distribution_constraint(model)
 
 
 def equalizer(lhs, rhs, sign):
@@ -66,7 +209,7 @@ def equalizer(lhs, rhs, sign):
         raise ValueError("Invalid sign: {}".format(sign))
 
 
-def add_production_max_time_varying_constraint(model, backend_model):
+def add_production_max_time_varying_constraint(model):
 
     def _carrier_production_max_time_varying_constraint_rule(
         backend_model, loc_tech, timestep
@@ -75,13 +218,23 @@ def add_production_max_time_varying_constraint(model, backend_model):
         Set maximum carrier production for technologies with time varying maximum capacity
         """
         energy_cap_max = backend_model.energy_cap_max_time_varying[loc_tech, timestep]
+
         if invalid(energy_cap_max):
             return po.Constraint.Skip
         model_data_dict = backend_model.__calliope_model_data["data"]
         timestep_resolution = backend_model.timestep_resolution[timestep]
-        loc_tech_carriers_out = split_comma_list(
-            model_data_dict["lookup_loc_techs_conversion_plus"]["out", loc_tech]
-        )
+        if loc_tech in backend_model.loc_techs_conversion_plus:
+            loc_tech_carriers_out = split_comma_list(
+                model_data_dict["lookup_loc_techs_conversion_plus"]["out", loc_tech]
+            )
+        elif loc_tech in backend_model.loc_techs_conversion:
+            loc_tech_carriers_out = [
+                model_data_dict["lookup_loc_techs_conversion"]["out", loc_tech]
+            ]
+        else:
+            loc_tech_carriers_out = [
+                model_data_dict["lookup_loc_techs"]["out", loc_tech]
+            ]
 
         carrier_prod = sum(
             backend_model.carrier_prod[loc_tech_carrier, timestep]
@@ -91,13 +244,6 @@ def add_production_max_time_varying_constraint(model, backend_model):
             backend_model.energy_cap[loc_tech] * timestep_resolution * energy_cap_max
         )
 
-    backend_model.loc_tech_carrier_production_max_time_varying_constraint = po.Set(
-        initialize=[
-            loc_tech for loc_tech in backend_model.loc_techs_conversion_plus
-            if model.inputs.energy_cap_max_time_varying.loc[{"loc_techs": loc_tech}].notnull().all()
-        ],
-        ordered=True
-    )
     model.backend.add_constraint(
         "carrier_production_max_time_varying_constraint",
         ["loc_tech_carrier_production_max_time_varying_constraint", "timesteps"],
@@ -105,7 +251,7 @@ def add_production_max_time_varying_constraint(model, backend_model):
     )
 
 
-def add_chp_cb_constraint(model, backend_model):
+def add_chp_cb_constraint(model):
     def _chp_extraction_cb_constraint_rule(backend_model, loc_tech, timestep):
         """
         Set backpressure line for CHP plants with extraction/condensing turbine
@@ -124,18 +270,7 @@ def add_chp_cb_constraint(model, backend_model):
             backend_model.carrier_prod[loc_tech_carrier_out_2, timestep]
             * power_to_heat_ratio
         )
-    backend_model.loc_techs_chp_extraction_cb_constraint = po.Set(
-        initialize=[
-            loc_tech
-            for loc_tech in backend_model.loc_techs_conversion_plus
-            if model._model_data.cb.loc[{"loc_techs": loc_tech}].notnull()
-            and (
-                "energy_cap_ratio" not in model._model_data.data_vars or
-                model._model_data.energy_cap_ratio.loc[{"loc_techs": loc_tech}].isnull()
-            )
-        ],
-        ordered=True
-    )
+
     model.backend.add_constraint(
         "chp_extraction_cb_constraint",
         ["loc_techs_chp_extraction_cb_constraint", "timesteps"],
@@ -143,7 +278,7 @@ def add_chp_cb_constraint(model, backend_model):
     )
 
 
-def add_chp_cv_constraint(model, backend_model):
+def add_chp_cv_constraint(model):
     def _chp_extraction_cv_constraint_rule(backend_model, loc_tech, timestep):
         """
         Set extraction line for CHP plants with extraction/condensing turbine
@@ -163,14 +298,7 @@ def add_chp_cv_constraint(model, backend_model):
             - backend_model.carrier_prod[loc_tech_carrier_out_2, timestep]
             * power_loss_factor
         )
-    backend_model.loc_techs_chp_extraction_cv_constraint = po.Set(
-        initialize=[
-            loc_tech
-            for loc_tech in backend_model.loc_techs_conversion_plus
-            if model._model_data.cv.loc[{"loc_techs": loc_tech}].notnull()
-        ],
-        ordered=True
-    )
+
     model.backend.add_constraint(
         "chp_extraction_cv_constraint",
         ["loc_techs_chp_extraction_cv_constraint", "timesteps"],
@@ -178,7 +306,7 @@ def add_chp_cv_constraint(model, backend_model):
     )
 
 
-def add_chp_p2h_constraint(model, backend_model):
+def add_chp_p2h_constraint(model):
     def _chp_extraction_p2h_constraint_rule(backend_model, loc_tech, timestep):
         """
         Set power-to-heat tail for CHPs that allow trading off power output for heat
@@ -203,18 +331,6 @@ def add_chp_p2h_constraint(model, backend_model):
                 - backend_model.carrier_prod[loc_tech_carrier_out_2, timestep]
             )
         )
-    backend_model.loc_techs_chp_extraction_p2h_constraint = po.Set(
-        initialize=[
-            loc_tech
-            for loc_tech in backend_model.loc_techs_conversion_plus
-            if model._model_data.cb.loc[{"loc_techs": loc_tech}].notnull()
-            and (
-                "energy_cap_ratio" in model._model_data.data_vars and
-                model._model_data.energy_cap_ratio.loc[{"loc_techs": loc_tech}].notnull()
-            )
-        ],
-        ordered=True
-    )
 
     model.backend.add_constraint(
         "chp_extraction_p2h_constraint",
@@ -223,7 +339,7 @@ def add_chp_p2h_constraint(model, backend_model):
     )
 
 
-def add_capacity_factor_constraints(model, backend_model):
+def add_capacity_factor_constraints(model):
 
     def _capacity_factor_min_constraint_rule(backend_model, loc_tech):
         """
@@ -262,22 +378,6 @@ def add_capacity_factor_constraints(model, backend_model):
         )
         return equalizer(lhs, rhs, sense)
 
-    backend_model.loc_tech_carriers_capacity_factor_min_constraint = po.Set(
-        initialize=[
-            loc_tech
-            for loc_tech in backend_model.loc_techs
-            if model._model_data.capacity_factor_min.loc[{"loc_techs": loc_tech}].notnull()
-        ],
-        ordered=True
-    )
-    backend_model.loc_tech_carriers_capacity_factor_max_constraint = po.Set(
-        initialize=[
-            loc_tech
-            for loc_tech in backend_model.loc_techs
-            if model._model_data.capacity_factor_max.loc[{"loc_techs": loc_tech}].notnull()
-        ],
-        ordered=True
-    )
     model.backend.add_constraint(
         "capacity_factor_min_constraint",
         ["loc_tech_carriers_capacity_factor_min_constraint"],
@@ -290,7 +390,7 @@ def add_capacity_factor_constraints(model, backend_model):
     )
 
 
-def add_carrier_prod_per_month_constraints(model, backend_model):
+def add_carrier_prod_per_month_constraints(model):
 
     def _carrier_prod_per_month_constraint_rule_generator(sense):
         def __carrier_prod_per_month_constraint_rule(backend_model, loc_tech, month):
@@ -335,48 +435,17 @@ def add_carrier_prod_per_month_constraints(model, backend_model):
             return equalizer(prod_month, prod_total * prod_fraction, sense)
         return __carrier_prod_per_month_constraint_rule
 
-    backend_model.months = po.Set(
-        initialize=np.unique(model._model_data.timesteps.dt.month.values), ordered=True
-    )
-    month_numbers = model._model_data.timesteps.dt.month.to_series()
-    month_numbers.index = month_numbers.index.strftime("%Y-%m-%d %H:%M")
-
-    backend_model.month_numbers = po.Param(
-        backend_model.timesteps,
-        initialize=month_numbers.to_dict(),
-        mutable=True,
-        within=po.Reals,
-    )
-    backend_model.__calliope_datetime_data.add(("data_vars", "month_numbers"))
 
     for sense in ["min", "max", "equals"]:
         if f"carrier_prod_per_month_{sense}_time_varying" in model._model_data.data_vars:
-            setattr(
-                backend_model,
-                f"loc_techs_carrier_prod_per_month_{sense}",
-                po.Set(
-                    initialize=[
-                        loc_tech
-                        for loc_tech in backend_model.loc_techs
-                        if (
-                            model
-                            ._model_data[f"carrier_prod_per_month_{sense}_time_varying"]
-                            .loc[{"loc_techs": loc_tech}]
-                            .notnull()
-                            .all()
-                        )
-                    ],
-                    ordered=True
-                )
-            )
             model.backend.add_constraint(
                 f"carrier_prod_per_month_{sense}_constraint",
-                [f"loc_techs_carrier_prod_per_month_{sense}", "months"],
+                [f"loc_techs_carrier_prod_per_month_{sense}_constraint", "months"],
                 _carrier_prod_per_month_constraint_rule_generator(sense),
             )
 
 
-def add_fuel_distribution_constraint(model, backend_model):
+def add_fuel_distribution_constraint(model):
     def _fuel_distribution_constraint_rule(backend_model, carrier):
         tech_import = f"{carrier}_distribution_import"
         tech_export = f"{carrier}_distribution_export"
