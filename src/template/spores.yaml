@@ -18,10 +18,6 @@ overrides:
         run.solver: gurobi_persistent
         run.objective_options.cost_class: {monetary: 1, spores_score: 0, excl_score: 0}
         techs:
-            roof_mounted_pv.costs.excl_score: {energy_cap: 0, interest_rate: 0}
-            wind_onshore_monopoly.costs.excl_score: {energy_cap: 0, interest_rate: 0}
-            wind_onshore_competing.costs.excl_score: {energy_cap: 0, interest_rate: 0}
-            wind_offshore.costs.excl_score: {energy_cap: 0, interest_rate: 0}
             biofuel_supply.costs.excl_score: {energy_cap: 0, interest_rate: 0}
             electrolysis.costs.excl_score: {energy_cap: 0, interest_rate: 0}
             dac.costs.excl_score: {energy_cap: 0, interest_rate: 0}
@@ -36,9 +32,35 @@ overrides:
             dc_underground_transmission.costs.excl_score: {energy_cap: 0, interest_rate: 0}
             ac_ohl_transmission.costs.excl_score: {energy_cap: 0, interest_rate: 0}
             ac_ohl_mountain_transmission.costs.excl_score: {energy_cap: 0, interest_rate: 0}
+            syn_diesel_converter:
+                constraints.lifetime: 1
+                costs.excl_score: {energy_cap: 0, interest_rate: 0}
+            syn_methane_converter:
+                constraints.lifetime: 1
+                costs.excl_score: {energy_cap: 0, interest_rate: 0}
+            syn_kerosene_converter:
+                constraints.lifetime: 1
+                costs.excl_score: {energy_cap: 0, interest_rate: 0}
+            syn_methanol_converter:
+                constraints.lifetime: 1
+                costs.excl_score: {energy_cap: 0, interest_rate: 0}
+            syn_diesel_distribution_import:
+                constraints.lifetime: 1
+                costs.excl_score: {energy_cap: 0, interest_rate: 0}
+            syn_methane_distribution_import:
+                constraints.lifetime: 1
+                costs.excl_score: {energy_cap: 0, interest_rate: 0}
+            syn_kerosene_distribution_import:
+                constraints.lifetime: 1
+                costs.excl_score: {energy_cap: 0, interest_rate: 0}
+            syn_methanol_distribution_import:
+                constraints.lifetime: 1
+                costs.excl_score: {energy_cap: 0, interest_rate: 0}
         tech_groups:
             heat_storage_small.costs.excl_score: {energy_cap: 0, interest_rate: 0}
             heat_storage_big.costs.excl_score: {energy_cap: 0, interest_rate: 0}
+            pv.costs.excl_score: {energy_cap: 0, interest_rate: 0}
+            wind.costs.excl_score: {energy_cap: 0, interest_rate: 0}
 
     spores_tech_exclusion_config:
         run.spores_options.objective_cost_class: {spores_score: 1, excl_score: 10, monetary: 0}
@@ -90,6 +112,7 @@ overrides:
             chp_biofuel_extraction.costs.spores_score: {energy_cap: 0, interest_rate: 0}
             chp_methane_extraction.costs.spores_score: {energy_cap: 0, interest_rate: 0}
             chp_wte_back_pressure.costs.spores_score: {energy_cap: 0, interest_rate: 0}
+            chp_hydrogen.costs.spores_score: {energy_cap: 0, interest_rate: 0}
     spores_score_heat_storage:
         tech_groups:
             heat_storage_small.costs.spores_score: {energy_cap: 0, interest_rate: 0}
