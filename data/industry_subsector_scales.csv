@@ -1,0 +1,771 @@
+subsector,id,year,0
+Chemicals Industry,ALB,2030.0,1.1895881895881897
+Chemicals Industry,AUT,2030.0,1.1929824561403508
+Chemicals Industry,BEL,2030.0,1.142857142857143
+Chemicals Industry,BGR,2030.0,1.3333333333333335
+Chemicals Industry,BIH,2030.0,1.1895881895881897
+Chemicals Industry,CHE,2030.0,1.1341478334199364
+Chemicals Industry,CYP,2030.0,1.0
+Chemicals Industry,CZE,2030.0,1.1578947368421053
+Chemicals Industry,DEU,2030.0,1.1952380952380952
+Chemicals Industry,DNK,2030.0,1.3018867924528301
+Chemicals Industry,ESP,2030.0,1.2
+Chemicals Industry,EST,2030.0,1.0
+Chemicals Industry,FIN,2030.0,1.0612244897959184
+Chemicals Industry,FRA,2030.0,1.0797266514806378
+Chemicals Industry,GBR,2030.0,1.1479500891265597
+Chemicals Industry,GRC,2030.0,1.0
+Chemicals Industry,HRV,2030.0,1.1111111111111112
+Chemicals Industry,HUN,2030.0,1.2307692307692308
+Chemicals Industry,IRL,2030.0,1.204892966360856
+Chemicals Industry,ISL,2030.0,1.2143704274162497
+Chemicals Industry,ITA,2030.0,1.1274787535410764
+Chemicals Industry,LTU,2030.0,1.076923076923077
+Chemicals Industry,LUX,2030.0,1.3333333333333333
+Chemicals Industry,LVA,2030.0,2.0
+Chemicals Industry,MKD,2030.0,1.1895881895881897
+Chemicals Industry,MNE,2030.0,1.1895881895881897
+Chemicals Industry,NLD,2030.0,1.1854838709677418
+Chemicals Industry,NOR,2030.0,1.2143704274162497
+Chemicals Industry,POL,2030.0,1.4130434782608696
+Chemicals Industry,PRT,2030.0,1.1538461538461537
+Chemicals Industry,ROU,2030.0,1.2727272727272725
+Chemicals Industry,SRB,2030.0,1.1895881895881897
+Chemicals Industry,SVK,2030.0,1.1666666666666667
+Chemicals Industry,SVN,2030.0,1.1428571428571428
+Chemicals Industry,SWE,2030.0,1.28
+Chemicals Industry,ALB,2050.0,1.412980483568719
+Chemicals Industry,AUT,2050.0,1.4210526315789473
+Chemicals Industry,BEL,2050.0,1.5089285714285714
+Chemicals Industry,BGR,2050.0,1.3333333333333335
+Chemicals Industry,BIH,2050.0,1.412980483568719
+Chemicals Industry,CHE,2050.0,1.3793384411625713
+Chemicals Industry,CYP,2050.0,1.0
+Chemicals Industry,CZE,2050.0,1.4736842105263157
+Chemicals Industry,DEU,2050.0,1.3984126984126983
+Chemicals Industry,DNK,2050.0,1.8679245283018866
+Chemicals Industry,ESP,2050.0,1.471186440677966
+Chemicals Industry,EST,2050.0,1.0
+Chemicals Industry,FIN,2050.0,1.3061224489795917
+Chemicals Industry,FRA,2050.0,1.2665148063781322
+Chemicals Industry,GBR,2050.0,1.3903743315508021
+Chemicals Industry,GRC,2050.0,1.2941176470588236
+Chemicals Industry,HRV,2050.0,1.4444444444444444
+Chemicals Industry,HUN,2050.0,1.5384615384615385
+Chemicals Industry,IRL,2050.0,1.5657492354740061
+Chemicals Industry,ISL,2050.0,1.6446823257604928
+Chemicals Industry,ITA,2050.0,1.4730878186968839
+Chemicals Industry,LTU,2050.0,1.076923076923077
+Chemicals Industry,LUX,2050.0,1.9999999999999996
+Chemicals Industry,LVA,2050.0,2.0
+Chemicals Industry,MKD,2050.0,1.412980483568719
+Chemicals Industry,MNE,2050.0,1.412980483568719
+Chemicals Industry,NLD,2050.0,1.443548387096774
+Chemicals Industry,NOR,2050.0,1.6446823257604928
+Chemicals Industry,POL,2050.0,1.6956521739130437
+Chemicals Industry,PRT,2050.0,1.2307692307692308
+Chemicals Industry,ROU,2050.0,1.4545454545454546
+Chemicals Industry,SRB,2050.0,1.412980483568719
+Chemicals Industry,SVK,2050.0,1.3333333333333335
+Chemicals Industry,SVN,2050.0,1.4285714285714286
+Chemicals Industry,SWE,2050.0,1.76
+"Food, beverages and tobacco",ALB,2030.0,1.186452071168792
+"Food, beverages and tobacco",AUT,2030.0,1.197969543147208
+"Food, beverages and tobacco",BEL,2030.0,1.1067961165048543
+"Food, beverages and tobacco",BGR,2030.0,1.307692307692308
+"Food, beverages and tobacco",BIH,2030.0,1.186452071168792
+"Food, beverages and tobacco",CHE,2030.0,1.0940033055495713
+"Food, beverages and tobacco",CYP,2030.0,1.4999999999999998
+"Food, beverages and tobacco",CZE,2030.0,1.1297709923664123
+"Food, beverages and tobacco",DEU,2030.0,1.0980392156862746
+"Food, beverages and tobacco",DNK,2030.0,1.2954545454545454
+"Food, beverages and tobacco",ESP,2030.0,1.1111111111111112
+"Food, beverages and tobacco",EST,2030.0,1.2857142857142858
+"Food, beverages and tobacco",FIN,2030.0,1.090909090909091
+"Food, beverages and tobacco",FRA,2030.0,1.11864406779661
+"Food, beverages and tobacco",GBR,2030.0,1.0681818181818181
+"Food, beverages and tobacco",GRC,2030.0,0.923076923076923
+"Food, beverages and tobacco",HRV,2030.0,1.1063829787234045
+"Food, beverages and tobacco",HUN,2030.0,1.254901960784314
+"Food, beverages and tobacco",IRL,2030.0,1.1785714285714286
+"Food, beverages and tobacco",ISL,2030.0,1.2259478189971464
+"Food, beverages and tobacco",ITA,2030.0,1.065326633165829
+"Food, beverages and tobacco",LTU,2030.0,1.2142857142857144
+"Food, beverages and tobacco",LUX,2030.0,1.4545454545454546
+"Food, beverages and tobacco",LVA,2030.0,1.2727272727272725
+"Food, beverages and tobacco",MKD,2030.0,1.186452071168792
+"Food, beverages and tobacco",MNE,2030.0,1.186452071168792
+"Food, beverages and tobacco",NLD,2030.0,1.1632653061224492
+"Food, beverages and tobacco",NOR,2030.0,1.2259478189971464
+"Food, beverages and tobacco",POL,2030.0,1.458689458689459
+"Food, beverages and tobacco",PRT,2030.0,1.0952380952380951
+"Food, beverages and tobacco",ROU,2030.0,1.3402061855670104
+"Food, beverages and tobacco",SRB,2030.0,1.186452071168792
+"Food, beverages and tobacco",SVK,2030.0,1.3214285714285716
+"Food, beverages and tobacco",SVN,2030.0,1.0909090909090908
+"Food, beverages and tobacco",SWE,2030.0,1.2914798206278029
+"Food, beverages and tobacco",ALB,2050.0,1.4461031615980455
+"Food, beverages and tobacco",AUT,2050.0,1.5329949238578677
+"Food, beverages and tobacco",BEL,2050.0,1.4951456310679612
+"Food, beverages and tobacco",BGR,2050.0,1.6923076923076927
+"Food, beverages and tobacco",BIH,2050.0,1.4461031615980455
+"Food, beverages and tobacco",CHE,2050.0,1.2937585504633107
+"Food, beverages and tobacco",CYP,2050.0,2.0
+"Food, beverages and tobacco",CZE,2050.0,1.3282442748091603
+"Food, beverages and tobacco",DEU,2050.0,1.1610644257703082
+"Food, beverages and tobacco",DNK,2050.0,1.8409090909090906
+"Food, beverages and tobacco",ESP,2050.0,1.3378684807256238
+"Food, beverages and tobacco",EST,2050.0,1.5714285714285716
+"Food, beverages and tobacco",FIN,2050.0,1.494949494949495
+"Food, beverages and tobacco",FRA,2050.0,1.423728813559322
+"Food, beverages and tobacco",GBR,2050.0,1.1493506493506493
+"Food, beverages and tobacco",GRC,2050.0,0.9743589743589742
+"Food, beverages and tobacco",HRV,2050.0,1.446808510638298
+"Food, beverages and tobacco",HUN,2050.0,1.5294117647058825
+"Food, beverages and tobacco",IRL,2050.0,1.5000000000000002
+"Food, beverages and tobacco",ISL,2050.0,1.7307869426703508
+"Food, beverages and tobacco",ITA,2050.0,1.2964824120603016
+"Food, beverages and tobacco",LTU,2050.0,1.5000000000000002
+"Food, beverages and tobacco",LUX,2050.0,2.545454545454545
+"Food, beverages and tobacco",LVA,2050.0,1.3636363636363635
+"Food, beverages and tobacco",MKD,2050.0,1.4461031615980455
+"Food, beverages and tobacco",MNE,2050.0,1.4461031615980455
+"Food, beverages and tobacco",NLD,2050.0,1.5170068027210886
+"Food, beverages and tobacco",NOR,2050.0,1.7307869426703508
+"Food, beverages and tobacco",POL,2050.0,1.7606837606837609
+"Food, beverages and tobacco",PRT,2050.0,1.2619047619047619
+"Food, beverages and tobacco",ROU,2050.0,1.5876288659793816
+"Food, beverages and tobacco",SRB,2050.0,1.4461031615980455
+"Food, beverages and tobacco",SVK,2050.0,1.392857142857143
+"Food, beverages and tobacco",SVN,2050.0,1.2727272727272725
+"Food, beverages and tobacco",SWE,2050.0,1.8565022421524666
+Iron and steel,ALB,2030.0,1.120689655172414
+Iron and steel,AUT,2030.0,1.0909090909090908
+Iron and steel,BEL,2030.0,1.0
+Iron and steel,BGR,2030.0,1.0
+Iron and steel,BIH,2030.0,1.120689655172414
+Iron and steel,CHE,2030.0,1.015587728069794
+Iron and steel,CYP,2030.0,1.0
+Iron and steel,CZE,2030.0,1.0588235294117647
+Iron and steel,DEU,2030.0,1.1137254901960785
+Iron and steel,DNK,2030.0,1.0
+Iron and steel,ESP,2030.0,1.139784946236559
+Iron and steel,EST,2030.0,1.0
+Iron and steel,FIN,2030.0,1.125
+Iron and steel,FRA,2030.0,0.951219512195122
+Iron and steel,GBR,2030.0,0.9565217391304349
+Iron and steel,GRC,2030.0,1.0
+Iron and steel,HRV,2030.0,1.0
+Iron and steel,HUN,2030.0,1.4999999999999998
+Iron and steel,IRL,2030.0,1.0
+Iron and steel,ISL,2030.0,1.1338652482269502
+Iron and steel,ITA,2030.0,0.9818181818181819
+Iron and steel,LTU,2030.0,1.0
+Iron and steel,LUX,2030.0,1.0
+Iron and steel,LVA,2030.0,1.0
+Iron and steel,MKD,2030.0,1.120689655172414
+Iron and steel,MNE,2030.0,1.120689655172414
+Iron and steel,NLD,2030.0,1.1
+Iron and steel,NOR,2030.0,1.1338652482269502
+Iron and steel,POL,2030.0,1.3
+Iron and steel,PRT,2030.0,1.0
+Iron and steel,ROU,2030.0,1.103448275862069
+Iron and steel,SRB,2030.0,1.120689655172414
+Iron and steel,SVK,2030.0,1.176470588235294
+Iron and steel,SVN,2030.0,1.0
+Iron and steel,SWE,2030.0,1.276595744680851
+Iron and steel,ALB,2050.0,1.4492610837438424
+Iron and steel,AUT,2050.0,1.0454545454545452
+Iron and steel,BEL,2050.0,1.0555555555555556
+Iron and steel,BGR,2050.0,2.0
+Iron and steel,BIH,2050.0,1.4492610837438424
+Iron and steel,CHE,2050.0,1.0093793023491733
+Iron and steel,CYP,2050.0,1.0
+Iron and steel,CZE,2050.0,1.2941176470588236
+Iron and steel,DEU,2050.0,1.1137254901960785
+Iron and steel,DNK,2050.0,1.0
+Iron and steel,ESP,2050.0,1.311827956989247
+Iron and steel,EST,2050.0,1.0
+Iron and steel,FIN,2050.0,1.25
+Iron and steel,FRA,2050.0,0.878048780487805
+Iron and steel,GBR,2050.0,0.9130434782608696
+Iron and steel,GRC,2050.0,1.0
+Iron and steel,HRV,2050.0,1.142857142857143
+Iron and steel,HUN,2050.0,2.0
+Iron and steel,IRL,2050.0,1.0
+Iron and steel,ISL,2050.0,1.2322695035460993
+Iron and steel,ITA,2050.0,1.0363636363636364
+Iron and steel,LTU,2050.0,1.0
+Iron and steel,LUX,2050.0,1.0
+Iron and steel,LVA,2050.0,1.0
+Iron and steel,MKD,2050.0,1.4492610837438424
+Iron and steel,MNE,2050.0,1.4492610837438424
+Iron and steel,NLD,2050.0,1.2
+Iron and steel,NOR,2050.0,1.2322695035460993
+Iron and steel,POL,2050.0,1.4
+Iron and steel,PRT,2050.0,1.3333333333333335
+Iron and steel,ROU,2050.0,1.103448275862069
+Iron and steel,SRB,2050.0,1.4492610837438424
+Iron and steel,SVK,2050.0,1.0588235294117647
+Iron and steel,SVN,2050.0,1.0
+Iron and steel,SWE,2050.0,1.4468085106382977
+Machinery Equipment,ALB,2030.0,1.3418838612368025
+Machinery Equipment,AUT,2030.0,1.2177985948477752
+Machinery Equipment,BEL,2030.0,1.2681159420289854
+Machinery Equipment,BGR,2030.0,1.5384615384615383
+Machinery Equipment,BIH,2030.0,1.3418838612368025
+Machinery Equipment,CHE,2030.0,1.1579420028100973
+Machinery Equipment,CYP,2030.0,1.3333333333333333
+Machinery Equipment,CZE,2030.0,1.352112676056338
+Machinery Equipment,DEU,2030.0,1.1264755480607083
+Machinery Equipment,DNK,2030.0,1.228426395939086
+Machinery Equipment,ESP,2030.0,1.3679458239277653
+Machinery Equipment,EST,2030.0,1.4666666666666668
+Machinery Equipment,FIN,2030.0,1.1440000000000001
+Machinery Equipment,FRA,2030.0,1.2645161290322582
+Machinery Equipment,GBR,2030.0,1.2747415066469718
+Machinery Equipment,GRC,2030.0,1.0461538461538462
+Machinery Equipment,HRV,2030.0,1.176470588235294
+Machinery Equipment,HUN,2030.0,1.3900000000000001
+Machinery Equipment,IRL,2030.0,1.537037037037037
+Machinery Equipment,ISL,2030.0,1.2290459184477276
+Machinery Equipment,ITA,2030.0,1.0828343313373254
+Machinery Equipment,LTU,2030.0,1.25
+Machinery Equipment,LUX,2030.0,1.3846153846153848
+Machinery Equipment,LVA,2030.0,1.7499999999999998
+Machinery Equipment,MKD,2030.0,1.3418838612368025
+Machinery Equipment,MNE,2030.0,1.3418838612368025
+Machinery Equipment,NLD,2030.0,1.215686274509804
+Machinery Equipment,NOR,2030.0,1.2290459184477276
+Machinery Equipment,POL,2030.0,1.7117117117117118
+Machinery Equipment,PRT,2030.0,1.2066115702479339
+Machinery Equipment,ROU,2030.0,1.5583333333333333
+Machinery Equipment,SRB,2030.0,1.3418838612368025
+Machinery Equipment,SVK,2030.0,1.518248175182482
+Machinery Equipment,SVN,2030.0,1.3571428571428572
+Machinery Equipment,SWE,2030.0,1.3147113594040967
+Machinery Equipment,ALB,2050.0,1.8288039215686276
+Machinery Equipment,AUT,2050.0,1.5784543325526932
+Machinery Equipment,BEL,2050.0,2.043478260869565
+Machinery Equipment,BGR,2050.0,2.230769230769231
+Machinery Equipment,BIH,2050.0,1.8288039215686276
+Machinery Equipment,CHE,2050.0,1.4768517375422807
+Machinery Equipment,CYP,2050.0,1.9999999999999996
+Machinery Equipment,CZE,2050.0,2.0507042253521126
+Machinery Equipment,DEU,2050.0,1.2131534569983136
+Machinery Equipment,DNK,2050.0,1.634517766497462
+Machinery Equipment,ESP,2050.0,1.9435665914221218
+Machinery Equipment,EST,2050.0,1.8666666666666665
+Machinery Equipment,FIN,2050.0,1.528
+Machinery Equipment,FRA,2050.0,1.8681003584229392
+Machinery Equipment,GBR,2050.0,1.9128508124076808
+Machinery Equipment,GRC,2050.0,1.169230769230769
+Machinery Equipment,HRV,2050.0,1.8823529411764706
+Machinery Equipment,HUN,2050.0,1.77
+Machinery Equipment,IRL,2050.0,2.2037037037037037
+Machinery Equipment,ISL,2050.0,1.7220807204277697
+Machinery Equipment,ITA,2050.0,1.349301397205589
+Machinery Equipment,LTU,2050.0,1.625
+Machinery Equipment,LUX,2050.0,2.461538461538462
+Machinery Equipment,LVA,2050.0,2.0
+Machinery Equipment,MKD,2050.0,1.8288039215686276
+Machinery Equipment,MNE,2050.0,1.8288039215686276
+Machinery Equipment,NLD,2050.0,1.5147058823529411
+Machinery Equipment,NOR,2050.0,1.7220807204277697
+Machinery Equipment,POL,2050.0,2.5540540540540544
+Machinery Equipment,PRT,2050.0,1.371900826446281
+Machinery Equipment,ROU,2050.0,2.091666666666667
+Machinery Equipment,SRB,2050.0,1.8288039215686276
+Machinery Equipment,SVK,2050.0,1.9416058394160587
+Machinery Equipment,SVN,2050.0,2.0714285714285716
+Machinery Equipment,SWE,2050.0,2.003724394785847
+Non Ferrous Metals,ALB,2030.0,1.1
+Non Ferrous Metals,AUT,2030.0,1.2173913043478262
+Non Ferrous Metals,BEL,2030.0,1.0909090909090908
+Non Ferrous Metals,BGR,2030.0,1.3333333333333335
+Non Ferrous Metals,BIH,2030.0,1.1
+Non Ferrous Metals,CHE,2030.0,1.0823198820711257
+Non Ferrous Metals,CYP,2030.0,1.0
+Non Ferrous Metals,CZE,2030.0,1.0
+Non Ferrous Metals,DEU,2030.0,1.0895522388059702
+Non Ferrous Metals,DNK,2030.0,1.0
+Non Ferrous Metals,ESP,2030.0,1.0769230769230769
+Non Ferrous Metals,EST,2030.0,1.0
+Non Ferrous Metals,FIN,2030.0,1.0
+Non Ferrous Metals,FRA,2030.0,1.0833333333333335
+Non Ferrous Metals,GBR,2030.0,0.8888888888888888
+Non Ferrous Metals,GRC,2030.0,1.1666666666666667
+Non Ferrous Metals,HRV,2030.0,1.0
+Non Ferrous Metals,HUN,2030.0,1.0
+Non Ferrous Metals,IRL,2030.0,1.0
+Non Ferrous Metals,ISL,2030.0,1.0769230769230769
+Non Ferrous Metals,ITA,2030.0,1.074074074074074
+Non Ferrous Metals,LTU,2030.0,1.0
+Non Ferrous Metals,LUX,2030.0,1.0
+Non Ferrous Metals,LVA,2030.0,1.0
+Non Ferrous Metals,MKD,2030.0,1.1
+Non Ferrous Metals,MNE,2030.0,1.1
+Non Ferrous Metals,NLD,2030.0,1.25
+Non Ferrous Metals,NOR,2030.0,1.0769230769230769
+Non Ferrous Metals,POL,2030.0,1.4285714285714286
+Non Ferrous Metals,PRT,2030.0,1.0
+Non Ferrous Metals,ROU,2030.0,1.0
+Non Ferrous Metals,SRB,2030.0,1.1
+Non Ferrous Metals,SVK,2030.0,1.2
+Non Ferrous Metals,SVN,2030.0,1.0
+Non Ferrous Metals,SWE,2030.0,1.230769230769231
+Non Ferrous Metals,ALB,2050.0,1.1583333333333334
+Non Ferrous Metals,AUT,2050.0,1.3913043478260871
+Non Ferrous Metals,BEL,2050.0,1.2727272727272725
+Non Ferrous Metals,BGR,2050.0,1.3333333333333335
+Non Ferrous Metals,BIH,2050.0,1.1583333333333334
+Non Ferrous Metals,CHE,2050.0,1.1284549474847982
+Non Ferrous Metals,CYP,2050.0,1.0
+Non Ferrous Metals,CZE,2050.0,1.0
+Non Ferrous Metals,DEU,2050.0,1.1492537313432836
+Non Ferrous Metals,DNK,2050.0,1.0
+Non Ferrous Metals,ESP,2050.0,1.1538461538461537
+Non Ferrous Metals,EST,2050.0,1.0
+Non Ferrous Metals,FIN,2050.0,1.25
+Non Ferrous Metals,FRA,2050.0,1.1250000000000002
+Non Ferrous Metals,GBR,2050.0,0.8888888888888888
+Non Ferrous Metals,GRC,2050.0,1.3333333333333335
+Non Ferrous Metals,HRV,2050.0,1.0
+Non Ferrous Metals,HUN,2050.0,1.0
+Non Ferrous Metals,IRL,2050.0,1.0
+Non Ferrous Metals,ISL,2050.0,1.2115384615384617
+Non Ferrous Metals,ITA,2050.0,1.111111111111111
+Non Ferrous Metals,LTU,2050.0,1.0
+Non Ferrous Metals,LUX,2050.0,1.0
+Non Ferrous Metals,LVA,2050.0,1.0
+Non Ferrous Metals,MKD,2050.0,1.1583333333333334
+Non Ferrous Metals,MNE,2050.0,1.1583333333333334
+Non Ferrous Metals,NLD,2050.0,1.4999999999999998
+Non Ferrous Metals,NOR,2050.0,1.2115384615384617
+Non Ferrous Metals,POL,2050.0,1.7142857142857144
+Non Ferrous Metals,PRT,2050.0,2.0
+Non Ferrous Metals,ROU,2050.0,1.125
+Non Ferrous Metals,SRB,2050.0,1.1583333333333334
+Non Ferrous Metals,SVK,2050.0,1.2
+Non Ferrous Metals,SVN,2050.0,1.0
+Non Ferrous Metals,SWE,2050.0,1.3846153846153848
+Non-metallic mineral products,ALB,2030.0,1.2193040293040294
+Non-metallic mineral products,AUT,2030.0,1.1923076923076923
+Non-metallic mineral products,BEL,2030.0,1.2083333333333333
+Non-metallic mineral products,BGR,2030.0,1.3333333333333335
+Non-metallic mineral products,BIH,2030.0,1.2193040293040294
+Non-metallic mineral products,CHE,2030.0,1.1385291471021046
+Non-metallic mineral products,CYP,2030.0,1.0
+Non-metallic mineral products,CZE,2030.0,1.0857142857142856
+Non-metallic mineral products,DEU,2030.0,1.074433656957929
+Non-metallic mineral products,DNK,2030.0,1.176470588235294
+Non-metallic mineral products,ESP,2030.0,1.2098765432098766
+Non-metallic mineral products,EST,2030.0,2.0
+Non-metallic mineral products,FIN,2030.0,1.2
+Non-metallic mineral products,FRA,2030.0,1.183673469387755
+Non-metallic mineral products,GBR,2030.0,1.063063063063063
+Non-metallic mineral products,GRC,2030.0,0.9285714285714287
+Non-metallic mineral products,HRV,2030.0,1.25
+Non-metallic mineral products,HUN,2030.0,1.3846153846153848
+Non-metallic mineral products,IRL,2030.0,1.2
+Non-metallic mineral products,ISL,2030.0,1.1969187675070028
+Non-metallic mineral products,ITA,2030.0,1.1574803149606299
+Non-metallic mineral products,LTU,2030.0,1.0
+Non-metallic mineral products,LUX,2030.0,1.0
+Non-metallic mineral products,LVA,2030.0,1.3333333333333333
+Non-metallic mineral products,MKD,2030.0,1.2193040293040294
+Non-metallic mineral products,MNE,2030.0,1.2193040293040294
+Non-metallic mineral products,NLD,2030.0,1.1063829787234045
+Non-metallic mineral products,NOR,2030.0,1.1969187675070028
+Non-metallic mineral products,POL,2030.0,1.4216867469879517
+Non-metallic mineral products,PRT,2030.0,1.1874999999999998
+Non-metallic mineral products,ROU,2030.0,1.2
+Non-metallic mineral products,SRB,2030.0,1.2193040293040294
+Non-metallic mineral products,SVK,2030.0,1.25
+Non-metallic mineral products,SVN,2030.0,1.0
+Non-metallic mineral products,SWE,2030.0,1.2142857142857144
+Non-metallic mineral products,ALB,2050.0,1.6032234432234431
+Non-metallic mineral products,AUT,2050.0,1.346153846153846
+Non-metallic mineral products,BEL,2050.0,1.5833333333333333
+Non-metallic mineral products,BGR,2050.0,2.0
+Non-metallic mineral products,BIH,2050.0,1.6032234432234431
+Non-metallic mineral products,CHE,2050.0,1.386784002901163
+Non-metallic mineral products,CYP,2050.0,2.0
+Non-metallic mineral products,CZE,2050.0,1.3142857142857143
+Non-metallic mineral products,DEU,2050.0,1.1132686084142396
+Non-metallic mineral products,DNK,2050.0,1.5294117647058822
+Non-metallic mineral products,ESP,2050.0,1.4320987654320987
+Non-metallic mineral products,EST,2050.0,2.0
+Non-metallic mineral products,FIN,2050.0,1.5
+Non-metallic mineral products,FRA,2050.0,1.5510204081632655
+Non-metallic mineral products,GBR,2050.0,1.1171171171171173
+Non-metallic mineral products,GRC,2050.0,1.3571428571428572
+Non-metallic mineral products,HRV,2050.0,1.4999999999999998
+Non-metallic mineral products,HUN,2050.0,1.6923076923076927
+Non-metallic mineral products,IRL,2050.0,1.4
+Non-metallic mineral products,ISL,2050.0,1.5098039215686274
+Non-metallic mineral products,ITA,2050.0,1.4960629921259843
+Non-metallic mineral products,LTU,2050.0,1.4999999999999998
+Non-metallic mineral products,LUX,2050.0,1.0
+Non-metallic mineral products,LVA,2050.0,1.9999999999999996
+Non-metallic mineral products,MKD,2050.0,1.6032234432234431
+Non-metallic mineral products,MNE,2050.0,1.6032234432234431
+Non-metallic mineral products,NLD,2050.0,1.3617021276595747
+Non-metallic mineral products,NOR,2050.0,1.5098039215686274
+Non-metallic mineral products,POL,2050.0,1.831325301204819
+Non-metallic mineral products,PRT,2050.0,1.25
+Non-metallic mineral products,ROU,2050.0,1.4666666666666668
+Non-metallic mineral products,SRB,2050.0,1.6032234432234431
+Non-metallic mineral products,SVK,2050.0,5.5
+Non-metallic mineral products,SVN,2050.0,1.3333333333333335
+Non-metallic mineral products,SWE,2050.0,1.5000000000000002
+Other Industrial Sectors,ALB,2030.0,1.186452071168792
+Other Industrial Sectors,AUT,2030.0,1.197969543147208
+Other Industrial Sectors,BEL,2030.0,1.1067961165048543
+Other Industrial Sectors,BGR,2030.0,1.307692307692308
+Other Industrial Sectors,BIH,2030.0,1.186452071168792
+Other Industrial Sectors,CHE,2030.0,1.0940033055495713
+Other Industrial Sectors,CYP,2030.0,1.4999999999999998
+Other Industrial Sectors,CZE,2030.0,1.1297709923664123
+Other Industrial Sectors,DEU,2030.0,1.0980392156862746
+Other Industrial Sectors,DNK,2030.0,1.2954545454545454
+Other Industrial Sectors,ESP,2030.0,1.1111111111111112
+Other Industrial Sectors,EST,2030.0,1.2857142857142858
+Other Industrial Sectors,FIN,2030.0,1.090909090909091
+Other Industrial Sectors,FRA,2030.0,1.11864406779661
+Other Industrial Sectors,GBR,2030.0,1.0681818181818181
+Other Industrial Sectors,GRC,2030.0,0.923076923076923
+Other Industrial Sectors,HRV,2030.0,1.1063829787234045
+Other Industrial Sectors,HUN,2030.0,1.254901960784314
+Other Industrial Sectors,IRL,2030.0,1.1785714285714286
+Other Industrial Sectors,ISL,2030.0,1.2259478189971464
+Other Industrial Sectors,ITA,2030.0,1.065326633165829
+Other Industrial Sectors,LTU,2030.0,1.2142857142857144
+Other Industrial Sectors,LUX,2030.0,1.4545454545454546
+Other Industrial Sectors,LVA,2030.0,1.2727272727272725
+Other Industrial Sectors,MKD,2030.0,1.186452071168792
+Other Industrial Sectors,MNE,2030.0,1.186452071168792
+Other Industrial Sectors,NLD,2030.0,1.1632653061224492
+Other Industrial Sectors,NOR,2030.0,1.2259478189971464
+Other Industrial Sectors,POL,2030.0,1.458689458689459
+Other Industrial Sectors,PRT,2030.0,1.0952380952380951
+Other Industrial Sectors,ROU,2030.0,1.3402061855670104
+Other Industrial Sectors,SRB,2030.0,1.186452071168792
+Other Industrial Sectors,SVK,2030.0,1.3214285714285716
+Other Industrial Sectors,SVN,2030.0,1.0909090909090908
+Other Industrial Sectors,SWE,2030.0,1.2914798206278029
+Other Industrial Sectors,ALB,2050.0,1.4461031615980455
+Other Industrial Sectors,AUT,2050.0,1.5329949238578677
+Other Industrial Sectors,BEL,2050.0,1.4951456310679612
+Other Industrial Sectors,BGR,2050.0,1.6923076923076927
+Other Industrial Sectors,BIH,2050.0,1.4461031615980455
+Other Industrial Sectors,CHE,2050.0,1.2937585504633107
+Other Industrial Sectors,CYP,2050.0,2.0
+Other Industrial Sectors,CZE,2050.0,1.3282442748091603
+Other Industrial Sectors,DEU,2050.0,1.1610644257703082
+Other Industrial Sectors,DNK,2050.0,1.8409090909090906
+Other Industrial Sectors,ESP,2050.0,1.3378684807256238
+Other Industrial Sectors,EST,2050.0,1.5714285714285716
+Other Industrial Sectors,FIN,2050.0,1.494949494949495
+Other Industrial Sectors,FRA,2050.0,1.423728813559322
+Other Industrial Sectors,GBR,2050.0,1.1493506493506493
+Other Industrial Sectors,GRC,2050.0,0.9743589743589742
+Other Industrial Sectors,HRV,2050.0,1.446808510638298
+Other Industrial Sectors,HUN,2050.0,1.5294117647058825
+Other Industrial Sectors,IRL,2050.0,1.5000000000000002
+Other Industrial Sectors,ISL,2050.0,1.7307869426703508
+Other Industrial Sectors,ITA,2050.0,1.2964824120603016
+Other Industrial Sectors,LTU,2050.0,1.5000000000000002
+Other Industrial Sectors,LUX,2050.0,2.545454545454545
+Other Industrial Sectors,LVA,2050.0,1.3636363636363635
+Other Industrial Sectors,MKD,2050.0,1.4461031615980455
+Other Industrial Sectors,MNE,2050.0,1.4461031615980455
+Other Industrial Sectors,NLD,2050.0,1.5170068027210886
+Other Industrial Sectors,NOR,2050.0,1.7307869426703508
+Other Industrial Sectors,POL,2050.0,1.7606837606837609
+Other Industrial Sectors,PRT,2050.0,1.2619047619047619
+Other Industrial Sectors,ROU,2050.0,1.5876288659793816
+Other Industrial Sectors,SRB,2050.0,1.4461031615980455
+Other Industrial Sectors,SVK,2050.0,1.392857142857143
+Other Industrial Sectors,SVN,2050.0,1.2727272727272725
+Other Industrial Sectors,SWE,2050.0,1.8565022421524666
+"Pulp, paper and printing",ALB,2030.0,1.2862518853695326
+"Pulp, paper and printing",AUT,2030.0,1.213114754098361
+"Pulp, paper and printing",BEL,2030.0,1.2340425531914894
+"Pulp, paper and printing",BGR,2030.0,1.6
+"Pulp, paper and printing",BIH,2030.0,1.2862518853695326
+"Pulp, paper and printing",CHE,2030.0,1.1408626192948945
+"Pulp, paper and printing",CYP,2030.0,1.0
+"Pulp, paper and printing",CZE,2030.0,1.1538461538461537
+"Pulp, paper and printing",DEU,2030.0,1.1476997578692494
+"Pulp, paper and printing",DNK,2030.0,1.1578947368421053
+"Pulp, paper and printing",ESP,2030.0,1.0838709677419356
+"Pulp, paper and printing",EST,2030.0,1.3333333333333333
+"Pulp, paper and printing",FIN,2030.0,1.027777777777778
+"Pulp, paper and printing",FRA,2030.0,1.193548387096774
+"Pulp, paper and printing",GBR,2030.0,0.938388625592417
+"Pulp, paper and printing",GRC,2030.0,1.0588235294117647
+"Pulp, paper and printing",HRV,2030.0,1.1666666666666667
+"Pulp, paper and printing",HUN,2030.0,1.230769230769231
+"Pulp, paper and printing",IRL,2030.0,1.076923076923077
+"Pulp, paper and printing",ISL,2030.0,1.123115328002546
+"Pulp, paper and printing",ITA,2030.0,1.0813397129186604
+"Pulp, paper and printing",LTU,2030.0,1.2
+"Pulp, paper and printing",LUX,2030.0,1.0
+"Pulp, paper and printing",LVA,2030.0,1.3333333333333333
+"Pulp, paper and printing",MKD,2030.0,1.2862518853695326
+"Pulp, paper and printing",MNE,2030.0,1.2862518853695326
+"Pulp, paper and printing",NLD,2030.0,1.1267605633802817
+"Pulp, paper and printing",NOR,2030.0,1.123115328002546
+"Pulp, paper and printing",POL,2030.0,1.5161290322580645
+"Pulp, paper and printing",PRT,2030.0,1.125
+"Pulp, paper and printing",ROU,2030.0,1.375
+"Pulp, paper and printing",SRB,2030.0,1.2862518853695326
+"Pulp, paper and printing",SVK,2030.0,1.2727272727272725
+"Pulp, paper and printing",SVN,2030.0,1.3333333333333335
+"Pulp, paper and printing",SWE,2030.0,1.183673469387755
+"Pulp, paper and printing",ALB,2050.0,1.602790346907994
+"Pulp, paper and printing",AUT,2050.0,1.4426229508196724
+"Pulp, paper and printing",BEL,2050.0,1.7872340425531914
+"Pulp, paper and printing",BGR,2050.0,2.0
+"Pulp, paper and printing",BIH,2050.0,1.602790346907994
+"Pulp, paper and printing",CHE,2050.0,1.3944920372073548
+"Pulp, paper and printing",CYP,2050.0,1.0
+"Pulp, paper and printing",CZE,2050.0,1.3846153846153846
+"Pulp, paper and printing",DEU,2050.0,1.2009685230024214
+"Pulp, paper and printing",DNK,2050.0,1.4736842105263157
+"Pulp, paper and printing",ESP,2050.0,1.1741935483870967
+"Pulp, paper and printing",EST,2050.0,1.3333333333333333
+"Pulp, paper and printing",FIN,2050.0,1.1944444444444444
+"Pulp, paper and printing",FRA,2050.0,1.6236559139784945
+"Pulp, paper and printing",GBR,2050.0,0.8530805687203791
+"Pulp, paper and printing",GRC,2050.0,1.0588235294117647
+"Pulp, paper and printing",HRV,2050.0,1.6666666666666667
+"Pulp, paper and printing",HUN,2050.0,1.5384615384615388
+"Pulp, paper and printing",IRL,2050.0,1.230769230769231
+"Pulp, paper and printing",ISL,2050.0,1.3519612523371922
+"Pulp, paper and printing",ITA,2050.0,1.3588516746411483
+"Pulp, paper and printing",LTU,2050.0,1.6
+"Pulp, paper and printing",LUX,2050.0,1.0
+"Pulp, paper and printing",LVA,2050.0,1.3333333333333333
+"Pulp, paper and printing",MKD,2050.0,1.602790346907994
+"Pulp, paper and printing",MNE,2050.0,1.602790346907994
+"Pulp, paper and printing",NLD,2050.0,1.4084507042253522
+"Pulp, paper and printing",NOR,2050.0,1.3519612523371922
+"Pulp, paper and printing",POL,2050.0,2.129032258064516
+"Pulp, paper and printing",PRT,2050.0,1.1874999999999998
+"Pulp, paper and printing",ROU,2050.0,1.7499999999999998
+"Pulp, paper and printing",SRB,2050.0,1.602790346907994
+"Pulp, paper and printing",SVK,2050.0,1.4545454545454546
+"Pulp, paper and printing",SVN,2050.0,1.3333333333333335
+"Pulp, paper and printing",SWE,2050.0,1.387755102040816
+Textiles and leather,ALB,2030.0,0.8921532971934398
+Textiles and leather,AUT,2030.0,0.8571428571428571
+Textiles and leather,BEL,2030.0,0.8666666666666667
+Textiles and leather,BGR,2030.0,0.9230769230769231
+Textiles and leather,BIH,2030.0,0.8921532971934398
+Textiles and leather,CHE,2030.0,0.7360779301179039
+Textiles and leather,CYP,2030.0,1.0
+Textiles and leather,CZE,2030.0,0.888888888888889
+Textiles and leather,DEU,2030.0,0.7164179104477612
+Textiles and leather,DNK,2030.0,1.0
+Textiles and leather,ESP,2030.0,0.7547169811320755
+Textiles and leather,EST,2030.0,1.0
+Textiles and leather,FIN,2030.0,0.7499999999999999
+Textiles and leather,FRA,2030.0,0.6804123711340206
+Textiles and leather,GBR,2030.0,0.6947368421052631
+Textiles and leather,GRC,2030.0,0.7368421052631577
+Textiles and leather,HRV,2030.0,1.0
+Textiles and leather,HUN,2030.0,0.7499999999999999
+Textiles and leather,IRL,2030.0,1.0
+Textiles and leather,ISL,2030.0,0.8796296296296297
+Textiles and leather,ITA,2030.0,0.8114035087719298
+Textiles and leather,LTU,2030.0,1.0
+Textiles and leather,LUX,2030.0,0.5
+Textiles and leather,LVA,2030.0,1.0
+Textiles and leather,MKD,2030.0,0.8921532971934398
+Textiles and leather,MNE,2030.0,0.8921532971934398
+Textiles and leather,NLD,2030.0,0.7272727272727273
+Textiles and leather,NOR,2030.0,0.8796296296296297
+Textiles and leather,POL,2030.0,1.0666666666666667
+Textiles and leather,PRT,2030.0,0.8813559322033898
+Textiles and leather,ROU,2030.0,1.0508474576271185
+Textiles and leather,SRB,2030.0,0.8921532971934398
+Textiles and leather,SVK,2030.0,1.0
+Textiles and leather,SVN,2030.0,0.8
+Textiles and leather,SWE,2030.0,0.888888888888889
+Textiles and leather,ALB,2050.0,0.7194274800430019
+Textiles and leather,AUT,2050.0,0.6666666666666666
+Textiles and leather,BEL,2050.0,0.6666666666666666
+Textiles and leather,BGR,2050.0,0.7692307692307694
+Textiles and leather,BIH,2050.0,0.7194274800430019
+Textiles and leather,CHE,2050.0,0.5788425389781064
+Textiles and leather,CYP,2050.0,1.0
+Textiles and leather,CZE,2050.0,0.7777777777777777
+Textiles and leather,DEU,2050.0,0.5074626865671642
+Textiles and leather,DNK,2050.0,0.6666666666666667
+Textiles and leather,ESP,2050.0,0.5660377358490566
+Textiles and leather,EST,2050.0,1.0
+Textiles and leather,FIN,2050.0,0.7499999999999999
+Textiles and leather,FRA,2050.0,0.5360824742268042
+Textiles and leather,GBR,2050.0,0.46315789473684216
+Textiles and leather,GRC,2050.0,0.631578947368421
+Textiles and leather,HRV,2050.0,0.6666666666666667
+Textiles and leather,HUN,2050.0,0.7499999999999999
+Textiles and leather,IRL,2050.0,1.0
+Textiles and leather,ISL,2050.0,0.7685185185185186
+Textiles and leather,ITA,2050.0,0.6929824561403509
+Textiles and leather,LTU,2050.0,0.7499999999999999
+Textiles and leather,LUX,2050.0,0.5
+Textiles and leather,LVA,2050.0,1.0
+Textiles and leather,MKD,2050.0,0.7194274800430019
+Textiles and leather,MNE,2050.0,0.7194274800430019
+Textiles and leather,NLD,2050.0,0.45454545454545453
+Textiles and leather,NOR,2050.0,0.7685185185185186
+Textiles and leather,POL,2050.0,0.9333333333333333
+Textiles and leather,PRT,2050.0,0.6779661016949152
+Textiles and leather,ROU,2050.0,0.7796610169491525
+Textiles and leather,SRB,2050.0,0.7194274800430019
+Textiles and leather,SVK,2050.0,0.7142857142857143
+Textiles and leather,SVN,2050.0,0.4
+Textiles and leather,SWE,2050.0,0.888888888888889
+Transport Equipment,ALB,2030.0,1.3418838612368025
+Transport Equipment,AUT,2030.0,1.2177985948477752
+Transport Equipment,BEL,2030.0,1.2681159420289854
+Transport Equipment,BGR,2030.0,1.5384615384615383
+Transport Equipment,BIH,2030.0,1.3418838612368025
+Transport Equipment,CHE,2030.0,1.1579420028100973
+Transport Equipment,CYP,2030.0,1.3333333333333333
+Transport Equipment,CZE,2030.0,1.352112676056338
+Transport Equipment,DEU,2030.0,1.1264755480607083
+Transport Equipment,DNK,2030.0,1.228426395939086
+Transport Equipment,ESP,2030.0,1.3679458239277653
+Transport Equipment,EST,2030.0,1.4666666666666668
+Transport Equipment,FIN,2030.0,1.1440000000000001
+Transport Equipment,FRA,2030.0,1.2645161290322582
+Transport Equipment,GBR,2030.0,1.2747415066469718
+Transport Equipment,GRC,2030.0,1.0461538461538462
+Transport Equipment,HRV,2030.0,1.176470588235294
+Transport Equipment,HUN,2030.0,1.3900000000000001
+Transport Equipment,IRL,2030.0,1.537037037037037
+Transport Equipment,ISL,2030.0,1.2290459184477276
+Transport Equipment,ITA,2030.0,1.0828343313373254
+Transport Equipment,LTU,2030.0,1.25
+Transport Equipment,LUX,2030.0,1.3846153846153848
+Transport Equipment,LVA,2030.0,1.7499999999999998
+Transport Equipment,MKD,2030.0,1.3418838612368025
+Transport Equipment,MNE,2030.0,1.3418838612368025
+Transport Equipment,NLD,2030.0,1.215686274509804
+Transport Equipment,NOR,2030.0,1.2290459184477276
+Transport Equipment,POL,2030.0,1.7117117117117118
+Transport Equipment,PRT,2030.0,1.2066115702479339
+Transport Equipment,ROU,2030.0,1.5583333333333333
+Transport Equipment,SRB,2030.0,1.3418838612368025
+Transport Equipment,SVK,2030.0,1.518248175182482
+Transport Equipment,SVN,2030.0,1.3571428571428572
+Transport Equipment,SWE,2030.0,1.3147113594040967
+Transport Equipment,ALB,2050.0,1.8288039215686276
+Transport Equipment,AUT,2050.0,1.5784543325526932
+Transport Equipment,BEL,2050.0,2.043478260869565
+Transport Equipment,BGR,2050.0,2.230769230769231
+Transport Equipment,BIH,2050.0,1.8288039215686276
+Transport Equipment,CHE,2050.0,1.4768517375422807
+Transport Equipment,CYP,2050.0,1.9999999999999996
+Transport Equipment,CZE,2050.0,2.0507042253521126
+Transport Equipment,DEU,2050.0,1.2131534569983136
+Transport Equipment,DNK,2050.0,1.634517766497462
+Transport Equipment,ESP,2050.0,1.9435665914221218
+Transport Equipment,EST,2050.0,1.8666666666666665
+Transport Equipment,FIN,2050.0,1.528
+Transport Equipment,FRA,2050.0,1.8681003584229392
+Transport Equipment,GBR,2050.0,1.9128508124076808
+Transport Equipment,GRC,2050.0,1.169230769230769
+Transport Equipment,HRV,2050.0,1.8823529411764706
+Transport Equipment,HUN,2050.0,1.77
+Transport Equipment,IRL,2050.0,2.2037037037037037
+Transport Equipment,ISL,2050.0,1.7220807204277697
+Transport Equipment,ITA,2050.0,1.349301397205589
+Transport Equipment,LTU,2050.0,1.625
+Transport Equipment,LUX,2050.0,2.461538461538462
+Transport Equipment,LVA,2050.0,2.0
+Transport Equipment,MKD,2050.0,1.8288039215686276
+Transport Equipment,MNE,2050.0,1.8288039215686276
+Transport Equipment,NLD,2050.0,1.5147058823529411
+Transport Equipment,NOR,2050.0,1.7220807204277697
+Transport Equipment,POL,2050.0,2.5540540540540544
+Transport Equipment,PRT,2050.0,1.371900826446281
+Transport Equipment,ROU,2050.0,2.091666666666667
+Transport Equipment,SRB,2050.0,1.8288039215686276
+Transport Equipment,SVK,2050.0,1.9416058394160587
+Transport Equipment,SVN,2050.0,2.0714285714285716
+Transport Equipment,SWE,2050.0,2.003724394785847
+Wood and wood products,ALB,2030.0,1.2862518853695326
+Wood and wood products,AUT,2030.0,1.213114754098361
+Wood and wood products,BEL,2030.0,1.2340425531914894
+Wood and wood products,BGR,2030.0,1.6
+Wood and wood products,BIH,2030.0,1.2862518853695326
+Wood and wood products,CHE,2030.0,1.1408626192948945
+Wood and wood products,CYP,2030.0,1.0
+Wood and wood products,CZE,2030.0,1.1538461538461537
+Wood and wood products,DEU,2030.0,1.1476997578692494
+Wood and wood products,DNK,2030.0,1.1578947368421053
+Wood and wood products,ESP,2030.0,1.0838709677419356
+Wood and wood products,EST,2030.0,1.3333333333333333
+Wood and wood products,FIN,2030.0,1.027777777777778
+Wood and wood products,FRA,2030.0,1.193548387096774
+Wood and wood products,GBR,2030.0,0.938388625592417
+Wood and wood products,GRC,2030.0,1.0588235294117647
+Wood and wood products,HRV,2030.0,1.1666666666666667
+Wood and wood products,HUN,2030.0,1.230769230769231
+Wood and wood products,IRL,2030.0,1.076923076923077
+Wood and wood products,ISL,2030.0,1.123115328002546
+Wood and wood products,ITA,2030.0,1.0813397129186604
+Wood and wood products,LTU,2030.0,1.2
+Wood and wood products,LUX,2030.0,1.0
+Wood and wood products,LVA,2030.0,1.3333333333333333
+Wood and wood products,MKD,2030.0,1.2862518853695326
+Wood and wood products,MNE,2030.0,1.2862518853695326
+Wood and wood products,NLD,2030.0,1.1267605633802817
+Wood and wood products,NOR,2030.0,1.123115328002546
+Wood and wood products,POL,2030.0,1.5161290322580645
+Wood and wood products,PRT,2030.0,1.125
+Wood and wood products,ROU,2030.0,1.375
+Wood and wood products,SRB,2030.0,1.2862518853695326
+Wood and wood products,SVK,2030.0,1.2727272727272725
+Wood and wood products,SVN,2030.0,1.3333333333333335
+Wood and wood products,SWE,2030.0,1.183673469387755
+Wood and wood products,ALB,2050.0,1.602790346907994
+Wood and wood products,AUT,2050.0,1.4426229508196724
+Wood and wood products,BEL,2050.0,1.7872340425531914
+Wood and wood products,BGR,2050.0,2.0
+Wood and wood products,BIH,2050.0,1.602790346907994
+Wood and wood products,CHE,2050.0,1.3944920372073548
+Wood and wood products,CYP,2050.0,1.0
+Wood and wood products,CZE,2050.0,1.3846153846153846
+Wood and wood products,DEU,2050.0,1.2009685230024214
+Wood and wood products,DNK,2050.0,1.4736842105263157
+Wood and wood products,ESP,2050.0,1.1741935483870967
+Wood and wood products,EST,2050.0,1.3333333333333333
+Wood and wood products,FIN,2050.0,1.1944444444444444
+Wood and wood products,FRA,2050.0,1.6236559139784945
+Wood and wood products,GBR,2050.0,0.8530805687203791
+Wood and wood products,GRC,2050.0,1.0588235294117647
+Wood and wood products,HRV,2050.0,1.6666666666666667
+Wood and wood products,HUN,2050.0,1.5384615384615388
+Wood and wood products,IRL,2050.0,1.230769230769231
+Wood and wood products,ISL,2050.0,1.3519612523371922
+Wood and wood products,ITA,2050.0,1.3588516746411483
+Wood and wood products,LTU,2050.0,1.6
+Wood and wood products,LUX,2050.0,1.0
+Wood and wood products,LVA,2050.0,1.3333333333333333
+Wood and wood products,MKD,2050.0,1.602790346907994
+Wood and wood products,MNE,2050.0,1.602790346907994
+Wood and wood products,NLD,2050.0,1.4084507042253522
+Wood and wood products,NOR,2050.0,1.3519612523371922
+Wood and wood products,POL,2050.0,2.129032258064516
+Wood and wood products,PRT,2050.0,1.1874999999999998
+Wood and wood products,ROU,2050.0,1.7499999999999998
+Wood and wood products,SRB,2050.0,1.602790346907994
+Wood and wood products,SVK,2050.0,1.4545454545454546
+Wood and wood products,SVN,2050.0,1.3333333333333335
+Wood and wood products,SWE,2050.0,1.387755102040816

@@ -157,6 +157,9 @@ rule annual_industry_demand:
         carrier_names = "data/energy_balance_carrier_names.csv",
         jrc_industry_end_use = "data/industry/jrc_idees_processed_energy.csv.gz",
         jrc_industry_production = "data/industry/jrc_idees_processed_production.csv.gz",
+        demand_scales = config["data-sources"]["industry-demand-scale"] if config["scale-demands"] else []
+    params:
+        scale_demand = config["scale-demands"]
     conda: "../envs/default.yaml"
     output:
         new_demand="build/annual_industry_energy_demand_{projection_year}.csv",
@@ -236,11 +239,14 @@ rule annual_national_demand:
         road_bau_electricity=rules.annual_transport_demand.output.road_bau_electricity,
         rail_bau_electricity=rules.annual_transport_demand.output.rail_bau_electricity,
         industry_bau_electricity=rules.annual_industry_demand.output.bau_electricity,
+        demand_scales = config["data-sources"]["annual-demand-scale"] if config["scale-demands"] else []
     conda: "../envs/default.yaml"
     params:
         scaling_factors = config["scaling-factors"],
         industry_config = config["parameters"]["industry"],
-        countries = config["scope"]["spatial"]["countries"]
+        countries = config["scope"]["spatial"]["countries"],
+        scale_demand = config["scale-demands"],
+        demand_scale_scenario = config["demand-scale-scenario"]
     output: "build/national/annual-demand-{projection_year}.csv",
     script: "../src/construct/annual_national_demand.py"
 
@@ -268,11 +274,14 @@ rule annual_subnational_demand:
         gva = rules.eurostat_data_tsv.output.gva,
         ch_gva = rules.ch_data_xlsx.output.gva,
         nuts_to_regions = "data/nuts_to_regions.csv",
-        industry_activity_codes = "data/industry/industry_activity_codes.csv"
+        industry_activity_codes = "data/industry/industry_activity_codes.csv",
+        demand_scales = config["data-sources"]["annual-demand-scale"] if config["scale-demands"] else []
     conda: "../envs/geodata.yaml"
     params:
         scaling_factors = config["scaling-factors"],
-        industry_config = config["parameters"]["industry"]
+        industry_config = config["parameters"]["industry"],
+        scale_demand = config["scale-demands"],
+        demand_scale_scenario = config["demand-scale-scenario"]
     output: "build/{resolution}/annual-demand-{projection_year}.csv",
     script: "../src/construct/annual_subnational_demand.py"
 
@@ -395,10 +404,15 @@ rule update_electricity_with_other_sectors:
         cooking = "build/model/{resolution}/cooking-bau-electricity-demand.csv",
         public_transport = "build/{resolution}/public-transport-demand.csv",
         annual_demand = "build/{{resolution}}/annual-demand-{}.csv".format(config["projection-year"]),
-        hourly_electricity = eurocalliope("build/model/{resolution}/electricity-demand.csv")
+        hourly_electricity = eurocalliope("build/model/{resolution}/electricity-demand.csv"),
+        regions = rules.regions.output[0],
+        demand_scales = config["data-sources"]["building-electricity-demand-scale"] if config["scale-demands"] else []
     params:
         first_year = config["scope"]["temporal"]["first-year"],
-        final_year = config["scope"]["temporal"]["final-year"]
+        final_year = config["scope"]["temporal"]["final-year"],
+        scale_demand = config["scale-demands"],
+        demand_scale_scenario = config["demand-scale-scenario"],
+        projection_year = config["projection-year"]
     conda: "../envs/default.yaml"
     output: "build/model/{resolution}/electricity-demand.csv"
     script: "../src/construct/electricity_with_other_sectors.py"

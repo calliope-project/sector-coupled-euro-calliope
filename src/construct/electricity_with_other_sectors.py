@@ -6,7 +6,9 @@ import util
 
 def update_hourly_electricity(
     space_heat, water_heat, cooking, public_transport, annual_demand,
-    hourly_electricity, first_year, final_year, out_path
+    hourly_electricity, path_to_demand_scales, path_to_regions,
+    first_year, final_year, out_path, scale_demand, demand_scale_scenario, projection_year
+
 ):
     profiles = {  # all profiles are negative values
         k: pd.read_csv(v, index_col=0, parse_dates=True)
@@ -25,7 +27,9 @@ def update_hourly_electricity(
         update_electricity_per_year(
             annual_demand_df.xs(year, level='year').droplevel('unit'),
             hourly_electricity_df.loc[str(year)],
-            {k: v.loc[str(year)] for k, v in profiles.items()}
+            {k: v.loc[str(year)] for k, v in profiles.items()},
+            scale_demand, demand_scale_scenario, path_to_demand_scales,
+            projection_year, path_to_regions
         )
         for year in range(first_year, final_year + 1)
     ]).sort_index()
@@ -40,7 +44,10 @@ def update_hourly_electricity(
     new_hourly_electricity_df.clip(upper=0).to_csv(out_path)
 
 
-def update_electricity_per_year(annual_demand_df, hourly_electricity_df, profiles):
+def update_electricity_per_year(
+    annual_demand_df, hourly_electricity_df, profiles,
+    scale_demand, demand_scale_scenario, path_to_demand_scales, projection_year, path_to_regions
+):
     new_hourly_electricity_df = hourly_electricity_df.copy()
 
     bau_electricity = (
@@ -59,10 +66,11 @@ def update_electricity_per_year(annual_demand_df, hourly_electricity_df, profile
     )
     # space heating, water heating, cooking, and non-freight transport is based on profiles
     # We use rail profiles for all non-freight transport, which is a simplification in light
-    # of the small relative constribution of non-rail transport to electricity demand
+    # of the small relative contribution of non-rail transport to electricity demand
     for profile_name, profile in profiles.items():
         if profile_name == 'transport':
             scaled_profile = profile.apply(lambda x: x.div(x.abs().sum()))
+            # This profile is 'subtracted' as it is also negative
             new_hourly_electricity_df = new_hourly_electricity_df.sub(
                 scaled_profile
                 # fillna for regions with no rail transport, but with other transport electricity demand
@@ -71,6 +79,21 @@ def update_electricity_per_year(annual_demand_df, hourly_electricity_df, profile
             )
         else:
             new_hourly_electricity_df = new_hourly_electricity_df.sub(profile)
+
+    # Scale "current" demand to future demand from commercial+residential buildings, if requested
+    if scale_demand:
+        print(f"Scaling demands with scenario {demand_scale_scenario} and projection year {projection_year}")
+        demand_scales = (
+            util.read_tdf(path_to_demand_scales)
+            .xs((demand_scale_scenario, projection_year), level=("scenario", "year"))
+            .rename_axis(index={"id": "country_code"})
+            .align(pd.read_csv(path_to_regions).set_index(["id", "country_code"]))[0]
+            .droplevel("country_code")
+        )
+
+        new_hourly_electricity_df = new_hourly_electricity_df.mul(demand_scales, axis=1).dropna()
+    else:
+        demand_scales = 1
 
     # Add back in new demand
     # Industry, this time 'subtracted' to make hourly electricity more negative
@@ -90,8 +113,9 @@ def update_electricity_per_year(annual_demand_df, hourly_electricity_df, profile
     assert np.allclose(
         hourly_electricity_df.sum(),
         new_hourly_electricity_df.sum()
-        .sub(bau_electricity.sum(level='id'))
         .add(annual_demand_df.xs('electricity', level='end_use').sum(level='id'))
+        .div(demand_scales)
+        .sub(bau_electricity.sum(level='id'))
         .reindex(hourly_electricity_df.columns)
     )
     return new_hourly_electricity_df
@@ -105,7 +129,12 @@ if __name__ == "__main__":
         public_transport=snakemake.input.public_transport,
         annual_demand=snakemake.input.annual_demand,
         hourly_electricity=snakemake.input.hourly_electricity,
+        path_to_demand_scales=snakemake.input.demand_scales,
+        path_to_regions=snakemake.input.regions,
         first_year=snakemake.params.first_year,
         final_year=snakemake.params.final_year,
+        scale_demand=snakemake.params.scale_demand,
+        demand_scale_scenario=snakemake.params.demand_scale_scenario,
+        projection_year=int(snakemake.params.projection_year),
         out_path=snakemake.output[0]
     )

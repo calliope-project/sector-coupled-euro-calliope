@@ -35,8 +35,8 @@ def subnationalise_demand(
     population, units, building_demand, building_heat_electricity_consumption,
     industry_demand, road_distance, road_vehicles, rail_demand, air_demand, marine_demand,
     road_bau_electricity, rail_bau_electricity, industry_bau_electricity, emissions,
-    freight, employees, gva, ch_gva, nuts_to_regions, industry_activity_codes,
-    out_path, scaling_factors, industry_config
+    freight, employees, gva, ch_gva, nuts_to_regions, industry_activity_codes, path_to_demand_scales,
+    out_path, scaling_factors, industry_config, scale_demand, demand_scale_scenario, projection_year
 ):
 
     nuts_to_regions_df = pd.read_csv(nuts_to_regions)
@@ -95,6 +95,22 @@ def subnationalise_demand(
          'mio_km': '{:.2f} mio_km'.format(1 / scaling_factors['transport'])},
         level='unit'
     )
+
+    if scale_demand:
+        print(f"Scaling demands with scenario {demand_scale_scenario} and projection year {projection_year}")
+        demand_scales = (
+            util.read_tdf(path_to_demand_scales)
+            .xs((demand_scale_scenario, projection_year), level=("scenario", "year"))
+            .rename_axis(index={"id": "country_code"})
+            .align(units[["id", "country_code"]].set_index(["id", "country_code"]))[0]
+            .droplevel("country_code")
+        )
+        demand_scales = demand_scales.reindex(
+            all_df.groupby(level=demand_scales.index.names).sum().index
+        ).fillna(1)
+        all_df = all_df.mul(demand_scales).reorder_levels(all_df.index.names)
+        assert not all_df.isna().any()
+
     all_df.to_csv(out_path)
 
 
@@ -574,7 +590,11 @@ if __name__ == "__main__":
         ch_gva=snakemake.input.ch_gva,
         nuts_to_regions=snakemake.input.nuts_to_regions,
         industry_activity_codes=snakemake.input.industry_activity_codes,
+        path_to_demand_scales=snakemake.input.demand_scales,
         scaling_factors=snakemake.params.scaling_factors,
         industry_config=snakemake.params.industry_config,
-        out_path=snakemake.output.all_annual
+        scale_demand=snakemake.params.scale_demand,
+        demand_scale_scenario=snakemake.params.demand_scale_scenario,
+        projection_year=int(snakemake.wildcards.projection_year),
+        out_path=snakemake.output[0]
     )

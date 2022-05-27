@@ -19,6 +19,7 @@ final_bau_demand_level_order = ["subsector", "country_code", "unit", "year"]
 def get_industry_demand(
     path_to_energy_balances, path_to_cat_names, path_to_carrier_names,
     path_to_jrc_industry_end_use, path_to_jrc_industry_production,
+    path_to_demand_scales, scale_demand,
     path_to_new_output, path_to_bau_output
 ):
     energy_df = pd.read_csv(path_to_jrc_industry_end_use, index_col=[0, 1, 2, 3, 4, 5, 6])
@@ -82,6 +83,22 @@ def get_industry_demand(
     )
     all_filled_consumption = all_filled_consumption.rename({'ktoe': 'twh'}, level='unit')
     all_filled_consumption.index = all_filled_consumption.index.set_names('subsector', level='cat_name')
+    all_filled_consumption = all_filled_consumption.stack()
+
+    if scale_demand:
+        print("Scaling demands according to increase in value added from industry subsectors")
+        demand_scales = (
+            util.read_tdf(path_to_demand_scales)
+            .xs(2050, level="year")
+            .rename_axis(index={"id": "country_code"})
+            .rename(lambda x: util.get_alpha2(x), level="country_code")
+        )
+        demand_scales = demand_scales.reindex(
+            all_filled_consumption.groupby(level=demand_scales.index.names).sum().index
+        ).fillna(1)
+
+        all_filled_consumption = all_filled_consumption.mul(demand_scales)
+        assert not all_filled_consumption.isna().any()
 
     all_filled_consumption.reorder_levels(final_projected_demand_level_order).to_csv(path_to_new_output)
 
@@ -497,6 +514,8 @@ if __name__ == "__main__":
         path_to_carrier_names=snakemake.input.carrier_names,
         path_to_jrc_industry_end_use=snakemake.input.jrc_industry_end_use,
         path_to_jrc_industry_production=snakemake.input.jrc_industry_production,
+        path_to_demand_scales=snakemake.input.demand_scales,
+        scale_demand=snakemake.params.scale_demand,
         path_to_new_output=snakemake.output.new_demand,
         path_to_bau_output=snakemake.output.bau_electricity
     )

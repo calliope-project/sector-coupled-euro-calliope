@@ -13,8 +13,9 @@ idx = pd.IndexSlice
 def combine_data(
     building_demand, building_heat_electricity_consumption,
     industry_demand, road_distance, road_vehicles, rail_demand, air_demand, marine_demand,
-    road_bau_electricity, rail_bau_electricity, industry_bau_electricity,
-    out_path, scaling_factors, industry_config, countries
+    road_bau_electricity, rail_bau_electricity, industry_bau_electricity, path_to_demand_scales,
+    out_path, scaling_factors, industry_config, countries, scale_demand, demand_scale_scenario,
+    projection_year
 ):
     road_distance_df = util.read_tdf(road_distance)
     road_vehicles_df = util.read_tdf(road_vehicles)
@@ -61,6 +62,16 @@ def combine_data(
          'mio_km': '{:.2f} mio_km'.format(1 / scaling_factors['transport'])},
         level='unit'
     )
+    if scale_demand:
+        print(f"Scaling demands with scenario {demand_scale_scenario} and projection year {projection_year}")
+        demand_scales = util.read_tdf(path_to_demand_scales).xs(
+            (demand_scale_scenario, projection_year), level=("scenario", "year")
+        )
+        demand_scales = demand_scales.reindex(
+            df.groupby(level=demand_scales.index.names).sum().index
+        ).fillna(1)
+        df = df.mul(demand_scales).reorder_levels(df.index.names)
+        assert not df.isna().any()
     df.to_csv(out_path)
 
 
@@ -295,8 +306,12 @@ if __name__ == "__main__":
         road_bau_electricity=snakemake.input.road_bau_electricity,
         rail_bau_electricity=snakemake.input.rail_bau_electricity,
         industry_bau_electricity=snakemake.input.industry_bau_electricity,
+        path_to_demand_scales=snakemake.input.demand_scales,
         scaling_factors=snakemake.params.scaling_factors,
         industry_config=snakemake.params.industry_config,
+        scale_demand=snakemake.params.scale_demand,
+        demand_scale_scenario=snakemake.params.demand_scale_scenario,
         countries=snakemake.params.countries,
-        out_path=snakemake.output.all_annual
+        projection_year=int(snakemake.wildcards.projection_year),
+        out_path=snakemake.output[0]
     )
