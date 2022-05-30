@@ -36,8 +36,12 @@ GDF_SIMPLIFY = 0.01
 
 plt.rcParams.update({
     "svg.fonttype": 'none',
+    'font.family':'sans-serif',
+    'font.sans-serif':'Arial',
+    "font.size": 7
 })
 
+FIGWIDTH = 6.77165
 
 def plot_figure_1(
     path_to_units, path_to_annual_demand, path_to_electricity_demand,
@@ -110,68 +114,87 @@ def plot_figure_1(
         .merge(figure_data_df, right_index=True, left_index=True)
         .to_crs('epsg:3035')
     )
-    with sns.plotting_context("paper", font_scale=1.4):
-        ncols = 32
-        fig = plt.figure(figsize=(15, 10))
-        g = plt.GridSpec(
-            nrows=5, ncols=ncols, figure=fig,
-            height_ratios=[1, 10, 1, 6, 2], hspace=0.1, wspace=0.25
+
+
+    ncols = 32
+    fig = plt.figure(figsize=(FIGWIDTH, 10 * FIGWIDTH/15))
+    g = plt.GridSpec(
+        nrows=7, ncols=ncols, figure=fig,
+        height_ratios=[2, 16, 1, 2, 2, 12, 4], hspace=0.1, wspace=0.25
+    )
+    fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    spatial_axes = {}
+    spatial_axes['spatial_title'] = plt.subplot(g[0, :], frameon=False)
+    c = 0
+    for col in figure_data_df.columns:
+        spatial_axes[col] = plt.subplot(
+            g[1, int(c * (ncols / 4)):int(c * (ncols / 4) + (ncols / 4))],
+            frameon=False
         )
-        spatial_axes = {}
-        spatial_axes['spatial_title'] = plt.subplot(g[0, :], frameon=False)
-        c = 0
-        for col in figure_data_df.columns:
-            spatial_axes[col] = plt.subplot(
-                g[1, int(c * (ncols / 4)):int(c * (ncols / 4) + (ncols / 4))],
-                frameon=False
-            )
-            c += 1
-        plot_spatial(plot_gdf, spatial_axes, figure_data_df)
+        spatial_axes[col[0] + "_legend"] = plt.subplot(
+            g[2, int(c * (ncols / 4)):int(c * (ncols / 4) + (ncols / 4))],
+            frameon=False
+        )
+        c += 1
+    plot_spatial(plot_gdf, spatial_axes, fig, figure_data_df)
 
-        for carrier in ["electricity", "diesel"]:
-            figure_data_df[(f'Road transport {carrier}', 'TWh')] = sum(
-                mean_annual_demand
-                .loc[idx["transport_demand", :, :, vehicle]]
-                .sum(level="id")
-                * 100  # 100 mio_km to mio_km
-                * efficiency[carrier]  # mio_km to MWh
-                / 1e6  # MWh to TWh
-                for vehicle, efficiency in transport_efficiency.items()
-            )
-        annual_total_axes = {
-            'Title': plt.subplot(g[-3, :int(ncols / 4)], frameon=False),
-            'Plot': plt.subplot(g[-2:, 2:int(ncols / 4)], frameon=False),
-        }
-        plot_annual_bar(annual_total_axes, figure_data_df.sum())
+    for carrier in ["electricity", "diesel"]:
+        figure_data_df[(f'Road transport {carrier}', 'TWh')] = sum(
+            mean_annual_demand
+            .loc[idx["transport_demand", :, :, vehicle]]
+            .sum(level="id")
+            * 100  # 100 mio_km to mio_km
+            * efficiency[carrier]  # mio_km to MWh
+            / 1e6  # MWh to TWh
+            for vehicle, efficiency in transport_efficiency.items()
+        )
+    annual_total_axes = {
+        'Title': plt.subplot(g[-3, :int(ncols / 4)], frameon=False),
+        'Plot': plt.subplot(g[-2:, 2:int(ncols / 4)], frameon=False),
+    }
+    plot_annual_bar(annual_total_axes, figure_data_df.sum())
 
-        timeseries_axes = {
-            'Title': plt.subplot(g[-3, 2 + int(ncols / 4):], frameon=False),
-            'Plot': plt.subplot(g[-2, 4 + int(ncols / 4):ncols], frameon=False),
-            'Legend': plt.subplot(g[-1, 2 + int(ncols / 4):], frameon=False),
-        }
-        plot_timeseries(timeseries_axes, timeseries, current_timeseries)
+    timeseries_axes = {
+        'Title': plt.subplot(g[-3, 2 + int(ncols / 4):], frameon=False),
+        'Plot': plt.subplot(g[-2, 4 + int(ncols / 4):ncols], frameon=False),
+        'Legend': plt.subplot(g[-1, 2 + int(ncols / 4):], frameon=False),
+    }
+    plot_timeseries(timeseries_axes, timeseries, current_timeseries)
 
-        if path_to_output.endswith(".png"):
-            kwargs = {"dpi": 300}
-        else:
-            kwargs = {}
+    if path_to_output.endswith(".png") or path_to_output.endswith(".tif"):
+        kwargs = {"dpi": 300}
+    else:
+        kwargs = {}
 
-        fig.savefig(path_to_output, bbox_inches='tight', **kwargs)
+    fig.savefig(path_to_output, bbox_inches='tight', **kwargs)
 
 
-def plot_spatial(plot_gdf, axes, figure_data_df):
+def plot_spatial(plot_gdf, axes, fig, figure_data_df):
     national_gdf = plot_gdf.dissolve("country_code")
     axes['spatial_title'].axis('off')
-    axes['spatial_title'].set_title('a. Regional annual service demands', fontweight='bold', loc='left', y=0.5)
+    axes['spatial_title'].set_title('$\\bf{A}$ Regional annual service demands', loc='left', y=0.5)
     for col in figure_data_df.columns:
         axes[col].axis('off')
 
         plot_gdf.plot(
-            col, ax=axes[col], cmap=CMAPS[col[0]], legend=True,
+            col, ax=axes[col], cmap=CMAPS[col[0]], legend=False,
             legend_kwds={'label': f'{col[1]}', 'orientation': 'horizontal', 'pad': 0.03}
         )
-        national_gdf.plot(fc='None', ec='black', lw=0.1, ax=axes[col], legend=False, linestyle='dashed')
-        title_fontdict = {"fontsize": 8, "fontstyle": "italic"}
+
+        sm = plt.cm.ScalarMappable(
+            cmap=CMAPS[col[0]],
+            norm=plt.Normalize(vmin=plot_gdf[col].min(), vmax=plot_gdf[col].max()),
+        )
+        sm._A = []
+        cbar = fig.colorbar(
+            sm, cax=axes[col[0] + "_legend"],
+            orientation="horizontal", label=f'{col[1]}', shrink=0.65, pad=0.05
+        )
+        cbar.outline.set_linewidth(0.1)
+        cbar.ax.tick_params(axis='both', which='both', labelsize=6, pad=0, width=0.5)
+
+        national_gdf.plot(fc='None', ec='black', lw=0.05, ax=axes[col], legend=False, linestyle='dashed')
+        title_fontdict = {"fontsize": 5.5, "fontstyle": "italic"}
         axes[col].set_title(col[0])
         axes[col].text(0.5, 0.98,
             SUBTITLES[col[0]],
@@ -182,12 +205,12 @@ def plot_spatial(plot_gdf, axes, figure_data_df):
 def plot_annual_bar(axes, annual_data):
     axes['Title'].axis('off')
     axes['Title'].set_title(
-        'b. Total annual service demands', fontweight='bold', loc='left', y=0
+        '$\\bf{B}$ Total annual service demands', loc='left', y=0
     )
-    axes['Title'].text(0.1, 0,
+    axes['Title'].text(0.1, 0.25,
         "(road vehicle mileage translated to energy\nbased on model input vehicle efficiency)",
         verticalalignment="top", horizontalalignment="left",
-        transform=axes['Title'].transAxes, fontsize="x-small", fontweight="bold"
+        transform=axes['Title'].transAxes, fontsize=6
     )
 
     to_plot_stacked = (
@@ -264,7 +287,7 @@ def plot_annual_bar(axes, annual_data):
 def plot_timeseries(axes, model_timeseries_data, current_demand):
     axes['Title'].axis('off')
     axes['Legend'].axis('off')
-    axes['Title'].set_title('c. Hourly load profiles for fixed timeseries demands', fontweight='bold', loc='left', y=0)
+    axes['Title'].set_title('$\\bf{C}$ Hourly load profiles for fixed timeseries demands', loc='left', y=0)
 
     current_demand.rolling(24 * 7, center=True).mean().plot(
         ax=axes["Plot"], lw=2, c='black', linestyle='--'
@@ -306,7 +329,7 @@ def move_legend_between_axes(axes, handles=None, labels=None):
         bbox_to_anchor=[0.5, 0.5],
         ncol=5,
         frameon=False,
-        fontsize="x-small"
+        fontsize=7
     )
 
 

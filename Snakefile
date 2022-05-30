@@ -1,14 +1,26 @@
-
-PYTHON_SCRIPT = "PYTHONPATH=./ python {input} {output}"
-PYTHON_SCRIPT_WITH_CONFIG = PYTHON_SCRIPT + " {CONFIG_FILE}"
+from datetime import date
 
 configfile: "config/default.yaml"
+euro_calliope_config = f"./config/euro-calliope-{config['projection_year']}.yaml"
+configfile: euro_calliope_config
+
+subworkflow eurocalliope:
+    workdir: "./euro-calliope"
+    snakefile: "./euro-calliope/Snakefile"
+    configfile: euro_calliope_config
+
+subworkflow landeligibility:
+    workdir: "./land-eligibility/"
+    snakefile: "./land-eligibility/Snakefile"
+    configfile: "./land-eligibility/config/default.yaml"
+
+
 include: "rules/construct.smk"
 include: "rules/analyse.smk"
 include: "rules/sync.smk"
 include: "rules/run.smk"
 
-localrules: all, clean, make_runs
+localrules: all, clean
 onstart:
     shell("mkdir -p build/logs build/eurospores build/national build/model")
 
@@ -25,8 +37,8 @@ wildcard_constraints:
 rule all:
     message: "Prepare EuroSPORES model runs."
     input:
-        "run_scripts/eurospores.sh",
-        "build/figures/eurospores/map.pdf"
+        "build/figures/eurospores/map.pdf",
+        f"build/pre-built-model-{date.today()}.zip"
 
 
 rule generate_pre_builds:
@@ -45,16 +57,6 @@ rule generate_pre_builds:
         """
 
 
-rule make_runs:
-    message: "Creating Calliope {wildcards.resolution} run scripts"
-    input:
-        model = "build/model/{resolution}/model.yaml"
-    output:
-        run_script = "run_scripts/{resolution}.sh"
-    conda: "envs/calliope.yaml"
-    shell: "calliope generate_runs --kind bsub --scenarios directional-rooftop-pv --cluster_threads 4 --cluster_mem 50G --cluster_time 240 ../{input.model} {output.run_script}"
-
-
 rule clean: # removes all generated results
     shell:
         """
@@ -62,3 +64,18 @@ rule clean: # removes all generated results
         echo "Data downloaded to data/ has not been cleaned."
         """
 
+
+rule clean_euro_calliope: # removes all generated results in the subworkflow
+    shell:
+        """
+        rm -r ./euro-calliope/build/*
+        echo "Data downloaded to euro-calliope/data/ has not been cleaned."
+        """
+
+
+rule clean_land_eligibility: # removes all generated results in the subworkflow
+    shell:
+        """
+        rm -r ./land-eligibility/build/*
+        echo "Data downloaded to land-eligibility/data/ has not been cleaned."
+        """

@@ -2,23 +2,15 @@ import glob
 
 URL_NATIONAL_UNITS = "https://gisco-services.ec.europa.eu/distribution/v2/nuts/geojson/NUTS_RG_20M_2016_4326_LEVL_0.geojson"
 
-subworkflow landeligibility:
-    workdir: "land-eligibility/"
-    snakefile: "land-eligibility/Snakefile"
-    configfile: "land-eligibility/config/default.yaml"
-subworkflow eurocalliope:
-    workdir: "euro-calliope/"
-    snakefile: "euro-calliope/Snakefile"
-    configfile: "config/default.yaml"
 
 wildcard_constraints:
-    plot_suffix = "pdf|png"
+    plot_suffix = "pdf|png|tif"
 
 rule maps:
     message: "Creating Calliope {wildcards.resolution} map"
     input:
         src = "src/analyse/plot_transmission_map.py",
-        model = "build/{resolution}/inputs/run_2018_2H.nc",
+        model = "build/{resolution}/inputs/run_2018_2H_neutral.nc",
         units = landeligibility("build/{resolution}/units.geojson")
     params:
         bounds = config["scope"]["spatial"]["bounds"]
@@ -159,13 +151,14 @@ rule plot_map_metrics:
     message: "Plot {wildcards.spore} map metrics for interactive visualisation"
     input:
         src = "src/analyse/plot_spores_map_metrics.py",
-        friendly_data = "build/eurospores/shared_spores",
+        friendly_data = "build/eurospores/shared_spores_metrics",
         units = landeligibility("build/eurospores/units.geojson"),
         unit_groups = "data/plotting_unit_groups.csv",
     conda: "../envs/analyse.yaml"
     output: "build/figures/map_fig/{spore}.jpg"
     script: "../src/analyse/plot_spores_map_metrics.py"
 
+
 rule plot_all_map_metrics:
     message: "Plot all SPORES map metrics for interactive visualisation"
-    input: expand("build/figures/map_fig/{spore}.jpg", spore=range(1, 441))
+    input: expand("build/figures/map_fig/{spore}.jpg", spore=range(0, 441))

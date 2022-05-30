@@ -52,6 +52,15 @@ COLORS = {
 
 NUCLEAR_HEAT_MUTIPLIER = 0.4  # We need to account for going from Nuclear electricity output to Nuclear Heat, using the technology efficiency
 
+plt.rcParams.update({
+    "svg.fonttype": 'none',
+    'font.family':'sans-serif',
+    'font.sans-serif':'Arial',
+    "font.size": 8
+})
+
+FIGWIDTH = 4.40945
+
 
 def plot_energy_bars(
     path_to_energy_balances, path_to_spores, countries, model_year, path_to_output
@@ -75,32 +84,32 @@ def plot_energy_bars(
         .dropna(how="all")
         .T
     )
-    with sns.plotting_context("paper", font_scale=2):
-        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    fig, ax = plt.subplots(1, 1, figsize=(FIGWIDTH, FIGWIDTH))
 
-        all_data_to_plot.plot.bar(
-            ax=ax, stacked=True,
-            color=[COLORS[i] for i in all_data_to_plot.columns]
-        )
-        for tick in ax.get_xticklabels():
-            tick.set_rotation(0)
-        handles, labels = ax.get_legend_handles_labels()
-        ax.legend(
-            handles[::-1], labels[::-1],
-            bbox_to_anchor=(1, 0.5),
-            frameon=False,
-            loc="center left"
-        )
+    fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    all_data_to_plot.plot.bar(
+        ax=ax, stacked=True,
+        color=[COLORS[i] for i in all_data_to_plot.columns]
+    )
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(0)
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(
+        handles[::-1], labels[::-1],
+        bbox_to_anchor=(1, 0.5),
+        frameon=False,
+        loc="center left"
+    )
 
-        sns.despine(ax=ax)
-        ax.set_ylabel("1000 TWh")
+    sns.despine(ax=ax)
+    ax.set_ylabel("1000 TWh")
 
-        if path_to_output.endswith(".png"):
-            kwargs = {"dpi": 300}
-        else:
-            kwargs = {}
+    if path_to_output.endswith(".png"):
+        kwargs = {"dpi": 300}
+    else:
+        kwargs = {}
 
-        fig.savefig(path_to_output, bbox_inches="tight", **kwargs)
+    fig.savefig(path_to_output, bbox_inches="tight", **kwargs)
 
 
 def get_input_energy(path_to_energy_balances, countries, model_year):

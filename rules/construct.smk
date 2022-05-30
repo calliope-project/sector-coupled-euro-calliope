@@ -1,31 +1,8 @@
+localrules: copy_euro_calliope, copy_resolution_specific_euro_calliope, model, eurostat_data_tsv, ch_data_xlsx, when2heat, download_weather_data, download_ramp_data
 
-URL_ENERGY_BALANCE = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?file=data/nrg_bal_c.tsv.gz"
-URL_HH_END_USE = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?file=data/nrg_d_hhq.tsv.gz"
-URL_CH_END_USE = "https://www.bfe.admin.ch/bfe/en/home/versorgung/statistik-und-geodaten/energiestatistiken/energieverbrauch-nach-verwendungszweck.exturl.html/aHR0cHM6Ly9wdWJkYi5iZmUuYWRtaW4uY2gvZGUvcHVibGljYX/Rpb24vZG93bmxvYWQvOTg1NA==.html"
-URL_CH_ENERGY_BALANCE = "https://www.bfe.admin.ch/bfe/en/home/versorgung/statistik-und-geodaten/energiestatistiken/gesamtenergiestatistik.exturl.html/aHR0cHM6Ly9wdWJkYi5iZmUuYWRtaW4uY2gvZGUvcHVibGljYX/Rpb24vZG93bmxvYWQvNzUxOQ==.html"
-URL_CH_INDUSTRY_ENERGY_BALANCE = "https://www.bfe.admin.ch/bfe/en/home/versorgung/statistik-und-geodaten/energiestatistiken/teilstatistiken.exturl.html/aHR0cHM6Ly9wdWJkYi5iZmUuYWRtaW4uY2gvZGUvcHVibGljYX/Rpb24vZG93bmxvYWQvODc4OA==.html"
-URL_DWELLINGS = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?file=data/cens_11dwob_r3.tsv.gz"
-URL_WHEN2HEAT = "https://github.com/oruhnau/when2heat"  # should this point to a commit hash?
-URL_FREIGHT = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?file=data/road_go_na_rl3g.tsv.gz"
-URL_EMPLOYEES = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?file=data/sbs_r_nuts06_r2.tsv.gz"
-URL_GVA = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?file=data/nama_10r_3gva.tsv.gz"
-URL_CH_GVA = "https://www.bfs.admin.ch/bfsstatic/dam/assets/10647597/master"
-URL_GAS_STORAGE = "https://www.gie.eu/wp-content/uploads/filr/1410/Storage_DB_Dec2018.xlsx"
-
-subworkflow eurocalliope:
-    workdir: "./euro-calliope"
-    snakefile: "./euro-calliope/Snakefile"
-    configfile: "./config/default.yaml"
-
-subworkflow landeligibility:
-    workdir: "land-eligibility/"
-    snakefile: "land-eligibility/Snakefile"
-    configfile: "land-eligibility/config/default.yaml"
-
-localrules: copy_euro_calliope, copy_resolution_specific_euro_calliope, model, eurostat_data_tsv, ch_data_xlsx, when2heat
-ruleorder: model > links > outer_countries > copy_from_template > copy_euro_calliope > annual_national_demand > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > gas_storage > copy_fuel_supply_techs > copy_biofuel_techs > copy_resolution_specific_euro_calliope
+ruleorder: model > links > copy_from_template > copy_euro_calliope > annual_national_demand > annual_subnational_demand > heat_demand_profiles > cooking_heat_demand > scaled_heat_demand_profiles > scaled_public_transport_demand_profiles > update_electricity_with_other_sectors > heat_pump_characteristics > ev_energy_cap > annual_fuel_demand_constraints > annual_vehicle_constraints > annual_heat_constraints > gas_storage > copy_fuel_supply_techs > copy_biofuel_techs > copy_resolution_specific_euro_calliope
 wildcard_constraints:
-    definition_file = "[^\/]*", # must not travers into directories
+    definition_file = "[^\/]*", # must not traverse into directories
     year = "|".join([str(i) for i in range(2010, 2019)])
 
 rule copy_euro_calliope:
@@ -64,81 +41,43 @@ rule links:
     script: "../src/construct/template_links.py"
 
 
-rule outer_countries:
-    message: "Create neighbouring country links {wildcards.resolution} scenario."
-    input:
-        src = "src/construct/outer_countries.py",
-        gtc = "data/eurospores.xlsx"
-    params: scaling_factors = config["scaling-factors"]
-    conda: "../envs/default.yaml"
-    output: "build/model/{resolution}/outer-countries.yaml"
-    script: "../src/construct/outer_countries.py"
-
-
 rule eurostat_data_tsv:
-    message: "Get various datasets from Eurostat"
-    output:
-        energy_balance = protected("data/automatic/annual_energy_balances.tsv.gz"),
-        hh_end_use = protected("data/automatic/hh_end_use.tsv.gz"),
-        freight = protected("data/automatic/freight.tsv.gz"),
-        employees = protected("data/automatic/employees.tsv.gz"),
-        gva = protected("data/automatic/gva.tsv.gz"),
-        dwellings = protected("data/automatic/dwellings.tsv.gz"),
-    shell:
-        """
-        curl -sLo {output.energy_balance} '{URL_ENERGY_BALANCE}'
-        curl -sLo {output.hh_end_use} '{URL_HH_END_USE}'
-        curl -sLo {output.freight} '{URL_FREIGHT}'
-        curl -sLo {output.employees} '{URL_EMPLOYEES}'
-        curl -sLo {output.gva} '{URL_GVA}'
-        curl -sLo {output.dwellings} '{URL_DWELLINGS}'
-        """
+    message: "Get {wildcards.dataset} from Eurostat"
+    params:
+        url = lambda wildcards: config["data-sources"][f"eurostat-{wildcards.dataset}"]
+    output: protected("data/automatic/eurostat-{dataset}.tsv.gz")
+    shell: "curl -sLo {output} {params.url}"
 
 
-#rule eurostat_data_tif:
-#    message: "Get various datasets from Eurostat"
-#    input:
-#        eurostat_data = eurostat_data_tsv.output
-#    output:
-#        energy_balance = protected("data/automatic/annual_energy_balances.tsv.gz"),
-#        hh_end_use = protected("data/automatic/hh_end_use.tsv.gz"),
-#        freight = protected("data/automatic/freight.tsv.gz"),
-#        employees = protected("data/automatic/employees.tsv.gz"),
-#        gva = protected("data/automatic/gva.tsv.gz"),
-#        dwellings = protected("data/automatic/dwellings.tsv.gz"),
-#    shell:
-#        """
-#        curl -sLo {output.energy_balance} '{URL_ENERGY_BALANCE}'
-#        curl -sLo {output.hh_end_use} '{URL_HH_END_USE}'
-#        curl -sLo {output.freight} '{URL_FREIGHT}'
-#        curl -sLo {output.employees} '{URL_EMPLOYEES}'
-#        curl -sLo {output.gva} '{URL_GVA}'
-#        curl -sLo {output.dwellings} '{URL_DWELLINGS}'
-#        """
+rule download_weather_data:
+    message: "Download data/automatic/weather/{wildcards.filename}."
+    params: url = lambda wildcards: config["data-sources"]["weather"].format(filename=wildcards.filename)
+    output: protected("data/automatic/weather/{filename}")
+    shell: "curl -sLo {output} '{params.url}'"
+
+
+rule download_ramp_data:
+    message: "Download data/automatic/ramp/{wildcards.ramp_profile}.csv.gz."
+    params: url = lambda wildcards: config["data-sources"]["ramp-data"].format(ramp_profile=wildcards.ramp_profile)
+    output: protected("data/automatic/ramp/{ramp_profile}.csv.gz")
+    shell: "curl -sLo {output} '{params.url}'"
+
 
 rule ch_data_xlsx:
-    message: "Get Swiss annual energy balances and household end uses"
-    output:
-        energy_balance = protected("data/automatic/ch_annual_energy_balances.xlsx"),
-        industry_energy_balance = protected("data/automatic/ch_annual_industry_energy_balances.xlsx"),
-        end_use = protected("data/automatic/ch_hh_end_use.xlsx"),
-        gva = protected("data/automatic/ch_gva.xlsx")
-    shell:
-        """
-        curl -sLo {output.energy_balance} '{URL_CH_ENERGY_BALANCE}'
-        curl -sLo {output.industry_energy_balance} '{URL_CH_INDUSTRY_ENERGY_BALANCE}'
-        curl -sLo {output.end_use} '{URL_CH_END_USE}'
-        curl -sLo {output.gva} '{URL_CH_GVA}'
-        """
+    message: "Get {wildcards.dataset} from Swiss statistics"
+    params:
+        url = lambda wildcards: config["data-sources"][f"ch-{wildcards.dataset}"]
+    output: protected("data/automatic/ch-{dataset}.xlsx")
+    shell: "curl -sLo {output} {params.url}"
 
 
 rule annual_energy_balances:
     message: "Get annual energy balances from Eurostat"
     input:
         src = "src/construct/annual_energy_balance.py",
-        energy_balance = rules.eurostat_data_tsv.output.energy_balance,
-        ch_energy_balance = rules.ch_data_xlsx.output.energy_balance,
-        ch_industry_energy_balance = rules.ch_data_xlsx.output.industry_energy_balance,
+        energy_balance = "data/automatic/eurostat-energy-balance.tsv.gz",
+        ch_energy_balance = "data/automatic/ch-energy-balance.xlsx",
+        ch_industry_energy_balance = "data/automatic/ch-industry-energy-balance.xlsx",
         cat_names = "data/energy_balance_category_names.csv",
         carrier_names = "data/energy_balance_carrier_names.csv"
     output: "build/annual_energy_balances.csv"
@@ -196,8 +135,8 @@ rule annual_heat_demand:
     message: "Calculate national heat demand for household and commercial sectors"
     input:
         src = "src/construct/annual_heat_demand.py",
-        hh_end_use = rules.eurostat_data_tsv.output.hh_end_use,
-        ch_end_use = rules.ch_data_xlsx.output.end_use,
+        hh_end_use = "data/automatic/eurostat-hh-end-use.tsv.gz",
+        ch_end_use = "data/automatic/ch-end-use.xlsx",
         energy_balance = rules.annual_energy_balances.output[0],
         commercial_demand = "data/commercial/jrc_idees_processed_energy.csv",
         carrier_names = "data/energy_balance_carrier_names.csv"
@@ -269,10 +208,10 @@ rule annual_subnational_demand:
         rail_bau_electricity=rules.annual_transport_demand.output.rail_bau_electricity,
         industry_bau_electricity=rules.annual_industry_demand.output.bau_electricity,
         emissions = "data/industry/all_industrial_ets_eprtr_sites.geojson",
-        freight = rules.eurostat_data_tsv.output.freight,
-        employees = rules.eurostat_data_tsv.output.employees,
-        gva = rules.eurostat_data_tsv.output.gva,
-        ch_gva = rules.ch_data_xlsx.output.gva,
+        freight = "data/automatic/eurostat-freight.tsv.gz",
+        employees = "data/automatic/eurostat-employees.tsv.gz",
+        gva = "data/automatic/eurostat-gva.tsv.gz",
+        ch_gva = "data/automatic/ch-gva.xlsx",
         nuts_to_regions = "data/nuts_to_regions.csv",
         industry_activity_codes = "data/industry/industry_activity_codes.csv",
         demand_scales = config["data-sources"]["annual-demand-scale"] if config["scale-demands"] else []
@@ -302,9 +241,9 @@ rule weather_and_population:
         src = "src/construct/weather.py",
         population = landeligibility("build/population-europe.tif"),
         units = landeligibility("build/{resolution}/units.geojson"),
-        air_temp = "data/weather/temperature.nc",
-        wind_10m = "data/weather/wind10m.nc",
-        soil_temp = "data/weather/tsoil5.nc",
+        air_temp = "data/automatic/weather/temperature.nc",
+        wind_10m = "data/automatic/weather/wind10m.nc",
+        soil_temp = "data/automatic/weather/tsoil5.nc",
     conda: "../envs/geodata.yaml"
     params:
         first_year = config["scope"]["temporal"]["first-year"],
@@ -317,8 +256,9 @@ rule weather_and_population:
 rule when2heat:
     message: "Clone when2heat github repo"
     output: directory("data/automatic/when2heat")
+    params: url = config["data-sources"]["when2heat"]
     shell:
-        "git clone {URL_WHEN2HEAT} {output}"
+        "git clone --depth 1 --branch 2019-08-06 {params.url} {output}"
 
 
 rule heat_demand_profiles:
@@ -341,7 +281,7 @@ rule regional_dwelling_ratio:
     input:
         src = "src/construct/dwellings.py",
         regions = rules.regions.output[0],
-        dwellings = rules.eurostat_data_tsv.output.dwellings,
+        dwellings = "data/automatic/eurostat-dwellings.tsv.gz",
         nuts_to_regions = "data/nuts_to_regions.csv",
     conda: "../envs/geodata.yaml"
     output: "build/{resolution}/dwellings.csv"
@@ -351,9 +291,9 @@ rule regional_dwelling_ratio:
 rule cooking_heat_demand:
     message: "Clean RAMP-Cooking cooking{wildcards.demand_key}-demand {wildcards.resolution} profiles to match structure of other heat profiles"
     input:
-        cooking_profiles = "data/cooking_profiles.csv.gz",
+        cooking_profiles = "data/automatic/ramp/cooking.csv.gz",
         regions = rules.regions.output[0],
-        annual_demand = "build/{{resolution}}/annual-demand-{}.csv".format(config["projection-year"]),
+        annual_demand = "build/{{resolution}}/annual-demand-{}.csv".format(config["projection_year"]),
     conda: "../envs/default.yaml"
     params:
         first_year = config["scope"]["temporal"]["first-year"],
@@ -367,7 +307,7 @@ rule scaled_heat_demand_profiles:
     message: "Scale {wildcards.end_use}heat{wildcards.demand_key} profiles at {wildcards.resolution} resolution according to annual demand."
     input:
         src = "src/construct/scale_hourly_heat_profiles.py",
-        annual_demand = "build/{{resolution}}/annual-demand-{}.csv".format(config["projection-year"]),
+        annual_demand = "build/{{resolution}}/annual-demand-{}.csv".format(config["projection_year"]),
         dwelling_ratio = rules.regional_dwelling_ratio.output[0],
         profile = "build/{resolution}/{end_use}heat-profile.csv",
     params:
@@ -385,7 +325,7 @@ rule scaled_public_transport_demand_profiles:
     input:
         src = "src/construct/scale_hourly_transport_profiles.py",
         regions = rules.regions.output[0],
-        annual_demand = "build/{{resolution}}/annual-demand-{}.csv".format(config["projection-year"]),
+        annual_demand = "build/{{resolution}}/annual-demand-{}.csv".format(config["projection_year"]),
         rail_profiles = "data/transport/rail_daily_profiles_destinee.csv",
     params:
         first_year = config["scope"]["temporal"]["first-year"],
@@ -403,7 +343,7 @@ rule update_electricity_with_other_sectors:
         water_heat = "build/model/{resolution}/water-heat-bau-electricity-demand.csv",
         cooking = "build/model/{resolution}/cooking-bau-electricity-demand.csv",
         public_transport = "build/{resolution}/public-transport-demand.csv",
-        annual_demand = "build/{{resolution}}/annual-demand-{}.csv".format(config["projection-year"]),
+        annual_demand = "build/{{resolution}}/annual-demand-{}.csv".format(config["projection_year"]),
         hourly_electricity = eurocalliope("build/model/{resolution}/electricity-demand.csv"),
         regions = rules.regions.output[0],
         demand_scales = config["data-sources"]["building-electricity-demand-scale"] if config["scale-demands"] else []
@@ -412,7 +352,7 @@ rule update_electricity_with_other_sectors:
         final_year = config["scope"]["temporal"]["final-year"],
         scale_demand = config["scale-demands"],
         demand_scale_scenario = config["demand-scale-scenario"],
-        projection_year = config["projection-year"]
+        projection_year = config["projection_year"]
     conda: "../envs/default.yaml"
     output: "build/model/{resolution}/electricity-demand.csv"
     script: "../src/construct/electricity_with_other_sectors.py"
@@ -425,7 +365,7 @@ rule heat_pump_characteristics:
         dep_src = "src/construct/hourly_heat_profiles.py",
         weather_pop = rules.weather_and_population.output.weather_pop,
         hp_characteristics = "data/heat_pump_characteristics.csv",
-        annual_demand = "build/{{resolution}}/annual-demand-{}.csv".format(config["projection-year"])
+        annual_demand = "build/{{resolution}}/annual-demand-{}.csv".format(config["projection_year"])
     params:
         heat_tech_params = config["parameters"]["heat-end-use"],
         characteristic = "{characteristic}",
@@ -439,18 +379,17 @@ rule heat_pump_characteristics:
 
 
 rule ev_energy_cap:
-    message: "Restructing RAMP-mobility EV {wildcards.profile} profiles for use in {wildcards.resolution} Calliope model"
+    message: "Restructing RAMP-mobility EV {wildcards.dataset_name} profiles for use in {wildcards.resolution} Calliope model"
     input:
         src = "src/construct/hourly_ev_profiles.py",
         regions = rules.regions.output[0],
-        ev_profiles = "data/transport/ev_profiles_ramp.csv.gz",
+        ev_profiles = lambda wildcards: "data/automatic/ramp/ev-consumption.csv.gz" if "demand" in wildcards.dataset_name else f"data/automatic/ramp/ev-{wildcards.dataset_name}.csv.gz",
     params:
-        dataset_name = "{profile}",
-        demand_range = config["parameters"]["transport"]["weekly_demand"],
+        demand_range = config["parameters"]["transport"]["monthly_demand"],
         first_year = config["scope"]["temporal"]["first-year"],
         final_year = config["scope"]["temporal"]["final-year"]
     conda: "../envs/default.yaml"
-    output: "build/model/{resolution}/{profile}-ev.csv"
+    output: "build/model/{resolution}/{dataset_name}-ev.csv"
     script: "../src/construct/hourly_ev_profiles.py"
 
 
@@ -458,7 +397,7 @@ rule annual_fuel_demand_constraints:
     message: "create all {wildcards.resolution} group constraints associated with annual fuel demand in the year {wildcards.year}"
     input:
         src = "src/construct/template_fuel_demand.py",
-        annual_demand="build/{{resolution}}/annual-demand-{}.csv".format(config["projection-year"])
+        annual_demand="build/{{resolution}}/annual-demand-{}.csv".format(config["projection_year"])
     params:
         scaling_factors = config["scaling-factors"],
         industry_carriers = config["parameters"]["industry"]["carriers"],
@@ -472,7 +411,7 @@ rule annual_vehicle_constraints:
     message: "create all {wildcards.resolution} constraints associated with annual road vehicle demand in the year {wildcards.year}"
     input:
         src = "src/construct/template_vehicle_demand.py",
-        annual_demand="build/{{resolution}}/annual-demand-{}.csv".format(config["projection-year"])
+        annual_demand="build/{{resolution}}/annual-demand-{}.csv".format(config["projection_year"])
     params:
         transport = config["parameters"]["transport"],
         scaling_factors = config["scaling-factors"],
@@ -499,9 +438,10 @@ rule annual_heat_constraints:
 
 
 rule gas_storage_xlsx:
-    message: "Get latest data on underground gas storage available in each country"
+    message: "Get data on underground gas storage available in each country"
+    params: url = config["data-sources"]["gas-storage"]
     output: "data/automatic/gas_storage.xlsx"
-    shell: "curl -sLo {output[0]} '{URL_GAS_STORAGE}'"
+    shell: "curl -sLo {output[0]} '{params.url}'"
 
 
 rule gas_storage:
@@ -551,7 +491,7 @@ rule copy_fuel_supply_techs:
     params:
         scaling_factors = config["scaling-factors"],
         fuel_cost_source = config["parameters"]["fossil-fuel-cost"]["source"],
-        fuel_cost_year = config["parameters"]["fossil-fuel-cost"]["year"]
+        fuel_cost_year = config["projection_year"]
     conda: "../envs/default.yaml"
     script: "../src/construct/template_fossil_fuel_supply.py"
 
@@ -609,7 +549,7 @@ rule emissions_scenario_yaml:
         regions = rules.regions.output[0]
     params:
         scaling_factors = config["scaling-factors"],
-        projection_year = config["projection-year"],
+        projection_year = config["projection_year"],
     conda: "../envs/default.yaml"
     output: "build/model/{resolution}/emissions-scenarios.yaml"
     script: "../src/construct/template_emissions.py"
@@ -687,6 +627,7 @@ rule model:
     params:
         subset_time = config["calliope-parameters"]["model.subset_time"]
     output: "build/model/{resolution}/model-{year}.yaml"
+    conda: "../envs/default.yaml"
     script: "../src/construct/template_model_in_year.py"
 
 rule model_all_years:

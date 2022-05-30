@@ -41,11 +41,12 @@ rule build_eurocalliope:
     params:
         scenario = lambda wildcards: get_scenario(
             f"industry_fuel,transport,heat,config_overrides,gas_storage,freeze-hydro-capacities,res_{wildcards.model_resolution}h,add-biofuel,synfuel_transmission",
-            config["projection-year"], wildcards.co2_scenario, add_link_cap=True
+            config["projection_year"], wildcards.co2_scenario, add_link_cap=True
         )
     output: "build/{resolution}/inputs/run_{year}_{model_resolution}H_{co2_scenario}.nc"
     conda: "../envs/calliope.yaml"
     script: "../src/run/create_input.py"
+
 
 rule run_eurocalliope:
     message: "Running Calliope {wildcards.resolution} model with {wildcards.model_resolution} hourly temporal resolution for the model year {wildcards.year} and with co2 `{wildcards.co2_scenario}` limit"

@@ -27,7 +27,7 @@ input_netcdf:
 run_eurocalliope:
     runtime: 1440
     cores: 6
-    memory: 80000
+    memory: 100000
     scratch: 4000
 build_eurocalliope:
     runtime: 480
@@ -35,3 +35,69 @@ build_eurocalliope:
 heat_demand_profiles:
     runtime: 100
     memory: 80000
+spores_result_metrics:
+    memory: 30000
+    runtime: 120
+consolidate_scenario_results:
+    memory: 40000
+    runtime: 120
+results_to_iamc_friendly:
+    memory: 20000
+    runtime: 60
+results_to_friendly:
+    memory: 30000
+    runtime: 60
+results_to_friendly_spores:
+    memory: 100000
+    runtime: 240
+cost_opt_result_metrics:
+    memory: 100000
+    runtime: 240
+consolidate_cost_opt_metrics:
+    memory: 60000
+    runtime: 240
+inflow_m3:
+    runtime: 100
+inflow_mwh:
+    runtime: 100
+    memory: 40000
+capacity_factors_hydro:
+    runtime: 100
+capacity_factors_offshore:
+    runtime: 30
+capacity_factors_onshore_wind_and_solar:
+    runtime: 30
+download_runoff_data:
+    runtime: 240
+protected_areas_in_europe:
+    runtime: 239
+    memory: 64000
+settlements:
+    cores: 4
+    runtime: 120
+shared_coast:
+    cores: 4
+    runtime: 60
+slope_in_europe:
+    cores: 4
+elevation_in_europe:
+    cores: 4
+eez_eligibility:
+    cores: 4
+shared_coast:
+    cores: 4
+sensitivities:
+    cores: 4
+capacityfactor_timeseries:
+    memory: 128000
+    runtime: 180
+time_average_capacityfactor_map:
+    memory: 32000
+national_boundaries:
+    runtime: 60
+administrative_borders_lau:
+    runtime: 60
+administrative_borders:
+    runtime: 60
+areas:
+    runtime: 60

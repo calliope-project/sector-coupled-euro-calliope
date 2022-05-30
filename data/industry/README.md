@@ -20,7 +20,7 @@ This directory provides a number of datasets relevant to building end use energy
 
     This dataset is available in raw form as an output of the HeatRoadmap Europe project [here](https://heatroadmap.eu/heating-and-cooling-energy-demand-profiles/). It is structured similarly to (1), but without the need to preprocess by hand. Data is instead processed in "process_FORECAST_industry_2015.ipynb". Note that unlike the 2012 data, there is no disaggregation of data into industry subsectors.
 
-1. JRC_IDEES_industry_end_use_consumption.csv
+1. jrc_idees_processed_energy.csv.gz
    - countries: EU28
    - subsectors: Eurostat compatible
    - energy carriers: Partially aggregated relative to Eurostat

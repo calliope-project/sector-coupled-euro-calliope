@@ -101,6 +101,6 @@ if __name__ == "__main__":
         path_to_regions=snakemake.input.regions,
         scaling_factors=snakemake.params["scaling_factors"],
         fuel_cost_source=snakemake.params["fuel_cost_source"],
-        fuel_cost_year=snakemake.params["fuel_cost_year"],
+        fuel_cost_year=int(snakemake.params["fuel_cost_year"]),
         path_to_result=snakemake.output[0]
     )

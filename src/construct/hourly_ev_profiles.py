@@ -11,7 +11,7 @@ def get_hourly_ev_profiles(
     """
     regions_df = pd.read_csv(regions_path).set_index(['id', 'country_code'])
     ev_profiles_df = pd.read_csv(
-        ev_profiles_path, index_col=[0, 1, 2], parse_dates=[0]
+        ev_profiles_path, index_col=[0, 1, 2], parse_dates=[0], squeeze=True
     )
     profiles = []
     for year in range(first_year, final_year + 1):
@@ -33,21 +33,19 @@ def get_one_year_hourly_ev_profiles(
         if "light" in dataset_name:
             ev_profile = (
                 ev_profiles_df
-                .demand
-                .div(ev_profiles_df.demand.sum(level='country_code'))
+                .div(ev_profiles_df.sum(level='country_code'))
                 .mul(demand_range[dataset_name.split("-")[1]])
             )
-        elif "heavy" in dataset_name:
+        elif "heavy" in dataset_name:  # assume demand is equal across all timesteps for freight and buses
             ev_profile = (
                 ev_profiles_df
-                .assign(static_demand=1)
-                .static_demand
+                .clip(upper=1, lower=1)
                 .div(len(ev_profiles_df.index.get_level_values('datetime').unique()))
                 .mul(demand_range[dataset_name.split("-")[1]])
             )
     # % plugged-in EVs is already normalised
     elif dataset_name == 'plugin':
-        ev_profile = ev_profiles_df.plugin
+        ev_profile = ev_profiles_df
 
     def _fill_empty_country(df, country_neighbour_dict):
         df = df.unstack('country_code')
@@ -75,7 +73,7 @@ if __name__ == "__main__":
     get_hourly_ev_profiles(
         regions_path=snakemake.input.regions,
         ev_profiles_path=snakemake.input.ev_profiles,
-        dataset_name=snakemake.params.dataset_name,
+        dataset_name=snakemake.wildcards.dataset_name,
         demand_range=snakemake.params.demand_range,
         first_year=snakemake.params.first_year,
         final_year=snakemake.params.final_year,

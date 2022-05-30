@@ -9,8 +9,13 @@ __pycache__
 .DS_Store
 build
 data/automatic
-data/weather
 notebooks
-euro-calliope/data
-land-eligibility/data
+euro-calliope/data/automatic
+euro-calliope/data/World_EEZ_v10_20180221
+land-eligibility/data/automatic
+land-eligibility/data/esm-100m-2017
+land-eligibility/data/World_EEZ_v10_20180221
+land-eligibility/data/sonnendach
+land-eligibility/data/gwr
+land-eligibility/data/capacityfactors
 outputs
