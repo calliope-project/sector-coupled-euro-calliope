@@ -75,4 +75,4 @@ If you would like to update the grouping of regions, you can do so here.
 
 If you use this workflow or the pre-built Sector-Coupled Euro-Calliope model, please cite:
 
-Pickering, B., Lombardi, F., Pfenninger, S., 2022. Diversity of options to eliminate fossil fuels and reach carbon neutrality across the entire European energy system. Joule.
+Pickering, B., Lombardi, F., Pfenninger, S., 2022. Diversity of options to eliminate fossil fuels and reach carbon neutrality across the entire European energy system. Joule. [DOI:10.1016/j.joule.2022.05.009](https://doi.org/10.1016/j.joule.2022.05.009)
