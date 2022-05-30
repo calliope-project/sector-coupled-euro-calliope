@@ -70,6 +70,23 @@ Your best bet is to instead run for all countries and then exclude certain regio
 The file `nuts_to_regions.csv` maps NUTS3 regions to user-defined Euro-Calliope regions.
 If you would like to update the grouping of regions, you can do so here.
 
+7. Running the exact workflow to produce results as in the accompanying publication.
+There have been many updates to the workflow since the version used to produce results in [DOI:10.1016/j.joule.2022.05.009](https://doi.org/10.1016/j.joule.2022.05.009).
+These updates rarely change the data, but rather the structure of the workflow and the method of running the Calliope models.
+The version of the workflow that was used can be found [here](https://github.com/calliope-project/sector-coupled-euro-calliope/tree/2021-11-29).
+A pre-built version of the same model can be be found on [Zenodo](https://zenodo.org/record/5774988).
+To rebuild the original version of the model, we recommend you use this current version of the workflow to build the model, making changes to YAML template files to match the data used in the older version.
+Major changes to data and final Calliope model structure are:
+    1. The way in which synthetic fuels can be transported between regions.
+    The model has been updated to allow all synthetic fuels to transported between regions freely (using the `synfuel_transmission` Calliope override).
+    Previously only industry synethtic fuel demands in one region could be met by other regions (using the `industry_fuel_shared` Calliope override).
+    1.  The cost of the Hydrogen-to-Methanol technology has been corrected to not double count the electricity requirement for electrolysis to produce hydrogen.
+    2.  The efficiency of the Biofuel-to-Methanol has been corrected upwards based on the type of biofuel being consumed.
+    3.  A Hydrogen-fuelled combined heat and power (CHP) plant is now an available technology.
+    4.  The model is now designed for optimisation in version Calliope 0.6.8, with an intermediate Python script to add custom constraints.
+    Previously, a fork of Calliope version 0.6.6 was required to run the model such that custom constraints could be included.
+    1. Most manual data download steps have been automated, by making data available on Zenodo.
+    You can emulate this by downloading any missing data from the Zenodo respoitories given in this workflow version.
 
 ## Citation
 
