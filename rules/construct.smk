@@ -247,7 +247,7 @@ rule raw_population_zipped:
 rule raw_population:
     message: "Extract population data TIF."
     input: rules.raw_population_zipped.output
-    output: temp("build/JRC_1K_POP_2018.tif")
+    output: "build/population.tif"
     conda: "../euro-calliope/envs/shell.yaml"
     shell: "unzip {input} '*.tif' -d ./build/"
 
