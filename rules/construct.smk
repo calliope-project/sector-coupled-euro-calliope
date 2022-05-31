@@ -154,8 +154,8 @@ rule annual_waste_supply:
     message: "Calculate the energy content of waste available in each {wildcards.resolution} region for incineration and energy recovery"
     input:
         energy_balance = rules.annual_energy_balances.output[0],
-        population = landeligibility("build/{resolution}/population.csv"),
-        units = landeligibility("build/{resolution}/units.geojson"),
+        population = eurocalliope("build/data/{resolution}/population.csv"),
+        units = eurocalliope("build/data/{resolution}/units.geojson"),
     conda: "../envs/geodata.yaml"
     output:
         renewable = "build/{resolution}/annual_renewable_waste_supply.csv",
@@ -194,8 +194,8 @@ rule annual_subnational_demand:
     message: "Scale {wildcards.projection_year} national demand to {wildcards.resolution} resolution"
     input:
         src = "src/construct/annual_subnational_demand.py",
-        population = landeligibility("build/{resolution}/population.csv"),
-        units = landeligibility("build/{resolution}/units.geojson"),
+        population = eurocalliope("build/data/{resolution}/population.csv"),
+        units = eurocalliope("build/data/{resolution}/units.geojson"),
         annual_heat_demand = rules.annual_heat_demand.output.demand,
         annual_heat_electricity_consumption = rules.annual_heat_demand.output.electricity,
         industry_demand = rules.annual_industry_demand.output.new_demand,
@@ -212,7 +212,7 @@ rule annual_subnational_demand:
         employees = "data/automatic/eurostat-employees.tsv.gz",
         gva = "data/automatic/eurostat-gva.tsv.gz",
         ch_gva = "data/automatic/ch-gva.xlsx",
-        nuts_to_regions = "data/nuts_to_regions.csv",
+        nuts_to_regions = "data/statistical_units_to_ehighways_regions.csv",
         industry_activity_codes = "data/industry/industry_activity_codes.csv",
         demand_scales = config["data-sources"]["annual-demand-scale"] if config["scale-demands"] else []
     conda: "../envs/geodata.yaml"
@@ -229,18 +229,35 @@ rule regions:
     message: "Get country codes corresponding to each {wildcards.resolution} region"
     input:
         src = "src/construct/regions.py",
-        units = landeligibility("build/{resolution}/units.geojson")
+        units = eurocalliope("build/data/{resolution}/units.geojson")
     conda: "../envs/geodata.yaml"
     output: "build/{resolution}/regions.csv"
     script: "../src/construct/regions.py"
+
+
+rule raw_population_zipped:
+    message: "Download population data."
+    output:
+        protected("data/automatic/raw-population-data.zip")
+    params: url = config["data-sources"]["population"]
+    conda: "../euro-calliope/envs/shell.yaml"
+    shell: "curl -sLo {output} '{params.url}'"
+
+
+rule raw_population:
+    message: "Extract population data TIF."
+    input: rules.raw_population_zipped.output
+    output: "build/population.tif"
+    conda: "../euro-calliope/envs/shell.yaml"
+    shell: "unzip {input} '*.tif' -d ./build/"
 
 
 rule weather_and_population:
     message: "Determine weather conditions and population within each {wildcards.resolution} region, at a MERRA-2 gridcell resolution"
     input:
         src = "src/construct/weather.py",
-        population = landeligibility("build/population-europe.tif"),
-        units = landeligibility("build/{resolution}/units.geojson"),
+        population = rules.raw_population.output[0],
+        units = eurocalliope("build/data/{resolution}/units.geojson"),
         air_temp = "data/automatic/weather/temperature.nc",
         wind_10m = "data/automatic/weather/wind10m.nc",
         soil_temp = "data/automatic/weather/tsoil5.nc",
@@ -282,7 +299,7 @@ rule regional_dwelling_ratio:
         src = "src/construct/dwellings.py",
         regions = rules.regions.output[0],
         dwellings = "data/automatic/eurostat-dwellings.tsv.gz",
-        nuts_to_regions = "data/nuts_to_regions.csv",
+        nuts_to_regions = "data/statistical_units_to_ehighways_regions.csv",
     conda: "../envs/geodata.yaml"
     output: "build/{resolution}/dwellings.csv"
     script: "../src/construct/dwellings.py"
@@ -449,7 +466,7 @@ rule gas_storage:
     input:
         src = "src/construct/gas_storage.py",
         gas_storage_data = rules.gas_storage_xlsx.output[0],
-        units = landeligibility("build/{resolution}/units.geojson"),
+        units = eurocalliope("build/data/{resolution}/units.geojson"),
     output:
         table = "build/{resolution}/gas_storage.csv",
         yaml = "build/model/{resolution}/gas_storage.yaml"
@@ -560,7 +577,7 @@ rule coal_supply_yaml:
     input:
         src = "src/construct/template_coal_supply.py",
         power_plants = eurocalliope("data/automatic/JRC_OPEN_UNITS.csv"),
-        units = landeligibility("build/{resolution}/units.geojson"),
+        units = eurocalliope("build/data/{resolution}/units.geojson"),
     params:
         scaling_factors = config["scaling-factors"],
     conda: "../envs/geodata.yaml"

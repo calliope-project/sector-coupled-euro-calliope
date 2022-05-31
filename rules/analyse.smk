@@ -11,7 +11,7 @@ rule maps:
     input:
         src = "src/analyse/plot_transmission_map.py",
         model = "build/{resolution}/inputs/run_2018_2H_neutral.nc",
-        units = landeligibility("build/{resolution}/units.geojson")
+        units = eurocalliope("build/data/{resolution}/units.geojson")
     params:
         bounds = config["scope"]["spatial"]["bounds"]
     output: "build/figures/{resolution}/map.{plot_suffix}"
@@ -30,10 +30,10 @@ rule simplified_nuts_units:
 
 
 rule figure_1:
-    message: "Plotting first paper figure based on ehighways regions"
+    message: "Plotting first paper figure based on e-Highways2050 regions"
     input:
         src = "src/analyse/plot_annual_energy_demand.py",
-        units = landeligibility("build/ehighways/units.geojson"),
+        units = eurocalliope("build/data/ehighways/units.geojson"),
         annual_demand = "build/ehighways/annual-demand.csv",
         electricity_demand = "build/model/ehighways/electricity-demand.csv",
         current_electricity_demand = eurocalliope("build/model/ehighways/electricity-demand.csv"),
@@ -50,7 +50,7 @@ rule figure_1:
 
 
 rule figure_2:
-    message: "Plotting second paper figure based on ehighways regions, shared scenario SPORES results"
+    message: "Plotting second paper figure based on e-Highways2050 regions, shared scenario SPORES results"
     input:
         src = "src/analyse/plot_gross_available_energy.py",
         energy_balances = "build/annual_energy_balances.csv",
@@ -152,7 +152,7 @@ rule plot_map_metrics:
     input:
         src = "src/analyse/plot_spores_map_metrics.py",
         friendly_data = "build/ehighways/shared_spores_metrics",
-        units = landeligibility("build/ehighways/units.geojson"),
+        units = eurocalliope("build/data/ehighways/units.geojson"),
         unit_groups = "data/plotting_unit_groups.csv",
     conda: "../envs/analyse.yaml"
     output: "build/figures/map_fig/{spore}.jpg"

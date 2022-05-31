@@ -1,17 +1,9 @@
 data-sources:
-    biofuel-potentials: data/biofuels/potentials/{feedstock}.csv
-    biofuel-costs: data/biofuels/costs/{feedstock}.csv
-    eez: data/World_EEZ_v10_20180221/eez_v10.shp
-    irena-generation: data/irena/hydro-generation-europe.csv
-    national-phs-storage-capacities: data/pumped-hydro/storage-capacities-gwh.csv
     capacity-factors: https://zenodo.org/record/6559895/files/{filename}?download=1
-    gadm: https://biogeo.ucdavis.edu/data/gadm3.6/gpkg/gadm36_{country_code}_gpkg.zip
-    hydro-basins: https://www.dropbox.com/sh/hmpwobbz9qixxpe/AADeU9iCgMd3ZO1KgrFmfWu6a/HydroBASINS/standard/eu/hybas_eu_lev07_v1c.zip?dl=1
-    hydro-stations: https://zenodo.org/record/4289229/files/energy-modelling-toolkit/hydro-power-database-v7.zip?download=1
-    load: https://data.open-power-system-data.org/time_series/2019-06-05/time_series_60min_stacked.csv
-    nuts: https://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/NUTS_2013_01M_SH.zip
-    potentials: https://zenodo.org/record/3533038/files/possibility-for-electricity-autarky.zip
-    jrc-ppdb: https://zenodo.org/record/3574566/files/JRC-PPDB-OPEN.ver1.0.zip
+    nuts: https://ec.europa.eu/eurostat/cache/GISCO/distribution/v2/nuts/geojson/NUTS_RG_01M_{nuts_year}_4326.geojson
+    potentials: https://sandbox.zenodo.org/record/1067897/files/raw-potentials.zip?download=1
+    statistical_units_to_custom_regions:
+        ehighways: ../data/statistical_units_to_ehighways_regions.csv
 root-directory: .
 cluster-sync:
     url: euler.ethz.ch
@@ -29,27 +21,8 @@ scaling-factors:
     co2: 0.0001  # from t to 10 kt
     co2_cost:  0.000001  # from t to Mt
 capacity-factors:
-    min: 0.001
-    max: 10
-    average:
-        pv: 0.139 # median of average 2016 open-field factors for ~2700 points in Europe
-        onshore: 0.3021 # median of average 2016 factors for ~2700 points in Europe
-        offshore: 0.4223 # median of average 2016 factors for ~2800 points in Europe
-        ror: 0.536781 # median of average 2016 factors for 1889 hydro stations in Europe
     trim-ninja-timeseries: True
-crs: "EPSG:4326"
 parameters:
-    maximum-installable-power-density:
-        pv-on-tilted-roofs: 160 # from [@Gagnon:2016][@Klauser:2016], i.e. 16% efficiency
-        pv-on-flat-areas: 80 # from [@Gagnon:2016][@Klauser:2016][@Wirth:2017]
-        onshore-wind: 8 # from [@EuropeanEnvironmentAgency:2009]
-        offshore-wind: 15 # from [@EuropeanEnvironmentAgency:2009]
-    roof-share: # from [@Trondle:2019]
-        E: 0.1660
-        N: 0.1817
-        S: 0.1821
-        W: 0.1681
-        flat: 0.3020
     jrc-biofuel: #from [#Ruiz Castello et al:2015]
         scenario: "medium"
         potential-year: "2030"
@@ -105,18 +78,6 @@ parameters:
         heat_pump_ratio:  # see https://www.ehpa.org/fileadmin/red/07._Market_Data/2018/2018-05-06_Heat_Pumps_in_Europe_2019.pdf and https://www.ehpa.org/fileadmin/red/07._Market_Data/Heat_Pumps_in_Europe_2017.pdf
             ashp: 0.91
             gshp: 0.09
-quality-control:
-    load:
-        acceptable-load-data-gap-hours: 48
-        outlier-data-thresholds:
-            relative-to-mean-min: 0.25
-            relative-to-mean-max: 2
-            percentage-deviation-post-cleaning-max: 10
-        entsoe-data-priority:
-            - actual_entsoe_transparency
-            - actual_entsoe_power_statistics
-    hydro:
-        scale-phs-according-to-geth-et-al: false
 
 sea-connections:
     continental: []
@@ -252,3 +213,46 @@ scope:
             x_max: 37  # in degrees east
             y_min: 30  # in degrees north
             y_max: 75  # in degrees north
+shapes:
+    ehighways_disaggregated:
+        Austria: nuts3
+        Belgium: nuts0
+        Bulgaria: nuts0
+        Croatia: nuts0
+        Cyprus: nuts0
+        Czech Republic: nuts3
+        Denmark: nuts3
+        Estonia: nuts0
+        Finland: nuts3
+        France: nuts3
+        Germany: nuts3
+        Greece: nuts3
+        Hungary: nuts0
+        Ireland: nuts0
+        Italy: nuts3
+        Latvia: nuts0
+        Lithuania: nuts0
+        Luxembourg: nuts0
+        Netherlands: nuts0
+        Poland: nuts3
+        Portugal: nuts3
+        Romania: nuts3
+        Slovakia: nuts0
+        Slovenia: nuts0
+        Spain: nuts3
+        Sweden: nuts3
+        United Kingdom: nuts3
+        Albania: gadm0
+        Bosnia and Herzegovina: gadm0
+        North Macedonia: gadm0
+        Montenegro: gadm0
+        Norway: nuts3
+        Serbia: gadm0
+        Switzerland: nuts3
+        Iceland: nuts0
+    continental:
+        Iceland: nuts0
+    national:
+        Iceland: nuts0
+    regional:
+        Iceland: gadm1

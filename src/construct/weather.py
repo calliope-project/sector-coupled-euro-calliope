@@ -73,9 +73,8 @@ def _map_pop_to_weather(population, coords, units):
         units['population'] = [i['sum'] for i in pop_eu]
 
     # confirm that the total population is valid (i.e. we haven't picked up or lost regions)
-    assert math.isclose(
-        units.population.sum(), polys_eu.population.sum(), abs_tol=10**3
-    )
+
+    assert math.isclose(units.population.sum(), polys_eu.population.sum(), rel_tol=10**-5)
 
     return polys_eu.set_index('site').drop(columns=['name', 'type', 'proper'], errors='ignore')
 

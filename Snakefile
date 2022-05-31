@@ -9,12 +9,6 @@ subworkflow eurocalliope:
     snakefile: "./euro-calliope/Snakefile"
     configfile: euro_calliope_config
 
-subworkflow landeligibility:
-    workdir: "./land-eligibility/"
-    snakefile: "./land-eligibility/Snakefile"
-    configfile: "./land-eligibility/config/default.yaml"
-
-
 include: "rules/construct.smk"
 include: "rules/analyse.smk"
 include: "rules/sync.smk"
