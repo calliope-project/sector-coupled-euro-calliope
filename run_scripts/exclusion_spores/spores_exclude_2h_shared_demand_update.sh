@@ -8,8 +8,8 @@
 
 DIR="/cluster/work/cpesm/brynmorp/sentinel-free-model-runs/2050"
 
-mkdir -p  "${DIR}/build/logs/spores_exclude_shared_demand_update"  "${DIR}/build/eurospores/spores_2h_demand_update/16-industry_fuel_shared,spores_supply"
+mkdir -p  "${DIR}/build/logs/spores_exclude_shared_demand_update"  "${DIR}/build/ehighways/spores_2h_demand_update/16-industry_fuel_shared,spores_supply"
 
 cd $TMPDIR
 
-sh "${DIR}/run_scripts/spores_exclude_demand_update_jobs.sh" ${LSB_JOBINDEX} "${DIR}/build/eurospores/spores_2h_demand_update/16-industry_fuel_shared,spores_supply/" "${DIR}/run_scripts" 0.1 "${DIR}/build/eurospores/spores_2h/16-industry_fuel_shared,spores_supply/spore_0.nc" "${DIR}/build/eurospores/demand_update.nc"
+sh "${DIR}/run_scripts/spores_exclude_demand_update_jobs.sh" ${LSB_JOBINDEX} "${DIR}/build/ehighways/spores_2h_demand_update/16-industry_fuel_shared,spores_supply/" "${DIR}/run_scripts" 0.1 "${DIR}/build/ehighways/spores_2h/16-industry_fuel_shared,spores_supply/spore_0.nc" "${DIR}/build/ehighways/demand_update.nc"

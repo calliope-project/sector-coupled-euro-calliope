@@ -3,7 +3,7 @@
 This snakemake workflow builds upon Euro-Calliope v1.0 with the following:
 
 1. Representation of transport, heat, and industry sectors. These sectors lead to the addition of unique carriers and technologies, and associated myriad of input datasets.
-2. Bespoke clustering of NUTS3 regions to create an intermediate resolution model of Europe, consisting of 98 regions.
+2. Bespoke clustering of NUTS3 regions to create an intermediate resolution model of Europe, consisting of 98 regions (`ehighways`, based on the output of the European project "e-Highways2050").
 3. Inclusion of Iceland in the energy system model.
 4. Use of grid transfer capacities (GTCs) from the E-Highways 2050 Euroepan project to place limits on line capacity between regions.
 5. Inclusion of proposed/planned new AC and DC lines connecting regions, according to ENTSOE.
@@ -33,7 +33,7 @@ There is no need to include capacity factor data in the `./land-eligibility` wor
 5. Build the Calliope model definition by runnning the workflow from the top level (same place as this file can be found): `snakemake --use-conda --cores 1` (You can change the number of cores, or run using the cluster profile by adding the argument `--profile config/euler`).
 If you need to rebuild something from a subworkflow, then you should `cd` into the relevant directory and run snakemake from there: `cd ./land-eligibility` + `snakemake --use-conda --cores 1 [path/to/file]`; `snakemake --configfile ../config/euro-calliope-2050.yaml --use-conda --cores 1 [path/to/file]`.
 6. Optimise the built model. This can be done in one of two ways:
-    1. use snakemake directly (e.g. `snakemake --use-conda --profile config/euler "build/eurospores/outputs/run_2018_2H_neutral.nc"`)
+    1. use snakemake directly (e.g. `snakemake --use-conda --profile config/euler "build/ehighways/outputs/run_2018_2H_neutral.nc"`)
     2. use separate run scripts found in the directory `run_scripts`. These scripts are decoupled from the workflow since they can take a very long time to run and can clash with snakemake's file watching processes. The run scripts are suitable for use on a high performance computer using the LSF software.
 
 

@@ -12,4 +12,4 @@ mkdir -p  "${DIR}/build/logs/spores_exclude_shared_5slack"
 
 cd $TMPDIR
 
-sh "${DIR}/run_scripts/spores_exclude_jobs.sh" ${LSB_JOBINDEX} "${DIR}/build/eurospores/spores_2h_5slack/16-industry_fuel_shared,spores_supply/" "${DIR}/run_scripts" 0.05
+sh "${DIR}/run_scripts/spores_exclude_jobs.sh" ${LSB_JOBINDEX} "${DIR}/build/ehighways/spores_2h_5slack/16-industry_fuel_shared,spores_supply/" "${DIR}/run_scripts" 0.05

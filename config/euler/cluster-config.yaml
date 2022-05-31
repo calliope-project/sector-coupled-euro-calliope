@@ -67,6 +67,7 @@ capacity_factors_offshore:
     runtime: 30
 capacity_factors_onshore_wind_and_solar:
     runtime: 30
+    memory: 30000
 download_runoff_data:
     runtime: 240
 protected_areas_in_europe:

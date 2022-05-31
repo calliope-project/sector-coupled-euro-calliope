@@ -11,6 +11,6 @@ DIR="/cluster/work/cpesm/brynmorp/sentinel-free-model-runs/2050"
 
 declare -a array=("industry_fuel_isolated,spores_electricity" "industry_fuel_shared,spores_electricity" "industry_fuel_isolated,spores_storage" "industry_fuel_shared,spores_storage" "industry_fuel_isolated,spores_transmission" "industry_fuel_shared,spores_transmission" "industry_fuel_isolated,spores_fuel" "industry_fuel_shared,spores_fuel" "industry_fuel_isolated,spores_transport" "industry_fuel_shared,spores_transport" "industry_fuel_isolated,spores_heat" "industry_fuel_shared,spores_heat" "industry_fuel_isolated,spores_all" "industry_fuel_shared,spores_all"  "industry_fuel_isolated,spores_supply" "industry_fuel_shared,spores_supply")
 
-mkdir -p "${DIR}/build/eurospores/spores_2h_5slack" "${DIR}/build/logs/spores_continue_2h_5slack"
+mkdir -p "${DIR}/build/ehighways/spores_2h_5slack" "${DIR}/build/logs/spores_continue_2h_5slack"
 
-python "${DIR}/run_scripts/continue_spores.py" "${DIR}/build/eurospores/spores_2h_5slack/${LSB_JOBINDEX}-${array[${LSB_JOBINDEX}-1]}/" --slack 0.05
+python "${DIR}/run_scripts/continue_spores.py" "${DIR}/build/ehighways/spores_2h_5slack/${LSB_JOBINDEX}-${array[${LSB_JOBINDEX}-1]}/" --slack 0.05
