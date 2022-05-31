@@ -52,10 +52,10 @@ parameters:
         flat: 0.3020
     jrc-biofuel: #from [#Ruiz Castello et al:2015]
         scenario: "medium"
-        potential-year: "2030"
-        cost-year: "2030"
+        potential-year: "2040"
+        cost-year: "2050"
     biofuel-efficiency: 0.45
-    nuclear-capacity-year: 2030
+    nuclear-capacity-year: 2050
     eligible-area: technical-potential
     transport:
         efficiency:  # MWh / mio km 25th percentile efficiency of all countries in 2015 [JRC_IDEES]

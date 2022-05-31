@@ -12,8 +12,8 @@ When these jobs have reached their time limit, you can then run each of the `spo
 In the case of `spores_continue_2h_5slack` and `spores_continue_2h_15slack` (which are cost relaxation sensitivity runs), the cost-optimal solution which is dropped out early on from running `spores_2h.sh` will be used as the starting point.
 
 2. `exclusion_spores`: To queue the exclusion SPORES runs for the Sector-Coupled Euro-Calliope, in which spatial diversity of electricity supply technologies is sought after which explicitly trying to minimise the existence of specific technologies.
-You should queue these runs only after running `spores_2h.sh` (and producing the relevant cost-optimal model file `./build/eurospores/spores_2h/16-industry_fuel_shared,spores_supply/spore_0.nc`).
+You should queue these runs only after running `spores_2h.sh` (and producing the relevant cost-optimal model file `./build/ehighways/spores_2h/16-industry_fuel_shared,spores_supply/spore_0.nc`).
 The `demand_update` scripts are related to sensitivity runs with updated demands.
-They expect the existence of the file `${DIR}/build/eurospores/spores_2h_demand_update/16-industry_fuel_shared,spores_supply/spore_0.nc`, which you will need to prepare separately, by running the workflow elsewhere with relevant configuration flags to use demand scaling and then building and running the cost-optimal model before feeding it back in.
+They expect the existence of the file `${DIR}/build/ehighways/spores_2h_demand_update/16-industry_fuel_shared,spores_supply/spore_0.nc`, which you will need to prepare separately, by running the workflow elsewhere with relevant configuration flags to use demand scaling and then building and running the cost-optimal model before feeding it back in.
 
 3. `test_runs`: To run parameterisation tests for model temporal resolution, transmission capacity upper limits, and setting the value of the Gurobi solver paramter BarConvTol.

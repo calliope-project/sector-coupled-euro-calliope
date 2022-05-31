@@ -22,22 +22,22 @@ include: "rules/run.smk"
 
 localrules: all, clean
 onstart:
-    shell("mkdir -p build/logs build/eurospores build/national build/model")
+    shell("mkdir -p build/logs build/ehighways build/national build/model")
 
 onsuccess:
     if "email" in config.keys():
-        shell("echo "" | mail -s 'eurospores succeeded' {config[email]}")
+        shell("echo "" | mail -s 'sector-coupled euro-calliope succeeded' {config[email]}")
 onerror:
     if "email" in config.keys():
-        shell("echo "" | mail -s 'eurospores crashed' {config[email]}")
+        shell("echo "" | mail -s 'sector-coupled euro-calliope crashed' {config[email]}")
 wildcard_constraints:
-    resolution = "((national)|(eurospores))", # supported spatial resolutions
+    resolution = "((national)|(ehighways))", # supported spatial resolutions
 
 
 rule all:
-    message: "Prepare EuroSPORES model runs."
+    message: "Prepare sector-coupled Euro-Calliope model runs at e-highways and national spatial resolution."
     input:
-        "build/figures/eurospores/map.pdf",
+        "build/figures/ehighways/map.pdf",
         f"build/pre-built-model-{date.today()}.zip"
 
 
@@ -46,7 +46,7 @@ rule generate_pre_builds:
     input:
         expand(
             "build/model/{resolution}/model-{year}.yaml",
-            resolution=["national", "eurospores"], year=[i for i in range(2010, 2019)]
+            resolution=["national", "ehighways"], year=[i for i in range(2010, 2019)]
         )
     output: "build/pre-built-model-{date}.zip"
     shell:

@@ -358,7 +358,7 @@ def industry_subsector_regional_intensity(
         .values
     )
 
-    # Get contribution of eurospores regions to national industry activity in each subsector
+    # Get contribution of ehighways regions to national industry activity in each subsector
     # We do this by going from NUTS2 employment data to NUTS3 by using freight in each subregion
     # Then going from NUTS3 up to Euro-Calliope regions
     # Where no employment data is available at any spatial resolution (e.g. in Switzerland), freight data is used directly

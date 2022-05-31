@@ -174,7 +174,7 @@ sea-connections:
         - [GBR.3_1, ISL.1_1]
         - [GRC.1_1, CYP.5_1] # Aegean and Paphos
         - [CYP.1_1, CYP.2_1] # Famagusta and Larnaca
-    eurospores:
+    ehighways:
         - [ITA_3, ITA_6]
         - [ITA_6, FRA_15]
         - [ITA_2, FRA_15]

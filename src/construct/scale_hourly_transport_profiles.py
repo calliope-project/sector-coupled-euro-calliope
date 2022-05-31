@@ -7,7 +7,7 @@ def get_transport_profiles(
 ):
     """
     Take DeStInEe rail profiles for weekday, saturday, and sunday and create rail demand
-    profiles for all eurospores regions, based on specific year and country timezone.
+    profiles for all ehighways regions, based on specific year and country timezone.
     We assume that these profiles are valid for rail and electric buses(?).
     """
     annual_demand_df = (
