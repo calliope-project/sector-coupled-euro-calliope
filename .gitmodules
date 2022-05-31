@@ -1,7 +1,3 @@
-[submodule "land-eligibility"]
-	path = land-eligibility
-	url = https://github.com/brynpickering/possibility-for-electricity-autarky.git
-	branch = custom-regions
 [submodule "euro-calliope"]
 	path = euro-calliope
 	url = https://github.com/brynpickering/euro-calliope.git

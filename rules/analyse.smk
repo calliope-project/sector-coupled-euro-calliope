@@ -11,7 +11,7 @@ rule maps:
     input:
         src = "src/analyse/plot_transmission_map.py",
         model = "build/{resolution}/inputs/run_2018_2H_neutral.nc",
-        units = landeligibility("build/{resolution}/units.geojson")
+        units = eurocalliope("build/data/{resolution}/units.geojson")
     params:
         bounds = config["scope"]["spatial"]["bounds"]
     output: "build/figures/{resolution}/map.{plot_suffix}"
@@ -30,16 +30,16 @@ rule simplified_nuts_units:
 
 
 rule figure_1:
-    message: "Plotting first paper figure based on eurospores regions"
+    message: "Plotting first paper figure based on e-Highways2050 regions"
     input:
         src = "src/analyse/plot_annual_energy_demand.py",
-        units = landeligibility("build/eurospores/units.geojson"),
-        annual_demand = "build/eurospores/annual-demand.csv",
-        electricity_demand = "build/model/eurospores/electricity-demand.csv",
-        current_electricity_demand = eurocalliope("build/model/eurospores/electricity-demand.csv"),
-        space_heat_demand = "build/model/eurospores/space-heat-demand.csv",
-        water_heat_demand = "build/model/eurospores/water-heat-demand.csv",
-        cooking_demand = "build/model/eurospores/cooking-demand.csv",
+        units = eurocalliope("build/data/ehighways/units.geojson"),
+        annual_demand = "build/ehighways/annual-demand.csv",
+        electricity_demand = "build/model/ehighways/electricity-demand.csv",
+        current_electricity_demand = eurocalliope("build/model/ehighways/electricity-demand.csv"),
+        space_heat_demand = "build/model/ehighways/space-heat-demand.csv",
+        water_heat_demand = "build/model/ehighways/water-heat-demand.csv",
+        cooking_demand = "build/model/ehighways/cooking-demand.csv",
     params:
         transport_efficiency = config["parameters"]["transport"]["efficiency"],
         energy_scaling_factor = config["scaling-factors"]["energy"],
@@ -50,11 +50,11 @@ rule figure_1:
 
 
 rule figure_2:
-    message: "Plotting second paper figure based on eurospores regions, shared scenario SPORES results"
+    message: "Plotting second paper figure based on e-Highways2050 regions, shared scenario SPORES results"
     input:
         src = "src/analyse/plot_gross_available_energy.py",
         energy_balances = "build/annual_energy_balances.csv",
-        spores = "build/eurospores/shared_spores_metrics",
+        spores = "build/ehighways/shared_spores_metrics",
     params:
         countries = config["scope"]["spatial"]["countries"],
         model_year = config["plot-year"]
@@ -151,8 +151,8 @@ rule plot_map_metrics:
     message: "Plot {wildcards.spore} map metrics for interactive visualisation"
     input:
         src = "src/analyse/plot_spores_map_metrics.py",
-        friendly_data = "build/eurospores/shared_spores_metrics",
-        units = landeligibility("build/eurospores/units.geojson"),
+        friendly_data = "build/ehighways/shared_spores_metrics",
+        units = eurocalliope("build/data/ehighways/units.geojson"),
         unit_groups = "data/plotting_unit_groups.csv",
     conda: "../envs/analyse.yaml"
     output: "build/figures/map_fig/{spore}.jpg"

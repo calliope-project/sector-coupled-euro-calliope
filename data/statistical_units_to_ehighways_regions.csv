@@ -1,4 +1,4 @@
-country_code,NUTS3_2006,NUTS3_2010,NUTS3_2013,NUTS3_2016,Source,id,Comment
+﻿country_code,NUTS3_2006,NUTS3_2010,NUTS3_2013,NUTS3_2016,Source,id,Comment
 AL,,,,,GADM,ALB_1,Lost from original spreasheet but we know it's just the country as a whole
 AT,AT124,AT124,AT124,AT124,NUTS3,AUT_3,
 AT,AT125,AT125,AT125,AT125,NUTS3,AUT_3,
