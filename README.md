@@ -22,7 +22,6 @@ This worflow currently relies on a custom version of the [euro-calliope](https:/
 To run the Sector-Coupled Euro-Calliope workflow, you need to undertake the following steps:
 
 1. Clone this repository, including the submodules: `git clone --recurse-submodules git@github.com:calliope-project/sector-coupled-euro-calliope.git`
-2. Populate the different subworkflow data directories with manual data.
 4. Install the base conda environment: `conda env create -f environment.yaml` + `conda activate sector-coupled-euro-calliope`.
 5. Build the Calliope model definition by runnning the workflow from the top level (same place as this file can be found): `snakemake --use-conda --cores 1` (You can change the number of cores, or run using the cluster profile by adding the argument `--profile config/euler`).
 If you need to rebuild something from the `euro-calliope` subworkflow, then you should `cd` into the directory and run snakemake from there: `snakemake --configfile ../config/euro-calliope-2050.yaml --use-conda --cores 1 [path/to/file]`.
@@ -59,7 +58,10 @@ Your best bet is to instead run for all countries and then exclude certain regio
 The file `statistical_units_to_ehighways_regions.csv` maps NUTS3 regions to user-defined Euro-Calliope regions.
 If you would like to update the grouping of regions, you can do so here.
 
-6. Running the exact workflow to produce results as in the accompanying publication.
+6. Warning about a protected file when rerunning the workflow.
+If you get a `ProtectedOutputException`, it probably means you need to update the timestamp of the file `euro-calliope/data/automatic/europe-cutout.nc` using `touch euro-calliope/data/automatic/europe-cutout.nc`.
+
+7. Running the exact workflow to produce results as in the accompanying publication.
 There have been many updates to the workflow since the version used to produce results in [DOI:10.1016/j.joule.2022.05.009](https://doi.org/10.1016/j.joule.2022.05.009).
 These updates rarely change the data, but rather the structure of the workflow and the method of running the Calliope models.
 The version of the workflow that was used can be found [here](https://github.com/calliope-project/sector-coupled-euro-calliope/tree/2021-11-29).

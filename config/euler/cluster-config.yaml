@@ -70,35 +70,3 @@ capacity_factors_onshore_wind_and_solar:
     memory: 30000
 download_runoff_data:
     runtime: 240
-protected_areas_in_europe:
-    runtime: 239
-    memory: 64000
-settlements:
-    cores: 4
-    runtime: 120
-shared_coast:
-    cores: 4
-    runtime: 60
-slope_in_europe:
-    cores: 4
-elevation_in_europe:
-    cores: 4
-eez_eligibility:
-    cores: 4
-shared_coast:
-    cores: 4
-sensitivities:
-    cores: 4
-capacityfactor_timeseries:
-    memory: 128000
-    runtime: 180
-time_average_capacityfactor_map:
-    memory: 32000
-national_boundaries:
-    runtime: 60
-administrative_borders_lau:
-    runtime: 60
-administrative_borders:
-    runtime: 60
-areas:
-    runtime: 60
