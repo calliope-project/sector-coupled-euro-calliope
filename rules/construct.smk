@@ -32,7 +32,7 @@ rule links:
     message: "Create links for {wildcards.resolution} resolution."
     input:
         src = "src/construct/template_links.py",
-        gtc = "data/transmission.csv"
+        gtc = config["data-sources"]["transmission"]
     params:
         scaling_factors = config["scaling-factors"],
         costs = config["parameters"]["transmission-costs"]

@@ -19,6 +19,7 @@ data-sources:
     ramp-data: "https://zenodo.org/record/6579421/files/ramp-{ramp_profile}-profiles.csv.gz?download=1"
     weather: "https://zenodo.org/record/6557643/files/{filename}?download=1"
     population: https://ec.europa.eu/eurostat/cache/GISCO/geodatafiles/JRC_GRID_2018.zip
+    transmission: "data/transmission.csv"
 
 scaling-factors:
     power: 0.00001 # from MW to 100 GW

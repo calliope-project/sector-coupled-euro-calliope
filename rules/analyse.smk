@@ -70,7 +70,7 @@ rule spores_result_metrics:
         input_model = "build/{resolution}/spores_2h{slack}/{spore_dir}/spore_0.nc",
         model_result = "build/{resolution}/spores_2h{slack}/{spore_dir}/{spore}.nc",
         annual_demand = "build/{resolution}/annual-demand.csv",
-        industry_demand = "build/annual_industry_energy_demand.csv.old",
+        industry_demand = "build/annual_industry_energy_demand_2050.csv",
         cfs = lambda wildcards: glob.glob(f"build/model/{wildcards.resolution}/capacityfactors-*.csv")
     params:
         initial_keywords = ["SPORES", "Subnational"],
@@ -91,7 +91,7 @@ rule cost_opt_result_metrics:
         model_result = "build/{resolution}/outputs/run_{year}_{model_resolution}H.nc",
         input_model = "build/{resolution}/inputs/run_{year}_{model_resolution}H.nc",
         annual_demand = "build/{resolution}/annual-demand.csv",
-        industry_demand = "build/annual_industry_energy_demand.csv.old",
+        industry_demand = "build/annual_industry_energy_demand_2050.csv",
         cfs = lambda wildcards: glob.glob(f"build/model/{wildcards.resolution}/capacityfactors-*.csv")
     params:
         initial_keywords = ["cost-optimal", "Subnational"],
