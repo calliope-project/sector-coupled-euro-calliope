@@ -2,6 +2,11 @@
 spores_2h_metrics/
 spores_2h_15slack_metrics/
 spores_2h_5slack_metrics/
+cost_opt/
 spores_2h_demand_update_metrics/
+model/
 *.log
 *.nc
+*.gz*
+national/
+*.lp

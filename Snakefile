@@ -65,11 +65,3 @@ rule clean_euro_calliope: # removes all generated results in the subworkflow
         rm -r ./euro-calliope/build/*
         echo "Data downloaded to euro-calliope/data/ has not been cleaned."
         """
-
-
-rule clean_land_eligibility: # removes all generated results in the subworkflow
-    shell:
-        """
-        rm -r ./land-eligibility/build/*
-        echo "Data downloaded to land-eligibility/data/ has not been cleaned."
-        """
