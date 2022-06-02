@@ -36,7 +36,7 @@ def get_scenario(base_scenario, projection_year, co2_scenario, add_link_cap=True
 rule build_eurocalliope:
     message: "Building Calliope {wildcards.resolution} model with {wildcards.model_resolution} hourly temporal resolution for the model year {wildcards.year} and with co2 `{wildcards.co2_scenario}` limit"
     input:
-        script = "src/run/create_input.py",
+        script = script_dir + "run/create_input.py",
         model_yaml_path = "build/model/{resolution}/model-{year}.yaml"
     params:
         scenario = lambda wildcards: get_scenario(
@@ -51,7 +51,7 @@ rule build_eurocalliope:
 rule run_eurocalliope:
     message: "Running Calliope {wildcards.resolution} model with {wildcards.model_resolution} hourly temporal resolution for the model year {wildcards.year} and with co2 `{wildcards.co2_scenario}` limit"
     input:
-        script = "src/run/run.py",
+        script = script_dir + "run/run.py",
         model = rules.build_eurocalliope.output[0]
     envmodules: "gurobi/9.1.1"
     output: "build/{resolution}/outputs/run_{year}_{model_resolution}H_{co2_scenario}.nc"

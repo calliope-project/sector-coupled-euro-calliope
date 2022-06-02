@@ -1,13 +1,18 @@
 from datetime import date
+import os
 
 configfile: "config/default.yaml"
-euro_calliope_config = f"./config/euro-calliope-{config['projection_year']}.yaml"
-configfile: euro_calliope_config
+configfile: f"config/{config['projection_year']}.yaml"
 
-subworkflow eurocalliope:
-    workdir: "./euro-calliope"
-    snakefile: "./euro-calliope/Snakefile"
-    configfile: euro_calliope_config
+module eurocalliope:
+    snakefile: config["euro-calliope-snakefile"]
+    config: config["euro-calliope"]
+
+use rule * from eurocalliope as ec_*
+
+root_dir = config["root-directory"] + "/" if config["root-directory"] not in ["", "."] else ""
+script_dir = f"{root_dir}src/"
+template_dir = f"{root_dir}src/template/"
 
 include: "rules/construct.smk"
 include: "rules/analyse.smk"
@@ -16,7 +21,7 @@ include: "rules/run.smk"
 
 localrules: all, clean
 onstart:
-    shell("mkdir -p build/logs build/ehighways build/national build/model")
+    shell("mkdir -p build/logs build/data/ehighways build/data/national build/model")
 
 onsuccess:
     if "email" in config.keys():

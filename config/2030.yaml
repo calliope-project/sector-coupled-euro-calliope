@@ -1,0 +1,7 @@
+euro-calliope:
+    parameters:
+        jrc-biofuel: #from [#Ruiz Castello et al:2015]
+            potential-year: "2030"
+            cost-year: "2030"
+        biofuel-efficiency: 0.45
+        nuclear-capacity-year: 2030

@@ -9,11 +9,11 @@ wildcard_constraints:
 rule maps:
     message: "Creating Calliope {wildcards.resolution} map"
     input:
-        src = "src/analyse/plot_transmission_map.py",
+        src = script_dir + "analyse/plot_transmission_map.py",
         model = "build/{resolution}/inputs/run_2018_2H_neutral.nc",
-        units = eurocalliope("build/data/{resolution}/units.geojson")
+        units = "build/data/{resolution}/units.geojson"
     params:
-        bounds = config["scope"]["spatial"]["bounds"]
+        bounds = config["euro-calliope"]["scope"]["spatial"]["bounds"]
     output: "build/figures/{resolution}/map.{plot_suffix}"
     conda: "../envs/analyse.yaml"
     script: "../src/analyse/plot_transmission_map.py"
@@ -32,31 +32,31 @@ rule simplified_nuts_units:
 rule figure_1:
     message: "Plotting first paper figure based on e-Highways2050 regions"
     input:
-        src = "src/analyse/plot_annual_energy_demand.py",
-        units = eurocalliope("build/data/ehighways/units.geojson"),
-        annual_demand = "build/ehighways/annual-demand.csv",
-        electricity_demand = "build/model/ehighways/electricity-demand.csv",
-        current_electricity_demand = eurocalliope("build/model/ehighways/electricity-demand.csv"),
-        space_heat_demand = "build/model/ehighways/space-heat-demand.csv",
-        water_heat_demand = "build/model/ehighways/water-heat-demand.csv",
-        cooking_demand = "build/model/ehighways/cooking-demand.csv",
+        src = script_dir + "analyse/plot_annual_energy_demand.py",
+        units = "build/data/{resolution}/units.geojson",
+        annual_demand = "build/{resolution}/annual-demand.csv",
+        electricity_demand = "build/model/{resolution}/electricity-demand.csv",
+        current_electricity_demand = rules.ec_electricity_load.output[0],
+        space_heat_demand = "build/model/{resolution}/space-heat-demand.csv",
+        water_heat_demand = "build/model/{resolution}/water-heat-demand.csv",
+        cooking_demand = "build/model/{resolution}/cooking-demand.csv",
     params:
         transport_efficiency = config["parameters"]["transport"]["efficiency"],
         energy_scaling_factor = config["scaling-factors"]["energy"],
         model_year = config["plot-year"]
     conda: "../envs/analyse.yaml"
-    output: "build/figures/fig_1.{plot_suffix}"
+    output: "build/figures/fig_1_{resolution}.{plot_suffix}"
     script: "../src/analyse/plot_annual_energy_demand.py"
 
 
 rule figure_2:
     message: "Plotting second paper figure based on e-Highways2050 regions, shared scenario SPORES results"
     input:
-        src = "src/analyse/plot_gross_available_energy.py",
+        src = script_dir + "analyse/plot_gross_available_energy.py",
         energy_balances = "build/annual_energy_balances.csv",
         spores = "build/ehighways/shared_spores_metrics",
     params:
-        countries = config["scope"]["spatial"]["countries"],
+        countries = config["euro-calliope"]["scope"]["spatial"]["countries"],
         model_year = config["plot-year"]
     conda: "../envs/analyse.yaml"
     output: "build/figures/fig_2.{plot_suffix}"
@@ -66,7 +66,7 @@ rule figure_2:
 rule spores_result_metrics:
     message: "Get {wildcards.resolution} {wildcards.spore_dir} slack{wildcards.slack} {wildcards.spore}.nc high-level metrics"
     input:
-        src = "src/analyse/result_to_friendly.py",
+        src = script_dir + "analyse/result_to_friendly.py",
         input_model = "build/{resolution}/spores_2h{slack}/{spore_dir}/spore_0.nc",
         model_result = "build/{resolution}/spores_2h{slack}/{spore_dir}/{spore}.nc",
         annual_demand = "build/{resolution}/annual-demand.csv",
@@ -87,7 +87,7 @@ rule spores_result_metrics:
 rule cost_opt_result_metrics:
     message: "Get {wildcards.resolution} {wildcards.model_resolution}H resolution cost optimal model high-level metrics for weather year {wildcards.year}"
     input:
-        src = "src/analyse/result_to_friendly.py",
+        src = script_dir + "analyse/result_to_friendly.py",
         model_result = "build/{resolution}/outputs/run_{year}_{model_resolution}H.nc",
         input_model = "build/{resolution}/inputs/run_{year}_{model_resolution}H.nc",
         annual_demand = "build/{resolution}/annual-demand.csv",
@@ -108,7 +108,7 @@ rule cost_opt_result_metrics:
 rule consolidate_spores_result_metrics:
     message: "Consolidate {wildcards.scenario} scenario, slack{wildcards.slack} {wildcards.resolution} SPORES into high-level metrics"
     input:
-        src = "src/analyse/consolidate_spores.py",
+        src = script_dir + "analyse/consolidate_spores.py",
         all_friendly_files = lambda wildcards: expand(
             f"build/{wildcards.resolution}/spores_2h{wildcards.slack}_metrics/{{spore}}",
             spore=[
@@ -131,11 +131,11 @@ rule consolidate_spores_result_metrics:
 rule consolidate_cost_opt_metrics:
     message: "Consolidate all years cost optimal {wildcards.resolution} {wildcards.model_resolution} results into high-level metrics"
     input:
-        src = "src/analyse/consolidate_cost_opt.py",
+        src = script_dir + "analyse/consolidate_cost_opt.py",
         all_friendly_files = expand(
             "build/{{resolution}}/cost_opt/{year}_{{model_resolution}}H",
-            year=range(config["scope"]["temporal"]["first-year"],
-            config["scope"]["temporal"]["final-year"] + 1)
+            year=range(config["euro-calliope"]["scope"]["temporal"]["first-year"],
+            config["euro-calliope"]["scope"]["temporal"]["final-year"] + 1)
         ),
     params:
         initial_keywords = ["cost-optmal", "Subnational"],
@@ -150,9 +150,9 @@ rule consolidate_cost_opt_metrics:
 rule plot_map_metrics:
     message: "Plot {wildcards.spore} map metrics for interactive visualisation"
     input:
-        src = "src/analyse/plot_spores_map_metrics.py",
+        src = script_dir + "analyse/plot_spores_map_metrics.py",
         friendly_data = "build/ehighways/shared_spores_metrics",
-        units = eurocalliope("build/data/ehighways/units.geojson"),
+        units = "build/data/ehighways/units.geojson",
         unit_groups = "data/plotting_unit_groups.csv",
     conda: "../envs/analyse.yaml"
     output: "build/figures/map_fig/{spore}.jpg"
