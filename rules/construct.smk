@@ -1,10 +1,14 @@
 localrules: model, eurostat_data_tsv, ch_data_xlsx, when2heat, download_weather_data, download_ramp_data
 
-ruleorder: model > links > copy_from_template
+ruleorder: model > links
 wildcard_constraints:
     definition_file = "[^\/]*", # must not traverse into directories
     year = "|".join([str(i) for i in range(2010, 2019)])
 
+
+module eurocalliope:
+    snakefile: "../" + config["euro-calliope-snakefile"]
+    config: config["euro-calliope"]
 
 rule links:
     message: "Create links for {wildcards.resolution} resolution."
@@ -456,21 +460,6 @@ rule gas_storage:
     script: "../src/construct/gas_storage.py"
 
 
-rule copy_from_template:
-    message: "copy {wildcards.template} template"
-    input:
-        src = script_dir + "construct/template_scenarios.py",
-        template = template_dir + "{template}"
-    output: "build/model/{template}"
-    params:
-        shares = [i / 10 for i in range(11)],
-        subset_time = config["calliope-parameters"]["model.subset_time"]
-    wildcard_constraints:
-        template = "config_overrides.yaml"
-    conda: "../envs/default.yaml"
-    script: "../src/construct/template_scenarios.py"
-
-
 rule fuel_cost_xlsx:
     message: "Download Heatroadmap fuel cost dataset"
     params: url = config["data-sources"]["fuel-costs"]
@@ -532,7 +521,7 @@ rule copy_2030_overrides:
         scaling_factors = config["scaling-factors"],
         heat = config["parameters"]["heat-end-use"],
     wildcard_constraints:
-        template = "((heat-techs.yaml)|(renewable-techs.yaml)|(storage-techs.yaml)|(transformation-techs.yaml))"
+        template = "heat-techs.yaml|renewable-techs.yaml|storage-techs.yaml|transformation-techs.yaml"
     conda: "../envs/default.yaml"
     output: "build/model/overrides-2030/{template}"
     script: "../src/construct/template_2030.py"
@@ -564,6 +553,14 @@ rule coal_supply_yaml:
     output: "build/model/{resolution}/coal_supply.yaml"
     script: "../src/construct/template_coal_supply.py"
 
+use rule parameterise_template from eurocalliope as sc_parameterise_template with:
+    input:
+        template = template_dir + "{template}",
+        biofuel_cost = "build/data/regional/biofuel/{scenario}/costs-eur-per-mwh.csv".format(
+            scenario=config["euro-calliope"]["parameters"]["jrc-biofuel"]["scenario"]
+        )
+    wildcard_constraints:
+        template = "config_overrides.yaml|multi-carrier-demand-techs.yaml"
 
 rule model:
     message: "Build entire model on resolution {wildcards.resolution} for model year {wildcards.year}."
@@ -572,7 +569,7 @@ rule model:
         "build/model/renewable-techs.yaml",
         "build/model/storage-techs.yaml",
         "build/model/heat-techs.yaml",
-        "build/model/demand-techs.yaml",
+        "build/model/multi-carrier-demand-techs.yaml",
         "build/model/transformation-techs.yaml",
         "build/model/transport-techs.yaml",
         "build/model/link-techs.yaml",

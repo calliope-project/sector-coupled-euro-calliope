@@ -169,7 +169,7 @@ euro-calliope:
         capacity-factors: https://zenodo.org/record/6559895/files/{filename}?download=1
         nuts: https://ec.europa.eu/eurostat/cache/GISCO/distribution/v2/nuts/geojson/NUTS_RG_01M_{nuts_year}_4326.geojson
         potentials: https://zenodo.org/record/6600619/files/raw-potentials.zip?download=1
-        statistical_units_to_custom_regions:
+        statistical-units-to-custom-regions:
             ehighways: data/statistical_units_to_ehighways_regions.csv
         nuclear-capacity: euro-calliope/data/nuclear_capacity_{}.csv
     root-directory: euro-calliope

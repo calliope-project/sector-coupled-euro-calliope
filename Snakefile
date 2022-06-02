@@ -4,15 +4,16 @@ import os
 configfile: "config/default.yaml"
 configfile: f"config/{config['projection_year']}.yaml"
 
+root_dir = config["root-directory"] + "/" if config["root-directory"] not in ["", "."] else ""
+script_dir = f"{root_dir}src/"
+template_dir = f"{root_dir}src/template/"
+
 module eurocalliope:
     snakefile: config["euro-calliope-snakefile"]
     config: config["euro-calliope"]
 
 use rule * from eurocalliope as ec_*
 
-root_dir = config["root-directory"] + "/" if config["root-directory"] not in ["", "."] else ""
-script_dir = f"{root_dir}src/"
-template_dir = f"{root_dir}src/template/"
 
 include: "rules/construct.smk"
 include: "rules/analyse.smk"
@@ -29,8 +30,6 @@ onsuccess:
 onerror:
     if "email" in config.keys():
         shell("echo "" | mail -s 'sector-coupled euro-calliope crashed' {config[email]}")
-wildcard_constraints:
-    resolution = "((national)|(ehighways))", # supported spatial resolutions
 
 
 rule all:
