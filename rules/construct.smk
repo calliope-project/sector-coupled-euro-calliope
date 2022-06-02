@@ -466,7 +466,7 @@ rule copy_from_template:
         shares = [i / 10 for i in range(11)],
         subset_time = config["calliope-parameters"]["model.subset_time"]
     wildcard_constraints:
-        template = "((spores.yaml)|(config_overrides.yaml))"
+        template = "config_overrides.yaml"
     conda: "../envs/default.yaml"
     script: "../src/construct/template_scenarios.py"
 
@@ -614,7 +614,6 @@ rule model:
             ],
         ),
         "build/model/config_overrides.yaml",
-        "build/model/spores.yaml",
         "build/model/overrides-2030/heat-techs.yaml",
         "build/model/overrides-2030/renewable-techs.yaml",
         "build/model/overrides-2030/storage-techs.yaml",

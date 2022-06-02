@@ -1,22 +1,6 @@
-
 wildcard_constraints:
     co2_scenario = "neutral|current"
 
-rule spores:
-    message: "Running Calliope {wildcards.resolution} resolution SPORES model"
-    input:
-        model_yaml_path = "build/model/{resolution}/model.yaml"
-    params:
-        scenario = "industry_fuel,transport,heat,config_overrides,gas_storage,link_cap_dynamic,spores_electricity",
-        threads = 6,
-        mins = 1440,
-        mem = "rusage[mem=90G]",
-    output:
-        model = "outputs/{resolution}/spores/electricity.nc",
-        logs = "logs/{resolution}/spores/electricity.log"
-    conda: "../envs/calliope.yaml"
-    shell:
-        "bsub -n {params.threads} -W {params.mins} -R {params.mem} -o {output.logs} 'calliope run --save_netcdf {output.model} --scenario {params.scenario} {input.model_yaml_path}'"
 
 def get_scenario(base_scenario, projection_year, co2_scenario, add_link_cap=True):
     if int(projection_year) == 2030:
@@ -43,7 +27,7 @@ rule build_eurocalliope:
             f"industry_fuel,transport,heat,config_overrides,gas_storage,freeze-hydro-capacities,res_{wildcards.model_resolution}h,add-biofuel,synfuel_transmission",
             config["projection_year"], wildcards.co2_scenario, add_link_cap=True
         )
-    output: "build/{resolution}/inputs/run_{year}_{model_resolution}H_{co2_scenario}.nc"
+    output: "build/inputs/{resolution}/run_{year}_{model_resolution}H_{co2_scenario}.nc"
     conda: "../envs/calliope.yaml"
     script: "../src/run/create_input.py"
 
@@ -54,6 +38,6 @@ rule run_eurocalliope:
         script = script_dir + "run/run.py",
         model = rules.build_eurocalliope.output[0]
     envmodules: "gurobi/9.1.1"
-    output: "build/{resolution}/outputs/run_{year}_{model_resolution}H_{co2_scenario}.nc"
+    output: "build/outputs/{resolution}/run_{year}_{model_resolution}H_{co2_scenario}.nc"
     conda: "../envs/calliope.yaml"
     script: "../src/run/run.py"
