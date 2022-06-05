@@ -233,7 +233,7 @@ rule raw_population:
     input: rules.raw_population_zipped.output
     output: "build/data/JRC_1K_POP_2018.tif"
     conda: "../euro-calliope/envs/shell.yaml"
-    shell: "unzip {input} '*.tif' -d ./build/"
+    shell: "unzip {input} '*.tif' -d ./build/data"
 
 
 rule weather_and_population:

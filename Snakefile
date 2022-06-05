@@ -14,13 +14,14 @@ module eurocalliope:
 
 use rule * from eurocalliope as ec_*
 
-
 include: "rules/construct.smk"
 include: "rules/analyse.smk"
 include: "rules/sync.smk"
 include: "rules/run.smk"
 
 localrules: all, clean
+localrules: ec_download_eez, ec_download_stations_database, ec_download_raw_nuts_units, ec_download_raw_load, ec_download_basins_database, ec_download_raw_gadm_administrative_borders, ec_download_potentials, ec_stations_database, ec_raw_gadm_administrative_borders, ec_basins_database, ec_download_capacity_factors_wind_and_solar
+
 onstart:
     shell("mkdir -p build/logs build/data/ehighways build/data/national build/model")
 

@@ -6,7 +6,7 @@ import:
     - '../heat-techs.yaml'
     - '../transformation-techs.yaml'
     - '../transport-techs.yaml'
-    - '../demand-techs.yaml'
+    - '../multi-carrier-demand-techs.yaml'
     - '../legacy-techs.yaml'
     - '../spores.yaml'
     - '../overrides-2030/renewable-techs.yaml'
