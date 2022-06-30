@@ -56,17 +56,19 @@ cost_opt_result_metrics:
 consolidate_cost_opt_metrics:
     memory: 60000
     runtime: 240
-inflow_m3:
+ec_inflow_m3:
     runtime: 100
-inflow_mwh:
+ec_inflow_mwh:
     runtime: 100
     memory: 40000
-capacity_factors_hydro:
+ec_capacity_factors_hydro:
     runtime: 100
-capacity_factors_offshore:
-    runtime: 30
-capacity_factors_onshore_wind_and_solar:
+    memory: 30000
+ec_capacity_factors_offshore:
     runtime: 30
     memory: 30000
-download_runoff_data:
+ec_capacity_factors_onshore_wind_and_solar:
+    runtime: 30
+    memory: 30000
+ec_download_runoff_data:
     runtime: 240
