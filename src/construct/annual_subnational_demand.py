@@ -146,7 +146,7 @@ def subnational_pop_weighted_demand(
     for df in [road_distance_df, road_bau_electricity_df, road_vehicles_df]:
         passenger_df = align_and_scale(
             df.rename(util.get_alpha3, level='country_code')
-            .drop(['Heavy duty vehicles', 'Light duty vehicles'], level=0),
+            .drop(['Heavy duty vehicles', 'Light duty vehicles'], level=0, errors="ignore"),
             population_intensity, units
         )
         passenger_df.index = passenger_df.index.set_names('end_use', level='vehicle_type')
